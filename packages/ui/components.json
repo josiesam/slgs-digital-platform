@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "nova",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/styles.css",
+    "baseColor": "neutral",
+    "cssVariables": true
+  },
+  "iconLibrary": "tabler",
+  "aliases": {
+    "components": "@slgs/ui/components",
+    "utils": "@slgs/ui/lib/cn",
+    "ui": "@slgs/ui/components",
+    "lib": "@slgs/ui/lib",
+    "hooks": "@slgs/ui/hooks"
+  }
+}

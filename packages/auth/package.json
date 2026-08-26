@@ -1,0 +1,23 @@
+{
+  "name": "@slgs/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@slgs/permissions": "workspace:*",
+    "@slgs/validation": "workspace:*",
+    "better-auth": "catalog:"
+  },
+  "devDependencies": {
+    "vitest": "catalog:"
+  }
+}

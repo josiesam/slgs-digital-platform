@@ -1,0 +1,16 @@
+node_modules/
+.turbo/
+dist/
+.output/
+.vinxi/
+coverage/
+*.tsbuildinfo
+
+.env
+.env.*
+!.env.example
+.dev.vars
+
+.DS_Store
+*.log
+

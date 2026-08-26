@@ -1,0 +1,12 @@
+.agents/
+.git/
+.output/
+.turbo/
+coverage/
+dist/
+node_modules/
+pnpm-lock.yaml
+**/routeTree.gen.ts
+**/AGENTS.md
+docs/
+SLGS-TECHNICAL-CONSTITUTION.md

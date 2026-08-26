@@ -23,10 +23,10 @@ Before implementing a feature, read the relevant files under `docs/`:
 - `docs/07-codex-workflow.md`
 - `docs/08-skills.md`
 - `docs/09-first-codex-tasks.md`
-- `docs/10-implementation-checklist.md`
+- `docs/10-decision-log.md`
 - `docs/11-codex-agent-routing.md`
-- `docs/12-implementation-notes.md`
-- `docs/13-implementation-summary.md`
+- `docs/12-initial-architecture-decisions.md`
+- `docs/13-first-agent-prompts.md`
 
 The original sitemap is preserved in `docs/source/site-map-mermaid.md`.
 The provided 2026 SaaS stack transcript is preserved in `docs/source/tech-stack-2026.md`.
