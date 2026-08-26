@@ -21,6 +21,12 @@ Before implementing a feature, read the relevant files under `docs/`:
 - `docs/05-architecture.md`
 - `docs/06-implementation-phases.md`
 - `docs/07-codex-workflow.md`
+- `docs/08-skills.md`
+- `docs/09-first-codex-tasks.md`
+- `docs/10-implementation-checklist.md`
+- `docs/11-codex-agent-routing.md`
+- `docs/12-implementation-notes.md`
+- `docs/13-implementation-summary.md`
 
 The original sitemap is preserved in `docs/source/site-map-mermaid.md`.
 The provided 2026 SaaS stack transcript is preserved in `docs/source/tech-stack-2026.md`.
@@ -82,6 +88,7 @@ Required principles:
 ### Public Web
 
 Read-only public content:
+
 - school information
 - admissions information
 - academics
@@ -95,6 +102,7 @@ Read-only public content:
 ### CMS
 
 Content operations only:
+
 - pages
 - articles
 - events
@@ -108,6 +116,7 @@ Content operations only:
 ### S.I.M.S.
 
 Administrative operations:
+
 - students
 - staff
 - classes
@@ -157,6 +166,7 @@ Avoid generic AI-dashboard visual patterns. Use the project's design system cons
 A feature is not complete merely because the UI renders.
 
 A feature is complete when:
+
 - requirements are satisfied;
 - authorization is enforced;
 - validation exists at relevant boundaries;
