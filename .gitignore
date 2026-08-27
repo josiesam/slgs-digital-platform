@@ -10,7 +10,10 @@ coverage/
 .env.*
 !.env.example
 .dev.vars
+.neon
 
 .DS_Store
 *.log
 
+
+bootstrap-command.txt

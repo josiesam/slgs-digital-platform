@@ -21,8 +21,14 @@ export const authEnvironmentSchema = z.object({
     .pipe(z.array(z.url()).min(1)),
 });
 
+export const resendEnvironmentSchema = z.object({
+  RESEND_API_KEY: z.string().min(1),
+  RESEND_FROM_EMAIL: z.email(),
+});
+
 export type AuthEnvironment = z.output<typeof authEnvironmentSchema>;
 export type DatabaseEnvironment = z.output<typeof databaseEnvironmentSchema>;
+export type ResendEnvironment = z.output<typeof resendEnvironmentSchema>;
 
 export function parseEnvironment<TSchema extends z.ZodType>(
   schema: TSchema,

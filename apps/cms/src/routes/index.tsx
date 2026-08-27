@@ -1,7 +1,18 @@
 import { PageShell } from "@slgs/ui";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/")({ component: CmsFoundationPage });
+import { getCurrentCmsIdentity } from "../access";
+
+export const Route = createFileRoute("/")({
+  beforeLoad: async () => {
+    try {
+      return await getCurrentCmsIdentity();
+    } catch {
+      throw redirect({ to: "/login" });
+    }
+  },
+  component: CmsFoundationPage,
+});
 
 function CmsFoundationPage() {
   return (
@@ -14,9 +25,8 @@ function CmsFoundationPage() {
           CMS foundation
         </h1>
         <p className="text-lg leading-8 text-muted-foreground">
-          Authentication and editorial workflows are intentionally unavailable
-          until their policies, schema, and server-side authorization are
-          implemented.
+          Identity and application-membership checks are active. Editorial
+          workflows remain outside Phase 1A.
         </p>
       </div>
     </PageShell>

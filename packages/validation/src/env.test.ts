@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { authEnvironmentSchema, databaseEnvironmentSchema } from "./env";
+import {
+  authEnvironmentSchema,
+  databaseEnvironmentSchema,
+  resendEnvironmentSchema,
+} from "./env";
 
 describe("environment validation", () => {
   it("rejects non-PostgreSQL database URLs", () => {
@@ -23,5 +27,21 @@ describe("environment validation", () => {
       "http://localhost:3001",
       "http://localhost:3002",
     ]);
+  });
+
+  it("requires a valid Resend sender address", () => {
+    expect(
+      resendEnvironmentSchema.safeParse({
+        RESEND_API_KEY: "synthetic-key",
+        RESEND_FROM_EMAIL: "not-an-email-address",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      resendEnvironmentSchema.safeParse({
+        RESEND_API_KEY: "synthetic-key",
+        RESEND_FROM_EMAIL: "identity@example.invalid",
+      }).success,
+    ).toBe(true);
   });
 });

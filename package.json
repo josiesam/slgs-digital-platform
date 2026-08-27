@@ -9,6 +9,7 @@
     "pnpm": ">=10 <11"
   },
   "scripts": {
+    "admin:bootstrap": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --import tsx packages/auth/src/bootstrap-cli.ts",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "format": "prettier --write .",
@@ -24,6 +25,7 @@
     "globals": "^16.0.0",
     "prettier": "^3.0.0",
     "turbo": "^2.0.0",
+    "tsx": "catalog:",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.0.0"
   }

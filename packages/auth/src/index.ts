@@ -35,3 +35,20 @@ export async function requireIdentity(
 // Better Auth is intentionally configured by a server-only application adapter
 // after the identity schema and production login policy are approved.
 export { betterAuth } from "better-auth";
+export { createSlgsAuth, type AuthEmailSender } from "./server";
+export { createApplicationSessionReader } from "./session-reader";
+export { createResendEmailSender } from "./resend-email";
+export {
+  addApprovedBootstrapDomain,
+  approveAdministratorBootstrap,
+  initiateAdministratorBootstrap,
+  listAdministratorBootstraps,
+  type BootstrapRole,
+} from "./bootstrap";
+export {
+  activateIdentity,
+  deactivateIdentity,
+  provisionPasswordIdentity,
+  suspendIdentity,
+} from "./lifecycle";
+export * from "./policy";

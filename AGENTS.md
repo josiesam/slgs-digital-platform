@@ -27,6 +27,9 @@ Before implementing a feature, read the relevant files under `docs/`:
 - `docs/11-codex-agent-routing.md`
 - `docs/12-initial-architecture-decisions.md`
 - `docs/13-first-agent-prompts.md`
+- `docs/14-phase-0-foundation.md`
+- `docs/15-identity-and-access-policy.md`
+- `docs/16-phase-1a-infrastructure.md`
 
 The original sitemap is preserved in `docs/source/site-map-mermaid.md`.
 The provided 2026 SaaS stack transcript is preserved in `docs/source/tech-stack-2026.md`.

@@ -106,3 +106,57 @@ Phase 0 may establish application shells, shared UI primitives, validated enviro
 
 Reason:
 The detailed business rules and fields remain unresolved. Creating those schemas during foundation work would silently turn assumptions into migrations.
+
+## ADR-012 — Better Auth owns authentication; SLGS owns authorization
+
+Status: Accepted
+
+Better Auth owns credentials, recovery tokens, sessions and optional TOTP. SLGS owns lifecycle, application memberships, roles, bootstrap and audit. Better Auth's global administrator role is not used.
+
+## ADR-013 — Individual identities and controlled provisioning
+
+Status: Accepted
+
+Public registration and shared accounts are prohibited. Each identity has a unique opaque person reference, evidence/account approval and an approved contact domain. Evidence and approvers remain `DECISION REQUIRED`.
+
+## ADR-014 — Absolute eight-hour sessions
+
+Status: Accepted
+
+Sessions expire after eight hours without sliding extension. Reset, suspension and deactivation revoke applicable sessions. Idle/concurrent limits remain `DECISION REQUIRED`.
+
+## ADR-015 — Optional TOTP foundation
+
+Status: Accepted for Phase 1A
+
+Better Auth TOTP and its schema are enabled, but enrollment is optional until mandatory roles and recovery policy are approved.
+
+## ADR-016 — Two-person privileged bootstrap
+
+Status: Accepted
+
+The first administrator for either private application requires two distinct approvers and an auditable outcome. Platform operation does not imply business access.
+
+## ADR-017 — S.I.M.S. System Administrator ceiling
+
+Status: Accepted
+
+At most five identities may hold an active S.I.M.S. System Administrator assignment. Transactional database enforcement is required before production.
+
+## ADR-018 — Security audit foundation
+
+Status: Accepted
+
+Security events are attributable and outcome-bearing. Credentials, recovery/session secrets, MFA secrets and backup codes are forbidden from audit metadata.
+
+## ADR-019 — Neon PostgreSQL provider
+
+Status: Accepted; environment verification pending
+
+Neon is the PostgreSQL provider for development/staging verification and the initial production baseline. Runtime applications use pooled, separately granted credentials; Drizzle migrations use a direct migration-only credential. Provider selection does not weaken schema, runtime-role or application isolation from ADR-009.
+
+## ADR-020 — Resend transactional identity email
+
+Status: Accepted; domain verification pending
+
+Resend delivers Better Auth password-recovery email through the shared `@slgs/auth` boundary. Missing configuration or provider failure fails closed. Recovery URLs, tokens and API keys must never be logged or audited. Production delivery requires an explicitly selected and verified sending domain.

@@ -1,7 +1,18 @@
 import { PageShell } from "@slgs/ui";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/")({ component: SimsFoundationPage });
+import { getCurrentSimsIdentity } from "../access";
+
+export const Route = createFileRoute("/")({
+  beforeLoad: async () => {
+    try {
+      return await getCurrentSimsIdentity();
+    } catch {
+      throw redirect({ to: "/login" });
+    }
+  },
+  component: SimsFoundationPage,
+});
 
 function SimsFoundationPage() {
   return (
@@ -14,8 +25,8 @@ function SimsFoundationPage() {
           S.I.M.S. foundation
         </h1>
         <p className="text-lg leading-8 text-muted-foreground">
-          Confidential school records are not part of Phase 0. All future routes
-          will require explicit server-side authentication and authorization.
+          Identity and S.I.M.S. membership checks are active. Confidential
+          school-record domains remain outside Phase 1A.
         </p>
       </div>
     </PageShell>

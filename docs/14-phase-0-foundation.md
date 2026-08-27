@@ -54,6 +54,8 @@ Shared packages are not a dumping ground. Business-domain packages are added onl
 
 Better Auth is the selected authentication library. Phase 0 establishes its package boundary and configuration contract, but production login methods, email delivery, MFA, recovery and initial administrator provisioning remain unresolved. Authentication must not be enabled with unsafe placeholder secrets.
 
+Phase 1A resolves and activates this boundary in `docs/15-identity-and-access-policy.md`. The preceding paragraph is retained as the historical Phase 0 state.
+
 ## Quality gates
 
 A Phase 0 change must pass:

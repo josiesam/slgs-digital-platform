@@ -3,6 +3,10 @@ import postgres from "postgres";
 
 import { databaseEnvironmentSchema } from "@slgs/validation";
 
+import * as schema from "./schema/identity";
+
+export * from "./schema/identity";
+
 export function createDatabase(
   environment: Record<string, string | undefined>,
 ) {
@@ -14,7 +18,7 @@ export function createDatabase(
 
   return {
     client,
-    db: drizzle(client),
+    db: drizzle(client, { schema }),
   };
 }
 

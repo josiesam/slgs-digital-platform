@@ -12,10 +12,12 @@
   },
   "dependencies": {
     "@slgs/auth": "workspace:*",
+    "@slgs/db": "workspace:*",
     "@slgs/permissions": "workspace:*",
     "@slgs/ui": "workspace:*",
     "@tanstack/react-router": "catalog:",
     "@tanstack/react-start": "catalog:",
+    "better-auth": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
   },
