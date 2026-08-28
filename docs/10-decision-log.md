@@ -171,7 +171,7 @@ This prevents scope borrowing, rejects arbitrary permissions and lets later scho
 
 ## ADR-022 — Normalized CMS workflow with guarded publication
 
-Status: Accepted for Phase 1C
+Status: Accepted and infrastructure-verified for Phase 1C
 
 CMS content uses normalized PostgreSQL records with immutable revisions, append-only workflow events and editorial audit events. The state machine is enforced in the CMS service and reinforced by a database trigger. Author, owning club and publication actors are persisted historical facts. Pages, articles, events, announcements and galleries share the workflow boundary without becoming a general-purpose page builder.
 
@@ -188,3 +188,19 @@ Cloudflare R2 is the production object-storage provider for CMS media and implem
 Direct uploads remain untrusted until server finalization checks R2 metadata and object bytes, verifies size/MIME/signature agreement and records a SHA-256 checksum. Archive retains the object and changes audited database state; physical deletion requires a later privileged retention procedure. Public delivery and custom-domain decisions belong to Phase 1D.
 
 Exact bucket naming, environment/account separation, URL lifetime, scanning, retention, recovery and monitoring are `DECISION REQUIRED — OPERATIONAL DETAIL` and do not reopen provider selection.
+
+Live verification on 2026-08-28 confirmed bucket connectivity, effective restricted-origin CORS, presigned upload/download, private anonymous denial, server finalization, checksum, audit, archive and failure handling. Synthetic objects were removed after the database fixtures rolled back.
+
+## ADR-024 — Security-barrier public content projections
+
+Status: Accepted and database-verified for Phase 1D
+
+The public Web reads only dedicated PostgreSQL views in the `public_content` schema through the restricted `slgs_web` role and the typed `@slgs/public-content` package. Views enforce published state and required publication timestamps before projecting a minimal public DTO. Web receives no CMS, identity or S.I.M.S. schema privilege and no mutation privilege.
+
+An infrastructure-neutral 60-second in-process cache stores only already-projected public DTOs. This provides bounded eventual publication propagation without coupling independent deployments to a provider-specific invalidation service. A future production cache may replace it while preserving the database publication boundary.
+
+Private R2 media is not projected. Public media delivery remains an operational decision and must use a URL-safe public DTO without revealing object keys or granting anonymous access to the private CMS bucket.
+
+The read views and runtime grants passed live synthetic verification. The approved production public origin is `http://slgs.edu.sl`; `PUBLIC_SITE_URL` and application-generated canonical, Open Graph, sitemap and robots URLs were verified against that exact origin. Phase 1D is closed.
+
+Domain/DNS/hosting control remains **PENDING INFRASTRUCTURE HANDOVER** from the previous team. This operational dependency does not reopen Phase 1D. HTTPS, redirects, secure-cookie deployment behavior and HSTS must be verified separately after handover; HTTPS is not assumed before then.

@@ -1,5 +1,5 @@
 {
-  "name": "@slgs/cms-domain",
+  "name": "@slgs/public-content",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,17 +13,11 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1120.0",
-    "@aws-sdk/s3-request-presigner": "^3.1120.0",
-    "@slgs/auth": "workspace:*",
     "@slgs/db": "workspace:*",
-    "@slgs/permissions": "workspace:*",
-    "@slgs/validation": "workspace:*",
     "drizzle-orm": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/node": "catalog:",
     "vitest": "catalog:"
   }
 }

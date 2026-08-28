@@ -1,6 +1,6 @@
 # Phase 1C — CMS Workflow
 
-Status: Conditionally closed pending production R2 provisioning
+Status: Closed
 
 ## Architecture
 
@@ -78,6 +78,10 @@ Phase 1C exposes no public route or read model. The future Phase 1D contract wil
 
 The domain suite exercises creation, revision ownership, ordered transitions, rejection/resubmission, self-review, cross-club isolation, approval/publication guards, image signature validation, media ownership/archive and denial auditing. `verification/phase-1c.sql` verifies live schema/roles, CMS/S.I.M.S. permission isolation, transition bypass rejection, self-review/approval rejection, audit immutability and runtime grants inside a rolled-back transaction.
 
+On 2026-08-28, the configured private Cloudflare R2 infrastructure passed a live synthetic integration test. The test authenticated the application token to the configured bucket, verified an effective presigned-URL CORS preflight for the configured CMS origin with no wildcard origin, uploaded a synthetic PNG signature through presigned PUT, confirmed anonymous direct access was denied, finalized through server HEAD/GET validation, verified size, MIME, signature and SHA-256, observed `available` state and audit events, downloaded through an authorized presigned GET and archived the record. Missing and malformed objects were rejected. Database fixtures ran inside a rolled-back transaction and all synthetic R2 objects were physically removed after verification.
+
+The application credential intentionally does not have bucket-administration permission to read the CORS policy document. Effective CORS was verified through the same browser preflight used by the upload flow; application credentials were not broadened.
+
 ## Remaining operational decisions
 
-Cloudflare R2 is the accepted production CMS object-store provider. Remaining items are operational configuration values and procedures listed above, exact audit retention/export schedule, incident contact/escalation and production monitoring. S.I.M.S. scope policy remains outside this phase. Phase 1D has not started.
+Cloudflare R2 is the verified production CMS object-store provider. Remaining retention, recovery, monitoring, incident-response and future public-media delivery decisions are operational governance items and do not reopen or condition Phase 1C. S.I.M.S. scope policy remains outside this phase.

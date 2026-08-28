@@ -96,6 +96,14 @@ Store binary files in object storage rather than PostgreSQL.
 
 Cloudflare R2 is the accepted production provider for private CMS media. It is accessed through the provider-neutral CMS storage contract; the bucket remains private and only authenticated, authorized server operations may issue short-lived presigned URLs. Public media delivery remains a separate Phase 1D concern.
 
+The configured R2 bucket, restricted CMS-origin browser preflight, private access, presigned transfer, server verification and archive lifecycle were verified with synthetic media on 2026-08-28. Application credentials remain object-scoped rather than bucket-administrative.
+
+The approved production public origin is `http://slgs.edu.sl`. Public Web canonical, Open Graph, sitemap and robots URLs derive from `PUBLIC_SITE_URL` and were verified against that exact origin. Domain/DNS/hosting control is **PENDING INFRASTRUCTURE HANDOVER** from the previous team; this is operational and does not alter the application architecture or Phase 1D closure. HTTPS hardening is deferred until TLS and hosting control can be independently verified.
+
+## Public content strategy
+
+The public Web reads only security-barrier views in the `public_content` PostgreSQL schema using its read-only runtime role and the typed `@slgs/public-content` boundary. Publication filtering is enforced by the views. Web has no CMS, identity or S.I.M.S. schema access. A bounded server cache stores only already-public DTOs; private R2 media is not part of this projection.
+
 PostgreSQL stores:
 - metadata
 - ownership

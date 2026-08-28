@@ -57,6 +57,13 @@
       "when": 1787908289454,
       "tag": "0007_phase-1c-r2-storage",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787913267279,
+      "tag": "0008_phase-1d-public-read-boundary",
+      "breakpoints": true
     }
   ]
 }

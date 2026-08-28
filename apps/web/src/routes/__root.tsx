@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-router";
 
 import "../styles.css";
+import { PublicLayout } from "../public-layout";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -13,6 +14,10 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Sierra Leone Grammar School" },
+      {
+        name: "description",
+        content: "Official public website of Sierra Leone Grammar School.",
+      },
     ],
   }),
   component: RootComponent,
@@ -41,7 +46,9 @@ function RootComponent() {
         <HeadContent />
       </head>
       <body>
-        <Outlet />
+        <PublicLayout>
+          <Outlet />
+        </PublicLayout>
         <Scripts />
       </body>
     </html>
