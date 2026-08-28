@@ -11,6 +11,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:verify:phase1a": "psql --set=ON_ERROR_STOP=1 \"$DATABASE_MIGRATION_URL\" --file verification/phase-1a.sql",
+    "db:verify:phase1c": "psql --set=ON_ERROR_STOP=1 \"$DATABASE_MIGRATION_URL\" --file verification/phase-1c.sql",
     "lint": "eslint src drizzle.config.ts",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc -p tsconfig.json"

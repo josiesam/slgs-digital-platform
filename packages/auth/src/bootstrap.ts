@@ -215,6 +215,10 @@ export async function approveAdministratorBootstrap(
         name: bootstrapRoleNames[role],
         description: "System-managed Phase 1A bootstrap role.",
         permissions: [...contract.permissions],
+        scopeDimensions: [
+          ...((contract as { scopeDimensions?: readonly string[] })
+            .scopeDimensions ?? []),
+        ],
         systemManaged: true,
         active: true,
         createdAt: now,

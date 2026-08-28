@@ -12,14 +12,17 @@
   },
   "dependencies": {
     "@slgs/auth": "workspace:*",
+    "@slgs/cms-domain": "workspace:*",
     "@slgs/db": "workspace:*",
     "@slgs/permissions": "workspace:*",
     "@slgs/ui": "workspace:*",
     "@tanstack/react-router": "catalog:",
     "@tanstack/react-start": "catalog:",
     "better-auth": "catalog:",
+    "drizzle-orm": "catalog:",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",

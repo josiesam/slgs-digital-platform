@@ -27,12 +27,15 @@ export type MembershipStatus = z.infer<typeof membershipStatusSchema>;
 
 export const roleKeySchema = z.enum([
   "cms_multimedia_club",
+  "cms_multimedia_club_supervisor",
   "cms_news_journal_club",
+  "cms_news_journal_club_supervisor",
   "cms_editor",
   "cms_reviewer",
   "cms_approver",
   "cms_publisher",
   "cms_administrator",
+  "cms_system_administrator",
   "sims_school_administrator",
   "sims_access_administrator",
   "sims_system_administrator",
@@ -43,6 +46,7 @@ export type RoleKey = z.infer<typeof roleKeySchema>;
 export interface RoleContract {
   readonly application: Application;
   readonly permissions: readonly Permission[];
+  readonly scopeDimensions?: readonly string[];
 }
 
 const permissions = <TValues extends readonly string[]>(values: TValues) =>
@@ -51,18 +55,43 @@ const permissions = <TValues extends readonly string[]>(values: TValues) =>
 export const ROLE_CONTRACTS = {
   cms_multimedia_club: {
     application: "cms",
+    scopeDimensions: ["club"],
     permissions: permissions([
       "media:create:own",
       "media:read:club",
       "media:update:own",
+      "media:archive:own",
+      "gallery:create:own",
+      "gallery:update:own",
+      "gallery:submit:own",
       "content:create:own",
       "content:read:club",
       "content:update:own",
       "content:submit:own",
     ]),
   },
+  cms_multimedia_club_supervisor: {
+    application: "cms",
+    scopeDimensions: ["club"],
+    permissions: permissions([
+      "media:create:own",
+      "media:read:club",
+      "media:update:club",
+      "media:archive:club",
+      "content:create:own",
+      "content:read:club",
+      "content:update:assigned",
+      "content:submit:assigned",
+      "gallery:create:own",
+      "gallery:update:own",
+      "gallery:submit:own",
+      "club:read:cms",
+      "club:manage:assigned",
+    ]),
+  },
   cms_news_journal_club: {
     application: "cms",
+    scopeDimensions: ["club"],
     permissions: permissions([
       "article:create:own",
       "article:read:club",
@@ -70,13 +99,40 @@ export const ROLE_CONTRACTS = {
       "article:submit:own",
       "event:create:own",
       "event:update:own",
+      "event:submit:own",
       "announcement:create:own",
       "announcement:update:own",
+      "announcement:submit:own",
+    ]),
+  },
+  cms_news_journal_club_supervisor: {
+    application: "cms",
+    scopeDimensions: ["club"],
+    permissions: permissions([
+      "article:create:own",
+      "article:read:club",
+      "article:update:own",
+      "article:submit:own",
+      "event:create:own",
+      "event:update:own",
+      "event:submit:own",
+      "announcement:create:own",
+      "announcement:update:own",
+      "announcement:submit:own",
+      "content:read:club",
+      "content:update:assigned",
+      "content:submit:assigned",
+      "club:read:cms",
+      "club:manage:assigned",
     ]),
   },
   cms_editor: {
     application: "cms",
+    scopeDimensions: ["organisation"],
     permissions: permissions([
+      "page:create:own",
+      "page:update:own",
+      "page:submit:own",
       "content:read:assigned",
       "content:update:assigned",
       "content:submit:assigned",
@@ -84,6 +140,7 @@ export const ROLE_CONTRACTS = {
   },
   cms_reviewer: {
     application: "cms",
+    scopeDimensions: ["organisation"],
     permissions: permissions([
       "content:read:assigned",
       "content:review:assigned",
@@ -92,6 +149,7 @@ export const ROLE_CONTRACTS = {
   },
   cms_approver: {
     application: "cms",
+    scopeDimensions: ["organisation"],
     permissions: permissions([
       "content:read:assigned",
       "content:approve:assigned",
@@ -113,6 +171,21 @@ export const ROLE_CONTRACTS = {
       "membership:manage:cms",
       "audit:read:cms",
       "configuration:manage:cms",
+    ]),
+  },
+  cms_system_administrator: {
+    application: "cms",
+    permissions: permissions([
+      "membership:read:cms",
+      "membership:manage:cms",
+      "audit:read:cms",
+      "configuration:manage:cms",
+      "club:read:cms",
+      "role:create:cms",
+      "role:update:cms",
+      "role:deactivate:cms",
+      "role:assign:cms",
+      "role:revoke:cms",
     ]),
   },
   sims_school_administrator: {
@@ -148,6 +221,14 @@ export const ROLE_CONTRACTS = {
   },
   sims_operational_staff: {
     application: "sims",
+    scopeDimensions: [
+      "class",
+      "subject",
+      "department",
+      "academic_session",
+      "term",
+      "location",
+    ],
     permissions: permissions([
       "student:read:assigned",
       "student:update:assigned",

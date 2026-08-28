@@ -1,0 +1,28 @@
+{
+  "name": "@slgs/cms-domain",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1120.0",
+    "@aws-sdk/s3-request-presigner": "^3.1120.0",
+    "@slgs/auth": "workspace:*",
+    "@slgs/db": "workspace:*",
+    "@slgs/permissions": "workspace:*",
+    "@slgs/validation": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "vitest": "catalog:"
+  }
+}

@@ -4,7 +4,9 @@ import postgres from "postgres";
 import { databaseEnvironmentSchema } from "@slgs/validation";
 
 import * as schema from "./schema/identity";
+import * as cmsSchema from "./schema/cms";
 
+export * from "./schema/cms";
 export * from "./schema/identity";
 
 export function createDatabase(
@@ -18,7 +20,7 @@ export function createDatabase(
 
   return {
     client,
-    db: drizzle(client, { schema }),
+    db: drizzle(client, { schema: { ...schema, ...cmsSchema } }),
   };
 }
 

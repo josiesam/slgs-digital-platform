@@ -30,6 +30,8 @@ Before implementing a feature, read the relevant files under `docs/`:
 - `docs/14-phase-0-foundation.md`
 - `docs/15-identity-and-access-policy.md`
 - `docs/16-phase-1a-infrastructure.md`
+- `docs/17-phase-1b-authorization-model.md`
+- `docs/18-phase-1c-cms-workflow.md`
 
 The original sitemap is preserved in `docs/source/site-map-mermaid.md`.
 The provided 2026 SaaS stack transcript is preserved in `docs/source/tech-stack-2026.md`.

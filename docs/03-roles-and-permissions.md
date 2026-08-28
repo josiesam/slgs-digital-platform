@@ -6,11 +6,12 @@ Use explicit permissions rather than relying only on role names.
 
 ### Multimedia Club
 Allowed:
-- media:create
+- media:create:own
 - media:update:own
-- gallery:create
+- media:archive:own
+- gallery:create:own
 - gallery:update:own
-- content:submit
+- gallery:submit:own
 
 Not allowed:
 - publish
@@ -20,10 +21,15 @@ Not allowed:
 
 ### News Journal Club
 Allowed:
-- article:create
+- article:create:own
 - article:update:own
-- media:create
-- article:submit
+- article:submit:own
+- event:create:own
+- event:update:own
+- event:submit:own
+- announcement:create:own
+- announcement:update:own
+- announcement:submit:own
 
 Not allowed:
 - publish
@@ -32,21 +38,39 @@ Not allowed:
 
 ### CMS Editor
 Allowed:
-- content:read
-- content:update
-- content:review
-- content:approve
-- content:reject
-- content:schedule
-- content:publish
-- media:manage
-- revisions:read
+- page:create:own
+- page:update:own
+- page:submit:own
+- content:read:assigned
+- content:update:assigned
+- content:submit:assigned
+
+### CMS Reviewer
+Allowed:
+- content:read:assigned
+- content:review:assigned
+- content:reject:assigned
+
+### CMS Approver
+Allowed:
+- content:read:assigned
+- content:approve:assigned
+- content:reject:assigned
+
+### CMS Publisher
+Allowed:
+- content:read:approved
+- content:publish:approved
+- content:unpublish:published
 
 ### CMS Administrator
-All CMS permissions plus:
-- cms_users:manage
-- cms_settings:manage
-- audit:read
+Manages CMS membership, configuration and audit access. This role does not implicitly receive editorial or custom-role authority.
+
+### Club Supervisor / Leadership
+Explicitly assigned to one or more `club` scopes. May supervise authorized content and club lifecycle for those scopes, but cannot approve or publish.
+
+### CMS System Administrator
+May manage CMS-only custom role definitions and approved CMS role assignments. Closed-catalogue and application checks prevent S.I.M.S. permissions. This role does not collapse Editor, Reviewer, Approver or Publisher responsibilities.
 
 ## S.I.M.S. roles
 
@@ -56,17 +80,13 @@ Full S.I.M.S. administration.
 ### School Administrator
 Student/staff/academic/operational administration as assigned.
 
-### Academic Staff
-Only the student, class, subject, attendance, and assessment data necessary for their duties.
+### Access Administrator
+Assigns and revokes approved roles. Cannot create role definitions.
 
-### ICT Administrator
-ICT/STEM assets, locations, allocations, maintenance, repairs, procurement, disposal and related reports.
+### Operational Staff
+Read/update only within explicit assignment scopes. Final school roles and scope assignments are `DECISION REQUIRED`.
 
-### ICT Technician
-Operational asset inspection, maintenance, repair updates, and assigned inventory tasks.
-
-### Read-only Auditor
-Read access to explicitly approved reporting/audit surfaces; no mutation permissions.
+Academic, ICT and auditor role variants remain future school-policy decisions and are not active Phase 1B role definitions.
 
 ## Permission rules
 

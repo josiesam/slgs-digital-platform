@@ -1,0 +1,2 @@
+ALTER TYPE "public"."cms_media_status" ADD VALUE 'failed' BEFORE 'archived';--> statement-breakpoint
+ALTER TABLE "cms"."media_asset" ADD CONSTRAINT "cms_media_checksum_format" CHECK ("cms"."media_asset"."checksum_sha256" is null or "cms"."media_asset"."checksum_sha256" ~ '^[0-9a-f]{64}$');

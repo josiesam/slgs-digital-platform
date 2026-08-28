@@ -94,6 +94,8 @@ Avoid database-level coupling between public content and sensitive S.I.M.S. reco
 
 Store binary files in object storage rather than PostgreSQL.
 
+Cloudflare R2 is the accepted production provider for private CMS media. It is accessed through the provider-neutral CMS storage contract; the bucket remains private and only authenticated, authorized server operations may issue short-lived presigned URLs. Public media delivery remains a separate Phase 1D concern.
+
 PostgreSQL stores:
 - metadata
 - ownership

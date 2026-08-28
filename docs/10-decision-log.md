@@ -160,3 +160,31 @@ Neon is the PostgreSQL provider for development/staging verification and the ini
 Status: Accepted; domain verification pending
 
 Resend delivers Better Auth password-recovery email through the shared `@slgs/auth` boundary. Missing configuration or provider failure fails closed. Recovery URLs, tokens and API keys must never be logged or audited. Production delivery requires an explicitly selected and verified sending domain.
+
+## ADR-021 — Assignment-scoped, catalogue-based authorization
+
+Status: Accepted for Phase 1B
+
+SLGS authorization uses a closed `domain:action[:scope]` catalogue and one deny-by-default evaluator in `@slgs/permissions`. Scopes remain attached to the role assignment granting the permission. PostgreSQL row-level policies reinforce CMS/S.I.M.S. isolation for memberships, roles, assignments and scopes.
+
+This prevents scope borrowing, rejects arbitrary permissions and lets later school-policy assignments use the same technical mechanism.
+
+## ADR-022 — Normalized CMS workflow with guarded publication
+
+Status: Accepted for Phase 1C
+
+CMS content uses normalized PostgreSQL records with immutable revisions, append-only workflow events and editorial audit events. The state machine is enforced in the CMS service and reinforced by a database trigger. Author, owning club and publication actors are persisted historical facts. Pages, articles, events, announcements and galleries share the workflow boundary without becoming a general-purpose page builder.
+
+Club scope values are data managed by explicitly assigned club leadership. CMS System Administrators manage CMS-only custom roles and normal assignments do not require second-person approval. Routine authorization denials are persisted with sanitized metadata.
+
+Binary media uses a server-only object-storage interface. Browser clients never receive storage credentials.
+
+## ADR-023 — Cloudflare R2 private CMS media storage
+
+Status: Accepted for Phase 1C
+
+Cloudflare R2 is the production object-storage provider for CMS media and implements the existing provider-neutral `CmsObjectStorage` contract through its S3-compatible API. The bucket is private. Authenticated and authorized CMS server functions create short-lived presigned PUT and GET URLs; object keys are opaque and server-generated. PostgreSQL remains authoritative for ownership, club scope, lifecycle, relationships and audit history.
+
+Direct uploads remain untrusted until server finalization checks R2 metadata and object bytes, verifies size/MIME/signature agreement and records a SHA-256 checksum. Archive retains the object and changes audited database state; physical deletion requires a later privileged retention procedure. Public delivery and custom-domain decisions belong to Phase 1D.
+
+Exact bucket naming, environment/account separation, URL lifetime, scanning, retention, recovery and monitoring are `DECISION REQUIRED — OPERATIONAL DETAIL` and do not reopen provider selection.

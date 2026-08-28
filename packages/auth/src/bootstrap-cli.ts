@@ -132,6 +132,7 @@ async function configurePlatformAdministratorCredential(
         identity.approved_contact_domain,
         identity.privileged_bootstrap,
         identity.role_assignment,
+        identity.role_assignment_scope,
         identity.role_definition,
         identity.security_audit_event
       TO slgs_platform_admin;

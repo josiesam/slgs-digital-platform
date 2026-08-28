@@ -52,3 +52,10 @@ export {
   suspendIdentity,
 } from "./lifecycle";
 export * from "./policy";
+export {
+  assignRole,
+  createCmsRoleDefinition,
+  createSimsRoleDefinition,
+  revokeRole,
+  setCmsRoleDefinitionActive,
+} from "./authorization";

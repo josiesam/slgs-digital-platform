@@ -5,7 +5,9 @@ import {
 } from "@slgs/auth";
 import { createDatabase } from "@slgs/db";
 
-const database = createDatabase({ DATABASE_URL: process.env.CMS_DATABASE_URL });
+export const database = createDatabase({
+  DATABASE_URL: process.env.CMS_DATABASE_URL,
+});
 const authEnvironment = {
   ...process.env,
   BETTER_AUTH_BASE_URL:

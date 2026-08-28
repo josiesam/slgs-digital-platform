@@ -6,13 +6,14 @@ DO $$
 DECLARE
   test_run text := 'phase1a-' || txid_current()::text;
   cms_role_id text := test_run || '-cms-role';
-  sims_role_id text := test_run || '-sims-role';
+  sims_role_id text;
   cms_membership_id text := test_run || '-cms-membership';
   sims_membership_id text := test_run || '-sims-membership';
   boundary_rejected boolean := false;
   sixth_rejected boolean := false;
   remaining_sessions integer;
   active_administrators integer;
+  available_administrator_slots integer;
 BEGIN
   FOR position IN 1..8 LOOP
     INSERT INTO identity."user" (
@@ -30,8 +31,28 @@ BEGIN
   INSERT INTO identity.role_definition (
     id, application, key, name, description, permissions
   ) VALUES
-    (cms_role_id, 'cms', test_run || '-cms', 'Synthetic CMS Role', 'Migration verification only', '[]'),
-    (sims_role_id, 'sims', 'sims_system_administrator', 'Synthetic S.I.M.S. System Administrator', 'Migration verification only', '[]');
+    (cms_role_id, 'cms', test_run || '-cms', 'Synthetic CMS Role', 'Migration verification only', '[]');
+
+  SELECT id INTO sims_role_id
+  FROM identity.role_definition
+  WHERE application = 'sims' AND key = 'sims_system_administrator' AND active;
+
+  SELECT 5 - count(DISTINCT membership.user_id)
+  INTO available_administrator_slots
+  FROM identity.role_assignment assignment
+  JOIN identity.role_definition role ON role.id = assignment.role_definition_id
+  JOIN identity.application_membership membership ON membership.id = assignment.membership_id
+  JOIN identity."user" identity_user ON identity_user.id = membership.user_id
+  WHERE role.application = 'sims'
+    AND role.key = 'sims_system_administrator'
+    AND role.active
+    AND membership.status = 'active'
+    AND identity_user.status = 'active'
+    AND assignment.revoked_at IS NULL;
+
+  IF available_administrator_slots < 1 THEN
+    RAISE EXCEPTION 'verification requires at least one available System Administrator slot';
+  END IF;
 
   INSERT INTO identity.application_membership (
     id, user_id, application, status, approved_at
@@ -56,7 +77,7 @@ BEGIN
     RAISE EXCEPTION 'application-boundary trigger did not reject mismatched role';
   END IF;
 
-  FOR position IN 1..6 LOOP
+  FOR position IN 1..(available_administrator_slots + 1) LOOP
     INSERT INTO identity.application_membership (
       id, user_id, application, status, approved_at
     ) VALUES (
@@ -68,7 +89,7 @@ BEGIN
     );
   END LOOP;
 
-  FOR position IN 1..5 LOOP
+  FOR position IN 1..available_administrator_slots LOOP
     INSERT INTO identity.role_assignment (
       id, membership_id, role_definition_id, assigned_by
     ) VALUES (
@@ -83,8 +104,8 @@ BEGIN
     INSERT INTO identity.role_assignment (
       id, membership_id, role_definition_id, assigned_by
     ) VALUES (
-      test_run || '-admin-assignment-6',
-      test_run || '-admin-membership-6',
+      test_run || '-admin-assignment-over-limit',
+      test_run || '-admin-membership-' || (available_administrator_slots + 1),
       sims_role_id,
       test_run || '-user-1'
     );
@@ -106,8 +127,8 @@ BEGIN
   INSERT INTO identity.role_assignment (
     id, membership_id, role_definition_id, assigned_by
   ) VALUES (
-    test_run || '-admin-assignment-6',
-    test_run || '-admin-membership-6',
+    test_run || '-admin-assignment-replacement',
+    test_run || '-admin-membership-' || (available_administrator_slots + 1),
     sims_role_id,
     test_run || '-user-1'
   );

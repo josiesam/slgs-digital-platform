@@ -1,8 +1,8 @@
 # Identity and Access Policy
 
-Status: Accepted for Phase 1A
+Status: Extended through Phase 1C
 
-This policy governs identity, authentication, sessions and the initial authorization boundary. It does not approve CMS workflow or S.I.M.S. business-domain rules.
+This policy governs identity, authentication, sessions, authorization and the approved CMS workflow boundary. It does not approve S.I.M.S. business-domain rules.
 
 ## Security concepts
 
@@ -28,11 +28,11 @@ Memberships and role assignments are independent. A person may hold both only th
 ## Roles and justification
 
 - **Public visitor**: no role; reads explicitly published public content.
-- **Multimedia Club**: creates/updates own media and content and reads club-scoped work. Which identities are supervisors is `DECISION REQUIRED`.
+- **Multimedia Club**: creates/updates authorized media and gallery content. Explicitly assigned Member / Club Leadership supervises its club scope; ordinary membership is not supervision.
 - **News Journal Club**: creates/updates own articles, events and announcements, then submits them for moderation.
 - **CMS Editor**: edits assigned content; this does not grant review, approval or publication.
 - **CMS Reviewer**: reviews/rejects assigned content and cannot review their own work.
-- **CMS Approver**: approves/rejects assigned reviewed content. Eligible approvers are `DECISION REQUIRED`.
+- **CMS Approver**: explicitly assigned identities approve/reject reviewed content. Approval remains separate from editing, review and publication.
 - **CMS Publisher**: publishes only approved content, preserving four-eyes control.
 - **CMS Administrator**: manages CMS membership/configuration and CMS audit access; never S.I.M.S. access by implication.
 - **School Administrator**: receives minimum S.I.M.S. oversight reads and assignment management, not unrestricted CRUD/delete.
@@ -58,6 +58,8 @@ Memberships and role assignments are independent. A person may hold both only th
 
 These are minimal role contracts, not approval of full domain authorization. Role composition, data scopes and sensitive-field access remain Phase 1B decisions.
 
+Phase 1B formalises these contracts as a closed permission catalogue with assignment-level scope bindings evaluated against trusted resource context. See `docs/17-phase-1b-authorization-model.md`. Final operational S.I.M.S. assignments remain `DECISION REQUIRED`.
+
 ## Lifecycle policy
 
 ### Administrator bootstrap
@@ -78,7 +80,7 @@ Recovery uses Better Auth expiring one-time tokens, enumeration-resistant respon
 
 ### MFA and sessions
 
-Better Auth TOTP support is enabled but optional. Mandatory roles, grace period and recovery are `DECISION REQUIRED`. Sessions have an absolute eight-hour lifetime and support revocation on logout, reset and lifecycle changes. Cookies must be secure, HTTP-only and same-site for the deployed origins. Concurrent-session and shorter inactivity limits are `DECISION REQUIRED`.
+Better Auth TOTP support is enabled and remains optional for now; Phase 1C introduces no global or role-specific enforcement. Sessions have an absolute eight-hour lifetime and support revocation on logout, reset and lifecycle changes. Cookies must be secure, HTTP-only and same-site for the deployed origins. Concurrent-session and shorter inactivity limits are `DECISION REQUIRED`.
 
 ### Authorization failures
 
@@ -86,18 +88,18 @@ Unauthenticated browser requests go to the relevant login; APIs return generic `
 
 ## Audit requirements
 
-Audit login/logout/failure, recovery initiation/completion, activation/suspension/deactivation, bootstrap initiation/approval/outcome, membership/role assignment/revocation, and security configuration changes. Record type, time, actor when known, application, target reference, outcome, stable reason code and sanitized metadata. Audit retention, export controls, monitoring and incident response are `DECISION REQUIRED`.
+Audit login/logout/failure, recovery initiation/completion, activation/suspension/deactivation, bootstrap initiation/approval/outcome, membership/role assignment/revocation, editorial actions, routine authorization denials and security configuration changes. Record type, time, actor when known, application, target reference, outcome, stable reason code and sanitized metadata. Retention is required and centrally configurable; the exact duration is `DECISION REQUIRED — OPERATIONAL DETAIL`. Security/Platform System Administration owns incident intake, investigation coordination, access containment and evidence preservation; the named contact and escalation timetable are `DECISION REQUIRED — OPERATIONAL DETAIL`.
 
 ## Decisions required from the project owner
 
 1. Accepted identity evidence and approving school office.
 2. Allowed contact domains and the Domain System Administrator.
-3. Named CMS approvers and club supervisors.
+3. Operational assignment of named CMS approvers and club leaders.
 4. Operational S.I.M.S. roles, assignment scopes and sensitive-field access.
 5. Verified Resend sending domain and recovery escalation owner.
-6. Roles requiring MFA, enrollment deadline and recovery.
+6. Any future change from optional MFA, including enrollment and recovery policy.
 7. Reactivation authority, retention, concurrent sessions and idle timeout.
-8. Audit viewers, retention/export, alerts and incident-response owner.
+8. Exact audit duration/export schedule, alerts and named incident-response contact.
 
 ## Security risks
 

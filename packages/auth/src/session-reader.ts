@@ -1,13 +1,14 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 
 import {
   applicationMembership,
   roleAssignment,
+  roleAssignmentScope,
   roleDefinition,
   user,
   type DatabaseConnection,
 } from "@slgs/db";
-import { createGrant, type Application } from "@slgs/permissions";
+import { createScopedGrant, type Application } from "@slgs/permissions";
 
 import type { SessionIdentity, SessionReader } from "./index";
 import { canAccessApplication } from "./policy";
@@ -56,6 +57,7 @@ export function createApplicationSessionReader(options: {
 
       const assignments = await options.database
         .select({
+          id: roleAssignment.id,
           application: roleDefinition.application,
           permissions: roleDefinition.permissions,
         })
@@ -73,9 +75,31 @@ export function createApplicationSessionReader(options: {
           ),
         );
 
-      const grant = createGrant(
+      const scopes = assignments.length
+        ? await options.database
+            .select({
+              assignmentId: roleAssignmentScope.roleAssignmentId,
+              dimension: roleAssignmentScope.dimension,
+              value: roleAssignmentScope.value,
+            })
+            .from(roleAssignmentScope)
+            .where(
+              inArray(
+                roleAssignmentScope.roleAssignmentId,
+                assignments.map(({ id }) => id),
+              ),
+            )
+        : [];
+
+      const grant = createScopedGrant(
         options.application,
-        assignments.flatMap((assignment) => assignment.permissions),
+        assignments.map((assignment) => ({
+          assignmentId: assignment.id,
+          permissions: assignment.permissions,
+          scopes: scopes.filter(
+            (scope) => scope.assignmentId === assignment.id,
+          ),
+        })),
       );
 
       return {

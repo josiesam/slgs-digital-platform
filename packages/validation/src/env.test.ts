@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   authEnvironmentSchema,
   databaseEnvironmentSchema,
+  r2EnvironmentSchema,
   resendEnvironmentSchema,
 } from "./env";
 
@@ -43,5 +44,29 @@ describe("environment validation", () => {
         RESEND_FROM_EMAIL: "identity@example.invalid",
       }).success,
     ).toBe(true);
+  });
+
+  it("requires an HTTPS R2 endpoint and bounded presigned URL lifetime", () => {
+    const base = {
+      CLOUDFLARE_R2_ACCOUNT_ID: "account-id",
+      CLOUDFLARE_R2_ENDPOINT: "https://account-id.r2.cloudflarestorage.com",
+      CLOUDFLARE_R2_BUCKET: "private-cms-media",
+      CLOUDFLARE_R2_ACCESS_KEY_ID: "synthetic-access-key",
+      CLOUDFLARE_R2_SECRET_ACCESS_KEY: "synthetic-key-material",
+      CLOUDFLARE_R2_PRESIGNED_URL_TTL_SECONDS: "300",
+    };
+    expect(r2EnvironmentSchema.safeParse(base).success).toBe(true);
+    expect(
+      r2EnvironmentSchema.safeParse({
+        ...base,
+        CLOUDFLARE_R2_ENDPOINT: "http://account-id.invalid",
+      }).success,
+    ).toBe(false);
+    expect(
+      r2EnvironmentSchema.safeParse({
+        ...base,
+        CLOUDFLARE_R2_PRESIGNED_URL_TTL_SECONDS: "7200",
+      }).success,
+    ).toBe(false);
   });
 });

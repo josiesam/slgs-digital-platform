@@ -29,6 +29,34 @@
       "when": 1787824009833,
       "tag": "0003_better-auth-account-issuer",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1787825063388,
+      "tag": "0004_phase-1b-authorization-scopes",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787836679188,
+      "tag": "0005_phase-1c-cms-workflow",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787839000000,
+      "tag": "0006_phase-1c-multimedia-gallery",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787908289454,
+      "tag": "0007_phase-1c-r2-storage",
+      "breakpoints": true
     }
   ]
 }

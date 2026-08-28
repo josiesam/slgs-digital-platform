@@ -1,3 +1,320 @@
 @import "tailwindcss";
 @import "@slgs/ui/styles.css";
 @source "../../../packages/ui/src";
+
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  z-index: 20;
+  transform: translateY(-200%);
+  border-radius: 0.4rem;
+  background: var(--foreground);
+  color: var(--background);
+  padding: 0.75rem 1rem;
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+.cms-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+.cms-media-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+.cms-media-grid small {
+  display: block;
+  margin-top: 0.8rem;
+  color: var(--muted-foreground);
+}
+.cms-introduction,
+.cms-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+}
+.cms-introduction h1 {
+  margin: 0.2rem 0 0.5rem;
+  font-size: clamp(2rem, 5vw, 3.3rem);
+  letter-spacing: -0.04em;
+}
+.cms-introduction p,
+.cms-section-heading p {
+  margin: 0;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
+.cms-kicker {
+  color: var(--primary) !important;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.cms-identity {
+  min-width: 14rem;
+  border-left: 3px solid var(--primary);
+  padding-left: 1rem;
+}
+.cms-identity span,
+.cms-identity strong {
+  display: block;
+}
+.cms-identity span {
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+}
+.cms-identity strong {
+  margin-top: 0.25rem;
+  overflow-wrap: anywhere;
+  font-size: 0.85rem;
+}
+.cms-feedback,
+.cms-empty {
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--muted);
+  padding: 1rem;
+}
+.cms-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.cms-stat {
+  border-top: 3px solid var(--primary);
+  background: var(--card);
+  padding: 1rem;
+  box-shadow: 0 0.25rem 1.5rem
+    color-mix(in oklch, var(--foreground) 7%, transparent);
+}
+.cms-stat span,
+.cms-stat strong {
+  display: block;
+}
+.cms-stat span {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  text-transform: capitalize;
+}
+.cms-stat strong {
+  margin-top: 0.5rem;
+  font-size: 1.8rem;
+}
+.cms-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
+  gap: 2.5rem;
+  align-items: start;
+}
+.cms-section-heading h2,
+.cms-columns aside h2 {
+  margin-top: 0;
+}
+.cms-count,
+.cms-status {
+  border-radius: 999px;
+  background: var(--muted);
+  padding: 0.3rem 0.65rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+.cms-content-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+.cms-content-card {
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  background: var(--card);
+  padding: 1rem 1.2rem;
+}
+.cms-content-card h3 {
+  margin: 0.6rem 0 0.2rem;
+}
+.cms-content-card > p {
+  margin: 0;
+  color: var(--muted-foreground);
+}
+.cms-content-meta,
+.cms-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+.cms-content-meta {
+  justify-content: space-between;
+  font-size: 0.8rem;
+}
+.cms-actions {
+  margin-top: 1rem;
+}
+.cms-status {
+  text-transform: capitalize;
+}
+.cms-form,
+.cms-editor form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.cms-form {
+  position: sticky;
+  top: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  background: var(--card);
+  padding: 1.2rem;
+}
+.cms-form fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.6rem 0;
+  border: 1px solid var(--border);
+}
+.cms-form label,
+.cms-editor label {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+.cms-form input,
+.cms-form textarea,
+.cms-form select,
+.cms-editor input,
+.cms-editor textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 0.35rem;
+  background: var(--background);
+  color: var(--foreground);
+  padding: 0.7rem;
+  font: inherit;
+}
+.cms-form small {
+  color: var(--muted-foreground);
+}
+.cms-actions button,
+.cms-form button,
+.cms-editor button {
+  min-height: 2.5rem;
+  border: 1px solid var(--primary);
+  border-radius: 0.35rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 0.55rem 0.9rem;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+.cms-actions button.secondary {
+  background: transparent;
+  color: var(--foreground);
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+.cms-editor {
+  margin-top: 1rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.8rem;
+}
+.cms-editor summary {
+  cursor: pointer;
+  font-weight: 650;
+}
+.cms-editor form {
+  margin-top: 1rem;
+}
+.cms-administration {
+  border-top: 1px solid var(--border);
+  padding-top: 2rem;
+}
+.cms-admin-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+.cms-admin-grid .cms-form {
+  position: static;
+}
+.cms-admin-grid h3 {
+  margin: 0 0 0.5rem;
+}
+.cms-role-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+.cms-role-list .cms-content-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.cms-role-list p {
+  margin: 0.25rem 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+}
+.cms-role-list button {
+  min-height: 2.5rem;
+  border: 1px solid var(--primary);
+  border-radius: 0.35rem;
+  background: transparent;
+  color: var(--foreground);
+  padding: 0.55rem 0.9rem;
+  font: inherit;
+  font-weight: 650;
+}
+@media (max-width: 900px) {
+  .cms-stat-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .cms-columns {
+    grid-template-columns: 1fr;
+  }
+  .cms-form {
+    position: static;
+  }
+  .cms-admin-grid {
+    grid-template-columns: 1fr;
+  }
+  .cms-media-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .cms-introduction,
+  .cms-section-heading {
+    flex-direction: column;
+  }
+  .cms-stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .cms-identity {
+    width: 100%;
+  }
+  .cms-media-grid {
+    grid-template-columns: 1fr;
+  }
+}

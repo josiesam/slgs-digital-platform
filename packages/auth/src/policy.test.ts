@@ -121,11 +121,74 @@ describe("application-scoped roles", () => {
     );
   });
 
+  it("reserves custom CMS roles and assignments for CMS System Administrator", () => {
+    expect(ROLE_CONTRACTS.cms_system_administrator.permissions).toEqual(
+      expect.arrayContaining([
+        "role:create:cms",
+        "role:update:cms",
+        "role:deactivate:cms",
+        "role:assign:cms",
+        "role:revoke:cms",
+      ]),
+    );
+    for (const key of [
+      "cms_editor",
+      "cms_reviewer",
+      "cms_approver",
+      "cms_publisher",
+    ] as const) {
+      expect(ROLE_CONTRACTS[key].permissions).not.toContain("role:create:cms");
+    }
+  });
+
+  it("gives club leadership explicit scoped supervision without publishing", () => {
+    for (const key of [
+      "cms_multimedia_club_supervisor",
+      "cms_news_journal_club_supervisor",
+    ] as const) {
+      expect(ROLE_CONTRACTS[key].scopeDimensions).toEqual(["club"]);
+      expect(ROLE_CONTRACTS[key].permissions).toContain("club:manage:assigned");
+      expect(ROLE_CONTRACTS[key].permissions).not.toContain(
+        "content:publish:approved",
+      );
+    }
+  });
+
   it("does not grant delete permissions to operational staff", () => {
     expect(
       ROLE_CONTRACTS.sims_operational_staff.permissions.some((permission) =>
         permission.includes(":delete"),
       ),
+    ).toBe(false);
+  });
+
+  it("gives News Journal Club creation without moderation authority", () => {
+    const permissions = ROLE_CONTRACTS.cms_news_journal_club.permissions;
+    expect(permissions).toContain("event:create:own");
+    expect(permissions).toContain("announcement:create:own");
+    expect(
+      permissions.some((permission) => permission.includes(":review:")),
+    ).toBe(false);
+    expect(
+      permissions.some((permission) => permission.includes(":approve:")),
+    ).toBe(false);
+    expect(
+      permissions.some((permission) => permission.includes(":publish:")),
+    ).toBe(false);
+  });
+
+  it("limits School Administrator to the approved oversight catalogue", () => {
+    const permissions = ROLE_CONTRACTS.sims_school_administrator.permissions;
+    expect(permissions).toEqual([
+      "student:read:school",
+      "staff:read:school",
+      "attendance:read:school",
+      "assessment:read:school",
+      "report:read:school",
+      "assignment:manage:school",
+    ]);
+    expect(
+      permissions.some((permission) => permission.includes(":delete")),
     ).toBe(false);
   });
 

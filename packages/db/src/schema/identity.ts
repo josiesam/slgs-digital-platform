@@ -10,6 +10,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 export const identitySchema = pgSchema("identity");
@@ -38,6 +39,19 @@ export const auditOutcome = pgEnum("audit_outcome", [
   "failure",
   "denied",
 ]);
+export const authorizationScopeDimension = pgEnum(
+  "authorization_scope_dimension",
+  [
+    "club",
+    "class",
+    "subject",
+    "department",
+    "academic_session",
+    "term",
+    "organisation",
+    "location",
+  ],
+);
 
 export const user = identitySchema.table(
   "user",
@@ -195,6 +209,10 @@ export const roleDefinition = identitySchema.table(
     name: text().notNull(),
     description: text().notNull(),
     permissions: jsonb().$type<string[]>().notNull().default([]),
+    scopeDimensions: jsonb("scope_dimensions")
+      .$type<string[]>()
+      .notNull()
+      .default([]),
     systemManaged: boolean("system_managed").notNull().default(true),
     active: boolean().notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -234,9 +252,42 @@ export const roleAssignment = identitySchema.table(
   },
   (table) => [
     index("identity_role_assignment_membership_idx").on(table.membershipId),
+    uniqueIndex("identity_active_role_assignment_unique")
+      .on(table.membershipId, table.roleDefinitionId)
+      .where(sql`${table.revokedAt} is null`),
     check(
       "identity_role_assignment_revocation_complete",
       sql`(${table.revokedAt} is null and ${table.revokedBy} is null) or (${table.revokedAt} is not null and ${table.revokedBy} is not null)`,
+    ),
+  ],
+);
+
+export const roleAssignmentScope = identitySchema.table(
+  "role_assignment_scope",
+  {
+    id: text().primaryKey(),
+    roleAssignmentId: text("role_assignment_id")
+      .notNull()
+      .references(() => roleAssignment.id, { onDelete: "cascade" }),
+    dimension: authorizationScopeDimension().notNull(),
+    value: text().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    unique("identity_assignment_scope_unique").on(
+      table.roleAssignmentId,
+      table.dimension,
+      table.value,
+    ),
+    check(
+      "identity_assignment_scope_value_nonempty",
+      sql`length(trim(${table.value})) > 0`,
+    ),
+    index("identity_assignment_scope_lookup_idx").on(
+      table.dimension,
+      table.value,
     ),
   ],
 );
@@ -358,16 +409,30 @@ export const membershipRelations = relations(
   }),
 );
 
-export const roleAssignmentRelations = relations(roleAssignment, ({ one }) => ({
-  membership: one(applicationMembership, {
-    fields: [roleAssignment.membershipId],
-    references: [applicationMembership.id],
+export const roleAssignmentRelations = relations(
+  roleAssignment,
+  ({ one, many }) => ({
+    membership: one(applicationMembership, {
+      fields: [roleAssignment.membershipId],
+      references: [applicationMembership.id],
+    }),
+    roleDefinition: one(roleDefinition, {
+      fields: [roleAssignment.roleDefinitionId],
+      references: [roleDefinition.id],
+    }),
+    scopes: many(roleAssignmentScope),
   }),
-  roleDefinition: one(roleDefinition, {
-    fields: [roleAssignment.roleDefinitionId],
-    references: [roleDefinition.id],
+);
+
+export const roleAssignmentScopeRelations = relations(
+  roleAssignmentScope,
+  ({ one }) => ({
+    assignment: one(roleAssignment, {
+      fields: [roleAssignmentScope.roleAssignmentId],
+      references: [roleAssignment.id],
+    }),
   }),
-}));
+);
 
 export const roleDefinitionRelations = relations(
   roleDefinition,
