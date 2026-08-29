@@ -62,6 +62,8 @@ Exit criteria:
 
 ## Phase 3 — S.I.M.S. Core
 
+Phase 2A is the approved S.I.M.S. identity and administration foundation preceding wider operational S.I.M.S. work. It includes staff identity lifecycle, S.I.M.S. membership/role administration, audit hardening and disposable test fixtures only. See `docs/20-phase-2a-sims-identity-administration.md`.
+
 Deliver:
 - authentication/authorization
 - students

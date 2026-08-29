@@ -47,8 +47,12 @@ export {
 } from "./bootstrap";
 export {
   activateIdentity,
+  authorizeSimsIdentityAdministration,
+  createSimsMembership,
   deactivateIdentity,
   provisionPasswordIdentity,
+  revokeIdentitySessions,
+  setSimsMembershipStatus,
   suspendIdentity,
 } from "./lifecycle";
 export * from "./policy";
@@ -58,4 +62,6 @@ export {
   createSimsRoleDefinition,
   revokeRole,
   setCmsRoleDefinitionActive,
+  setSimsRoleDefinitionActive,
+  validateRoleAssignmentScopes,
 } from "./authorization";

@@ -5,7 +5,7 @@ import {
 } from "@slgs/auth";
 import { createDatabase } from "@slgs/db";
 
-const database = createDatabase({
+export const database = createDatabase({
   DATABASE_URL: process.env.SIMS_DATABASE_URL,
 });
 const authEnvironment = {

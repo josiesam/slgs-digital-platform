@@ -135,9 +135,9 @@ async function configurePlatformAdministratorCredential(
         identity.privileged_bootstrap,
         identity.role_assignment,
         identity.role_assignment_scope,
-        identity.role_definition,
-        identity.security_audit_event
+        identity.role_definition
       TO slgs_platform_admin;
+      GRANT SELECT, INSERT ON identity.security_audit_event TO slgs_platform_admin;
       GRANT SELECT, DELETE ON identity.session TO slgs_platform_admin;
     `);
 

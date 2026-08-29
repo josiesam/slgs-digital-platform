@@ -1,3 +1,100 @@
 @import "tailwindcss";
 @import "@slgs/ui/styles.css";
 @source "../../../packages/ui/src";
+
+.sims-admin {
+  display: grid;
+  gap: 2rem;
+  margin-inline: auto;
+  max-width: 72rem;
+  padding: 2rem 1rem 4rem;
+}
+
+.sims-admin section,
+.sims-identity {
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.sims-admin section {
+  display: grid;
+  gap: 1rem;
+}
+
+.sims-form,
+.sims-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.sims-form label,
+.sims-actions label {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 12rem;
+}
+
+.sims-form input,
+.sims-form select,
+.sims-actions select {
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.sims-admin button {
+  background: var(--primary);
+  border-radius: 0.375rem;
+  color: var(--primary-foreground);
+  min-height: 2.75rem;
+  padding: 0.5rem 0.875rem;
+}
+
+.sims-admin button.secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--foreground);
+}
+
+.sims-admin :is(a, button, input, select, summary):focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.sims-identity {
+  display: grid;
+  gap: 1rem;
+}
+
+.sims-identity dl {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+.sims-role {
+  display: block;
+}
+
+.sims-feedback {
+  border-inline-start: 0.25rem solid var(--primary);
+  padding: 0.75rem 1rem;
+}
+
+@media (max-width: 40rem) {
+  .sims-form,
+  .sims-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .sims-form label,
+  .sims-actions label,
+  .sims-admin button {
+    width: 100%;
+  }
+}

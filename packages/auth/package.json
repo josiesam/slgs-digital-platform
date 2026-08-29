@@ -9,6 +9,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "fixtures:phase1c-browser": "tsx src/phase1c-browser-fixtures.ts",
+    "fixtures:phase2a-browser": "tsx src/phase2a-browser-fixtures.ts",
     "lint": "eslint src",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc -p tsconfig.json"

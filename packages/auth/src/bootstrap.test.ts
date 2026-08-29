@@ -7,9 +7,9 @@ import {
 
 describe("privileged administrator bootstrap policy", () => {
   it("allows an explicitly selected first CMS System Administrator", () => {
-    expect(
-      resolveBootstrapRole("cms", "cms_system_administrator"),
-    ).toBe("cms_system_administrator");
+    expect(resolveBootstrapRole("cms", "cms_system_administrator")).toBe(
+      "cms_system_administrator",
+    );
     expect(() =>
       assertSupportedBootstrapRequest("cms", "cms_system_administrator"),
     ).not.toThrow();
@@ -29,8 +29,15 @@ describe("privileged administrator bootstrap policy", () => {
   });
 
   it("leaves the S.I.M.S. bootstrap role unchanged", () => {
-    expect(resolveBootstrapRole("sims")).toBe(
-      "sims_system_administrator",
+    expect(resolveBootstrapRole("sims")).toBe("sims_system_administrator");
+  });
+
+  it("supports an explicitly selected first S.I.M.S. Access Administrator", () => {
+    expect(resolveBootstrapRole("sims", "sims_access_administrator")).toBe(
+      "sims_access_administrator",
     );
+    expect(() =>
+      assertSupportedBootstrapRequest("sims", "sims_access_administrator"),
+    ).not.toThrow();
   });
 });

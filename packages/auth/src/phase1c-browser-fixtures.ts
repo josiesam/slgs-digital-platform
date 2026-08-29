@@ -22,22 +22,54 @@ const FIXTURE_FLAG = "SLGS_PHASE1C_BROWSER_FIXTURES";
 const FIXTURE_BRANCH = "SLGS_NEON_BRANCH";
 const branchName = "phase1c-browser-20260828";
 
-if (process.env[FIXTURE_FLAG] !== "1" || process.env[FIXTURE_BRANCH] !== branchName) {
-  throw new Error("Phase 1C fixtures require the explicit disposable-branch gates.");
+if (
+  process.env[FIXTURE_FLAG] !== "1" ||
+  process.env[FIXTURE_BRANCH] !== branchName
+) {
+  throw new Error(
+    "Phase 1C fixtures require the explicit disposable-branch gates.",
+  );
 }
 
 const databaseUrl = process.env.DATABASE_MIGRATION_URL;
 const password = process.env.SLGS_SYNTHETIC_PASSWORD;
 if (!databaseUrl || !password) {
-  throw new Error("The disposable database URL and synthetic password are required.");
+  throw new Error(
+    "The disposable database URL and synthetic password are required.",
+  );
 }
 
 const fixtures = [
-  ["cms-administrator", "Synthetic CMS Administrator", "cms_administrator", null],
-  ["multimedia-member", "Synthetic Multimedia Member", "cms_multimedia_club", "multimedia"],
-  ["multimedia-supervisor", "Synthetic Multimedia Supervisor", "cms_multimedia_club_supervisor", "multimedia"],
-  ["news-member", "Synthetic News Journal Member", "cms_news_journal_club", "news-journal"],
-  ["news-supervisor", "Synthetic News Journal Supervisor", "cms_news_journal_club_supervisor", "news-journal"],
+  [
+    "cms-administrator",
+    "Synthetic CMS Administrator",
+    "cms_administrator",
+    null,
+  ],
+  [
+    "multimedia-member",
+    "Synthetic Multimedia Member",
+    "cms_multimedia_club",
+    "multimedia",
+  ],
+  [
+    "multimedia-supervisor",
+    "Synthetic Multimedia Supervisor",
+    "cms_multimedia_club_supervisor",
+    "multimedia",
+  ],
+  [
+    "news-member",
+    "Synthetic News Journal Member",
+    "cms_news_journal_club",
+    "news-journal",
+  ],
+  [
+    "news-supervisor",
+    "Synthetic News Journal Supervisor",
+    "cms_news_journal_club_supervisor",
+    "news-journal",
+  ],
   ["editor", "Synthetic Editor", "cms_editor", null],
   ["reviewer", "Synthetic Reviewer", "cms_reviewer", "organisation"],
   ["approver", "Synthetic Approver", "cms_approver", "organisation"],
@@ -102,7 +134,9 @@ try {
       );
     const rolesByKey = new Map(roles.map((role) => [role.key, role.id]));
     if (rolesByKey.size !== roleKeys.length) {
-      throw new Error("One or more required CMS fixture roles are unavailable.");
+      throw new Error(
+        "One or more required CMS fixture roles are unavailable.",
+      );
     }
 
     for (const [key, name, roleKey, scope] of fixtures) {

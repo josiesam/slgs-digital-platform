@@ -26,6 +26,19 @@ import type { SessionIdentity } from "./index";
 
 type Database = DatabaseConnection["db"];
 
+export function validateRoleAssignmentScopes(
+  allowedScopeDimensions: readonly string[],
+  scopes: readonly ScopeBinding[],
+): void {
+  const allowed = new Set(allowedScopeDimensions);
+  if (allowed.size > 0 && scopes.length === 0) {
+    throw new Error("A scoped role requires an explicit assignment scope.");
+  }
+  if (scopes.some(({ dimension }) => !allowed.has(dimension))) {
+    throw new Error("Role assignment scope is not valid for this role.");
+  }
+}
+
 function actorGrant(actor: SessionIdentity, application: Application) {
   return actor.grants.get(application);
 }
@@ -245,6 +258,60 @@ export async function setCmsRoleDefinitionActive(
   });
 }
 
+export async function setSimsRoleDefinitionActive(
+  database: Database,
+  input: {
+    readonly actor: SessionIdentity;
+    readonly roleId: string;
+    readonly active: boolean;
+  },
+): Promise<void> {
+  await requireActorPermissionAudited(
+    database,
+    input.actor,
+    "sims",
+    permissionSchema.parse(
+      input.active ? "role:update:sims" : "role:deactivate:sims",
+    ),
+  );
+  await database.transaction(async (transaction) => {
+    const [role] = await transaction
+      .select({
+        id: roleDefinition.id,
+        systemManaged: roleDefinition.systemManaged,
+      })
+      .from(roleDefinition)
+      .where(
+        and(
+          eq(roleDefinition.id, input.roleId),
+          eq(roleDefinition.application, "sims"),
+        ),
+      )
+      .limit(1);
+    if (!role || role.systemManaged) {
+      throw new Error("Custom S.I.M.S. role was not found.");
+    }
+    await transaction
+      .update(roleDefinition)
+      .set({ active: input.active, updatedAt: new Date() })
+      .where(eq(roleDefinition.id, role.id));
+    await transaction.insert(securityAuditEvent).values({
+      id: crypto.randomUUID(),
+      eventType: input.active
+        ? "authorization.role.activated"
+        : "authorization.role.deactivated",
+      application: "sims",
+      actorUserId: input.actor.userId,
+      sessionId: input.actor.sessionId,
+      targetType: "role_definition",
+      targetId: role.id,
+      outcome: "success",
+      reasonCode: "role_state_change_authorized",
+      metadata: {},
+    });
+  });
+}
+
 export async function assignRole(
   database: Database,
   input: {
@@ -303,10 +370,7 @@ export async function assignRole(
     if (!role || !role.active || role.application !== application) {
       throw new Error("Approved role for this application is required.");
     }
-    const allowedDimensions = new Set(role.scopeDimensions);
-    if (scopes.some(({ dimension }) => !allowedDimensions.has(dimension))) {
-      throw new Error("Role assignment scope is not valid for this role.");
-    }
+    validateRoleAssignmentScopes(role.scopeDimensions, scopes);
     await transaction.insert(roleAssignment).values({
       id: assignmentId,
       membershipId: membership.id,

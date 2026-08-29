@@ -1,16 +1,19 @@
 import { hashPassword } from "better-auth/crypto";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import {
   account,
+  applicationMembership,
   approvedContactDomain,
   securityAuditEvent,
   session,
   user,
   type DatabaseConnection,
 } from "@slgs/db";
+import { evaluateAuthorization, requireAuthorization } from "@slgs/permissions";
 
 import { isEmailDomainApproved } from "./policy";
+import type { SessionIdentity } from "./index";
 
 type Database = DatabaseConnection["db"];
 
@@ -19,13 +22,51 @@ export interface ProvisionPasswordIdentityInput {
   readonly email: string;
   readonly password: string;
   readonly personReference: string;
-  readonly initiatedBy: string;
+  readonly actor: SessionIdentity;
+}
+
+export function authorizeSimsIdentityAdministration(
+  actor: SessionIdentity,
+): void {
+  requireAuthorization({
+    identityId: actor.userId,
+    application: "sims",
+    permission: "identity:manage:sims",
+    grant: actor.grants.get("sims"),
+  });
+}
+
+async function requireSimsIdentityAdministration(
+  database: Database,
+  actor: SessionIdentity,
+): Promise<void> {
+  const decision = evaluateAuthorization({
+    identityId: actor.userId,
+    application: "sims",
+    permission: "identity:manage:sims",
+    grant: actor.grants.get("sims"),
+  });
+  if (decision.allowed) return;
+  await database.insert(securityAuditEvent).values({
+    id: crypto.randomUUID(),
+    eventType: "authorization.denied",
+    application: "sims",
+    actorUserId: actor.userId,
+    sessionId: actor.sessionId,
+    targetType: "permission",
+    targetId: "identity:manage:sims",
+    outcome: "denied",
+    reasonCode: decision.reason,
+    metadata: { permission: "identity:manage:sims" },
+  });
+  authorizeSimsIdentityAdministration(actor);
 }
 
 export async function provisionPasswordIdentity(
   database: Database,
   input: ProvisionPasswordIdentityInput,
 ): Promise<{ readonly userId: string }> {
+  await requireSimsIdentityAdministration(database, input.actor);
   if (!input.name.trim() || !input.personReference.trim()) {
     throw new Error("Identity name and person reference are required.");
   }
@@ -67,7 +108,9 @@ export async function provisionPasswordIdentity(
     await transaction.insert(securityAuditEvent).values({
       id: crypto.randomUUID(),
       eventType: "identity.provisioned",
-      actorUserId: input.initiatedBy,
+      application: "sims",
+      actorUserId: input.actor.userId,
+      sessionId: input.actor.sessionId,
       targetType: "identity",
       targetId: userId,
       outcome: "success",
@@ -83,11 +126,12 @@ async function changeIdentityStatus(
   database: Database,
   input: {
     readonly userId: string;
-    readonly actorUserId: string;
+    readonly actor: SessionIdentity;
     readonly status: "active" | "suspended" | "deactivated";
     readonly reasonCode: string;
   },
 ): Promise<void> {
+  await requireSimsIdentityAdministration(database, input.actor);
   await database.transaction(async (transaction) => {
     const updated = await transaction
       .update(user)
@@ -102,7 +146,9 @@ async function changeIdentityStatus(
     await transaction.insert(securityAuditEvent).values({
       id: crypto.randomUUID(),
       eventType: `identity.${input.status}`,
-      actorUserId: input.actorUserId,
+      application: "sims",
+      actorUserId: input.actor.userId,
+      sessionId: input.actor.sessionId,
       targetType: "identity",
       targetId: input.userId,
       outcome: "success",
@@ -114,21 +160,134 @@ async function changeIdentityStatus(
 
 export async function activateIdentity(
   database: Database,
-  input: { userId: string; actorUserId: string; reasonCode: string },
+  input: { userId: string; actor: SessionIdentity; reasonCode: string },
 ): Promise<void> {
   await changeIdentityStatus(database, { ...input, status: "active" });
 }
 
 export async function suspendIdentity(
   database: Database,
-  input: { userId: string; actorUserId: string; reasonCode: string },
+  input: { userId: string; actor: SessionIdentity; reasonCode: string },
 ): Promise<void> {
   await changeIdentityStatus(database, { ...input, status: "suspended" });
 }
 
 export async function deactivateIdentity(
   database: Database,
-  input: { userId: string; actorUserId: string; reasonCode: string },
+  input: { userId: string; actor: SessionIdentity; reasonCode: string },
 ): Promise<void> {
   await changeIdentityStatus(database, { ...input, status: "deactivated" });
+}
+
+export async function createSimsMembership(
+  database: Database,
+  input: { userId: string; actor: SessionIdentity; reasonCode: string },
+): Promise<string> {
+  await requireSimsIdentityAdministration(database, input.actor);
+  return database.transaction(async (transaction) => {
+    const [identity] = await transaction
+      .select({ id: user.id, status: user.status })
+      .from(user)
+      .where(eq(user.id, input.userId))
+      .limit(1);
+    if (!identity || identity.status === "deactivated") {
+      throw new Error("Identity is unavailable for membership.");
+    }
+    const [existing] = await transaction
+      .select({ id: applicationMembership.id })
+      .from(applicationMembership)
+      .where(
+        and(
+          eq(applicationMembership.userId, input.userId),
+          eq(applicationMembership.application, "sims"),
+        ),
+      )
+      .limit(1);
+    if (existing) throw new Error("S.I.M.S. membership already exists.");
+    const id = crypto.randomUUID();
+    await transaction.insert(applicationMembership).values({
+      id,
+      userId: input.userId,
+      application: "sims",
+      status: "active",
+      approvedBy: input.actor.userId,
+      approvedAt: new Date(),
+    });
+    await transaction.insert(securityAuditEvent).values({
+      id: crypto.randomUUID(),
+      eventType: "membership.created",
+      application: "sims",
+      actorUserId: input.actor.userId,
+      sessionId: input.actor.sessionId,
+      targetType: "application_membership",
+      targetId: id,
+      outcome: "success",
+      reasonCode: input.reasonCode,
+      metadata: { targetUserId: input.userId },
+    });
+    return id;
+  });
+}
+
+export async function setSimsMembershipStatus(
+  database: Database,
+  input: {
+    userId: string;
+    actor: SessionIdentity;
+    status: "active" | "suspended" | "deactivated";
+    reasonCode: string;
+  },
+): Promise<void> {
+  await requireSimsIdentityAdministration(database, input.actor);
+  await database.transaction(async (transaction) => {
+    const rows = await transaction
+      .update(applicationMembership)
+      .set({ status: input.status, updatedAt: new Date() })
+      .where(
+        and(
+          eq(applicationMembership.userId, input.userId),
+          eq(applicationMembership.application, "sims"),
+        ),
+      )
+      .returning({ id: applicationMembership.id });
+    if (rows.length !== 1)
+      throw new Error("S.I.M.S. membership was not found.");
+    if (input.status !== "active") {
+      await transaction.delete(session).where(eq(session.userId, input.userId));
+    }
+    await transaction.insert(securityAuditEvent).values({
+      id: crypto.randomUUID(),
+      eventType: `membership.${input.status}`,
+      application: "sims",
+      actorUserId: input.actor.userId,
+      sessionId: input.actor.sessionId,
+      targetType: "application_membership",
+      targetId: rows[0]!.id,
+      outcome: "success",
+      reasonCode: input.reasonCode,
+      metadata: { targetUserId: input.userId },
+    });
+  });
+}
+
+export async function revokeIdentitySessions(
+  database: Database,
+  input: { userId: string; actor: SessionIdentity; reasonCode: string },
+): Promise<void> {
+  await requireSimsIdentityAdministration(database, input.actor);
+  await database.transaction(async (transaction) => {
+    await transaction.delete(session).where(eq(session.userId, input.userId));
+    await transaction.insert(securityAuditEvent).values({
+      id: crypto.randomUUID(),
+      eventType: "identity.sessions_revoked",
+      application: "sims",
+      actorUserId: input.actor.userId,
+      sessionId: input.actor.sessionId,
+      targetType: "identity",
+      targetId: input.userId,
+      outcome: "success",
+      reasonCode: input.reasonCode,
+      metadata: {},
+    });
+  });
 }

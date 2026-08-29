@@ -121,6 +121,21 @@ describe("application-scoped roles", () => {
     );
   });
 
+  it("keeps S.I.M.S. identity and access administration non-inheriting", () => {
+    expect(ROLE_CONTRACTS.sims_system_administrator.permissions).not.toContain(
+      "role:assign:approved",
+    );
+    expect(ROLE_CONTRACTS.sims_system_administrator.permissions).not.toContain(
+      "role:revoke:approved",
+    );
+    expect(ROLE_CONTRACTS.sims_access_administrator.permissions).not.toContain(
+      "identity:manage:sims",
+    );
+    expect(ROLE_CONTRACTS.sims_access_administrator.permissions).not.toContain(
+      "role:deactivate:sims",
+    );
+  });
+
   it("reserves custom CMS roles and assignments for CMS System Administrator", () => {
     expect(ROLE_CONTRACTS.cms_system_administrator.permissions).toEqual(
       expect.arrayContaining([

@@ -26,11 +26,13 @@ type Database = DatabaseConnection["db"];
 export type BootstrapRole =
   | "cms_administrator"
   | "cms_system_administrator"
+  | "sims_access_administrator"
   | "sims_system_administrator";
 
 const bootstrapRoleNames: Readonly<Record<BootstrapRole, string>> = {
   cms_administrator: "CMS Administrator",
   cms_system_administrator: "CMS System Administrator",
+  sims_access_administrator: "S.I.M.S. Access Administrator",
   sims_system_administrator: "S.I.M.S. System Administrator",
 };
 
@@ -60,12 +62,16 @@ export function resolveBootstrapRole(
     return role;
   }
   if (application === "sims") {
-    if (requestedRole && requestedRole !== "sims_system_administrator") {
+    const role = requestedRole ?? "sims_system_administrator";
+    if (
+      role !== "sims_access_administrator" &&
+      role !== "sims_system_administrator"
+    ) {
       throw new Error(
-        "S.I.M.S. bootstrap only supports sims_system_administrator.",
+        "S.I.M.S. bootstrap role must be sims_access_administrator or sims_system_administrator.",
       );
     }
-    return "sims_system_administrator";
+    return role;
   }
   throw new Error("Bootstrap application must be cms or sims.");
 }
@@ -233,6 +239,7 @@ export async function approveAdministratorBootstrap(
     if (
       role !== "cms_administrator" &&
       role !== "cms_system_administrator" &&
+      role !== "sims_access_administrator" &&
       role !== "sims_system_administrator"
     ) {
       throw new Error("Bootstrap request contains an unsupported role.");

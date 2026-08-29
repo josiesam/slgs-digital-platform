@@ -13,6 +13,7 @@
     "db:verify:phase1a": "psql --set=ON_ERROR_STOP=1 \"$DATABASE_MIGRATION_URL\" --file verification/phase-1a.sql",
     "db:verify:phase1c": "psql --set=ON_ERROR_STOP=1 \"$DATABASE_MIGRATION_URL\" --file verification/phase-1c.sql",
     "db:verify:phase1d": "psql --set=ON_ERROR_STOP=1 \"$DATABASE_MIGRATION_URL\" --file verification/phase-1d.sql",
+    "db:verify:phase2a": "psql --set=ON_ERROR_STOP=1 \"$SIMS_DATABASE_URL\" --file verification/phase-2a.sql && psql --set=ON_ERROR_STOP=1 \"$CMS_DATABASE_URL\" --file verification/phase-2a-cms.sql && psql --set=ON_ERROR_STOP=1 \"$WEB_DATABASE_URL\" --file verification/phase-2a-web.sql",
     "lint": "eslint src drizzle.config.ts",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc -p tsconfig.json"

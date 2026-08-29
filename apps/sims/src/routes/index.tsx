@@ -1,5 +1,5 @@
 import { PageShell } from "@slgs/ui";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 
 import { getCurrentSimsIdentity } from "../access";
 
@@ -25,9 +25,12 @@ function SimsFoundationPage() {
           S.I.M.S. foundation
         </h1>
         <p className="text-lg leading-8 text-muted-foreground">
-          Identity and S.I.M.S. membership checks are active. Confidential
-          school-record domains remain outside Phase 1A.
+          Identity and S.I.M.S. membership checks are active. Phase 2A is
+          limited to staff identity and access administration.
         </p>
+        <Link className="font-medium underline" to="/admin/identities">
+          Open identity administration
+        </Link>
       </div>
     </PageShell>
   );

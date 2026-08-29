@@ -8,7 +8,17 @@ export const Route = createFileRoute("/login")({ component: LoginPage });
 
 function LoginPage() {
   const navigate = useNavigate();
-  const [message, setMessage] = useState("");
+  return <LoginForm onSuccess={() => navigate({ to: "/" })} />;
+}
+
+export function LoginForm({
+  initialMessage = "",
+  onSuccess = async () => undefined,
+}: {
+  readonly initialMessage?: string;
+  readonly onSuccess?: () => Promise<unknown>;
+}) {
+  const [message, setMessage] = useState(initialMessage);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage("");
@@ -21,7 +31,7 @@ function LoginPage() {
       setMessage("Sign-in was not accepted.");
       return;
     }
-    await navigate({ to: "/" });
+    await onSuccess();
   }
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-6 py-16">

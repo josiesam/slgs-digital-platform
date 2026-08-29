@@ -31,3 +31,4 @@ Codex must not silently decide these when implementation materially depends on t
 - Whether CMS media and private S.I.M.S. documents use separate storage buckets.
 - AUTH-001 remains open for S.I.M.S. operational scopes. AUTH-002 through AUTH-006 are resolved for CMS by ADR-022 and `docs/18-phase-1c-cms-workflow.md`.
 - First CMS System Administrator provisioning is resolved by ADR-025: the existing two-person Platform System Administration bootstrap may explicitly provision the first `cms_system_administrator` without elevating `cms_administrator` or affecting S.I.M.S.
+- First S.I.M.S. Access Administrator provisioning is resolved by ADR-029: the same two-person Platform System Administration bootstrap may explicitly provision the first `sims_access_administrator` without changing System Administrator permissions, CMS access or the five-System-Administrator limit.

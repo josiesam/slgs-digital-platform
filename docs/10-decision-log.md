@@ -117,7 +117,7 @@ Better Auth owns credentials, recovery tokens, sessions and optional TOTP. SLGS 
 
 Status: Accepted
 
-Public registration and shared accounts are prohibited. Each identity has a unique opaque person reference, evidence/account approval and an approved contact domain. Evidence and approvers remain `DECISION REQUIRED`.
+Public registration and shared accounts are prohibited. Each identity has a unique opaque person reference and an approved contact domain. Identity evidence is optional for now; evidence requirements and approvers remain `DECISION REQUIRED`.
 
 ## ADR-014 — Absolute eight-hour sessions
 
@@ -214,3 +214,31 @@ Phase 1A privileged bootstrap currently assigns `cms_administrator`. Phase 1C re
 The existing two-person Platform System Administration bootstrap is extended to explicitly select the first `cms_system_administrator`. Existing CMS administrators are not elevated and do not gain role-management authority. The operation creates only the requested CMS identity, active CMS membership and CMS System Administrator assignment in one transaction; records both distinct external platform operator references in append-only security audit history; and rejects a second pending or completed request for the same initial role.
 
 Platform System Administration remains an external operational authority rather than an application role. Independent operator authentication and authorization govern access to the scoped platform-administration database credential. The CLI enforces distinct operator references as separation evidence and never grants S.I.M.S. authority through the CMS path. Normal CMS role assignment remains restricted to CMS System Administrators.
+
+## ADR-026 — S.I.M.S.-owned shared identity lifecycle
+
+Status: Accepted for Phase 2A
+
+S.I.M.S. owns administrative lifecycle operations for shared staff identities. CMS owns CMS membership, role definition and assignment only and does not gain global user management. Application membership and role assignment remain independent; neither private application creates or inherits the other's access. Students do not authenticate in Phase 2A.
+
+The actor is derived from the Better Auth session and evaluated through the shared deny-by-default permission layer. At the time of ADR-026, the production ceremony for the first S.I.M.S. Access Administrator remained `DECISION REQUIRED`; ADR-029 resolves it without weakening role separation.
+
+## ADR-027 — Database-enforced immutable security audit
+
+Status: Accepted and runtime-verified for Phase 2A
+
+`identity.security_audit_event` is append-only at PostgreSQL level. Application and platform-administration roles have no UPDATE/DELETE grant and an immutable trigger provides defense in depth. Audit RLS prevents the S.I.M.S. runtime from reading CMS events while permitting authorized S.I.M.S./shared identity audit visibility.
+
+## ADR-028 — API-verified disposable identity fixtures
+
+Status: Accepted for Phase 2A; browser verification pending
+
+Synthetic identity fixtures may run only after the Neon API confirms an expiring, unprotected, non-default `phase2a-*` branch. Credentials remain environment-only and are never logged. Fixture creation is transactional; branch deletion is primary cleanup and TTL is fallback. Direct fixture insertion is isolated to the test CLI and is not an application provisioning path.
+
+## ADR-029 — First S.I.M.S. Access Administrator bootstrap
+
+Status: Accepted for Phase 2A
+
+The existing two-person Platform System Administration bootstrap may explicitly provision the first `sims_access_administrator`. This is a one-time initial-role ceremony governed by the same approved contact-domain validation, distinct external operator references, transaction and append-only audit history as the existing privileged bootstrap.
+
+The default S.I.M.S. bootstrap remains `sims_system_administrator`. The Access Administrator receives only its existing closed role contract and no System Administrator permission. The mechanism creates no CMS membership, does not grant either S.I.M.S. role the other's authority, creates no permanent application bypass, and does not affect the five-active-System-Administrator database limit. Subsequent assignments continue through normal Access Administrator authorization.

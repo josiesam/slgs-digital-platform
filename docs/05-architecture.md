@@ -123,3 +123,9 @@ S.I.M.S:
 - sensitive administrative data
 
 The CMS and public site must never become an accidental path into S.I.M.S.
+
+## Identity administration
+
+Shared authentication remains in `@slgs/auth`, but administrative identity lifecycle is S.I.M.S.-owned. `apps/sims` derives actors from Better Auth sessions and invokes transactional lifecycle services; CMS cannot provision global identities. CMS and S.I.M.S. memberships, roles and scopes are independently authorized and reinforced by PostgreSQL RLS.
+
+Students are administrative records rather than authenticating identities in Phase 2A. The security audit is append-only at database level and application-isolated for runtime reads. See `docs/20-phase-2a-sims-identity-administration.md`.
