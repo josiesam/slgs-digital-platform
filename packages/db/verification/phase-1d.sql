@@ -5,6 +5,9 @@ BEGIN;
 DO $$
 DECLARE
   author_id text := 'verify:phase1d:author';
+  reviewer_id text := 'verify:phase1d:reviewer';
+  approver_id text := 'verify:phase1d:approver';
+  publisher_id text := 'verify:phase1d:publisher';
   content_type text;
   private_state text;
   view_count integer;
@@ -23,7 +26,11 @@ BEGIN
   END IF;
 
   INSERT INTO identity."user" (id, name, email, person_reference, status)
-  VALUES (author_id, 'Synthetic Public Author', 'phase1d-author@invalid.example', 'synthetic-phase1d-author', 'active');
+  VALUES
+    (author_id, 'Synthetic Public Author', 'phase1d-author@invalid.example', 'synthetic-phase1d-author', 'active'),
+    (reviewer_id, 'Synthetic Public Reviewer', 'phase1d-reviewer@invalid.example', 'synthetic-phase1d-reviewer', 'active'),
+    (approver_id, 'Synthetic Public Approver', 'phase1d-approver@invalid.example', 'synthetic-phase1d-approver', 'active'),
+    (publisher_id, 'Synthetic Public Publisher', 'phase1d-publisher@invalid.example', 'synthetic-phase1d-publisher', 'active');
 
   FOREACH content_type IN ARRAY ARRAY['page','article','event','announcement','gallery'] LOOP
     INSERT INTO cms.content_item
@@ -32,8 +39,8 @@ BEGIN
     VALUES
       ('verify:phase1d:' || content_type || ':published', content_type::cms_content_type,
        'Synthetic published ' || content_type, 'synthetic-' || content_type || '-published',
-       'Synthetic public body.', author_id, 'published', now(), author_id,
-       now(), author_id, now(), author_id,
+       'Synthetic public body.', author_id, 'published', now(), reviewer_id,
+       now(), approver_id, now(), publisher_id,
        CASE WHEN content_type = 'event' THEN now() + interval '1 day' ELSE NULL END);
 
     FOREACH private_state IN ARRAY ARRAY['draft','submitted','in_review','rejected','approved'] LOOP
@@ -58,6 +65,16 @@ BEGIN
   IF view_count <> 1 THEN RAISE EXCEPTION 'Announcement projection leaked unpublished content'; END IF;
   SELECT count(*) INTO view_count FROM public_content.gallery WHERE slug LIKE 'synthetic-gallery-%';
   IF view_count <> 1 THEN RAISE EXCEPTION 'Gallery projection leaked unpublished content'; END IF;
+
+  UPDATE cms.content_item
+  SET state = 'approved', published_at = NULL, published_by = NULL
+  WHERE id = 'verify:phase1d:article:published';
+  SELECT count(*) INTO view_count
+  FROM public_content.article
+  WHERE slug = 'synthetic-article-published';
+  IF view_count <> 0 THEN
+    RAISE EXCEPTION 'Unpublished article remained in the public projection';
+  END IF;
 
   IF EXISTS (
     SELECT 1 FROM information_schema.columns

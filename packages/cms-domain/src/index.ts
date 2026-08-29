@@ -108,6 +108,7 @@ export interface CmsContent {
   readonly seoTitle: string | null;
   readonly seoDescription: string | null;
   readonly canonicalPath: string | null;
+  readonly featuredMediaId: string | null;
   readonly authorUserId: string;
   readonly owningClubId: string | null;
   readonly state: WorkflowState;
@@ -148,6 +149,11 @@ export interface CmsRepository {
   createContent(content: CmsContent): Promise<void>;
   saveContent(content: CmsContent): Promise<void>;
   createRevision(content: CmsContent, actorUserId: string): Promise<void>;
+  findMedia(id: string): Promise<CmsMediaAsset | null>;
+  replaceContentMedia(
+    contentId: string,
+    mediaIds: readonly string[],
+  ): Promise<void>;
   appendWorkflowEvent(input: {
     contentId: string;
     fromState: WorkflowState | null;
@@ -164,6 +170,7 @@ export class CmsDomainError extends Error {
       | "AUTHORIZATION_DENIED"
       | "CONTENT_NOT_FOUND"
       | "CLUB_NOT_FOUND"
+      | "INVALID_MEDIA"
       | "SLUG_CONFLICT"
       | "INVALID_TRANSITION",
     message: string,
@@ -304,6 +311,7 @@ export class CmsService {
       seoTitle: value.seoTitle ?? null,
       seoDescription: value.seoDescription ?? null,
       canonicalPath: value.canonicalPath ?? null,
+      featuredMediaId: null,
       authorUserId: actor.userId,
       owningClubId: value.owningClubId ?? null,
       state: "draft",
@@ -396,6 +404,93 @@ export class CmsService {
         "success",
         null,
         {},
+        repository,
+      );
+    });
+    return updated;
+  }
+
+  async setContentMedia(
+    actor: CmsActor,
+    id: string,
+    mediaIds: readonly string[],
+  ): Promise<CmsContent> {
+    const orderedIds = z.array(z.string().min(1)).max(100).parse(mediaIds);
+    if (new Set(orderedIds).size !== orderedIds.length) {
+      throw new CmsDomainError(
+        "INVALID_MEDIA",
+        "Content media must not contain duplicate assets.",
+      );
+    }
+    const item = await this.requiredContent(id);
+    if (!["draft", "rejected"].includes(item.state)) {
+      throw new CmsDomainError(
+        "INVALID_TRANSITION",
+        "Media can only be changed on draft or rejected content.",
+      );
+    }
+    await this.authorize(actor, updatePermissions(item.type), item);
+    for (const mediaId of orderedIds) {
+      const asset = await this.repository.findMedia(mediaId);
+      if (!asset || asset.status !== "available") {
+        throw new CmsDomainError(
+          "INVALID_MEDIA",
+          "Only available media can be associated with content.",
+        );
+      }
+      const permissions: Permission[] = [
+        "media:update:own",
+        "media:update:club",
+      ];
+      const allowed = permissions.some(
+        (permission) =>
+          evaluateAuthorization({
+            identityId: actor.userId,
+            application: "cms",
+            permission,
+            grant: actor.grant,
+            resource: {
+              ownerId: asset.ownerUserId,
+              scopes: asset.owningClubId
+                ? [{ dimension: "club", value: asset.owningClubId }]
+                : [],
+            },
+          }).allowed,
+      );
+      if (!allowed) {
+        await this.audit(
+          actor,
+          "authorization.denied",
+          id,
+          "denied",
+          "scope_mismatch",
+          {
+            permission: permissions.join("|"),
+          },
+        );
+        throw new CmsDomainError(
+          "AUTHORIZATION_DENIED",
+          "You do not have permission to associate this media.",
+        );
+      }
+    }
+    const updated: CmsContent = {
+      ...item,
+      featuredMediaId: orderedIds[0] ?? null,
+      currentRevision: item.currentRevision + 1,
+      updatedAt: new Date(),
+    };
+    await this.repository.transaction(async (repository) => {
+      await repository.saveContent(updated);
+      await repository.replaceContentMedia(id, orderedIds);
+      await repository.createRevision(updated, actor.userId);
+      await this.audit(
+        actor,
+        "content.media.updated",
+        id,
+        "success",
+        null,
+        { mediaCount: orderedIds.length },
         repository,
       );
     });
@@ -534,6 +629,8 @@ export class InMemoryCmsRepository implements CmsRepository {
   readonly revisions: Array<{ content: CmsContent; actorUserId: string }> = [];
   readonly workflow: Array<Record<string, unknown>> = [];
   readonly audit: CmsAuditEvent[] = [];
+  readonly media = new Map<string, CmsMediaAsset>();
+  readonly contentMedia = new Map<string, string[]>();
   async transaction<T>(
     work: (repository: CmsRepository) => Promise<T>,
   ): Promise<T> {
@@ -541,6 +638,24 @@ export class InMemoryCmsRepository implements CmsRepository {
   }
   addClub(id: string) {
     this.clubs.add(id);
+  }
+  addMedia(input: {
+    id: string;
+    ownerUserId: string;
+    owningClubId: string | null;
+    status: CmsMediaAsset["status"];
+  }) {
+    this.media.set(input.id, {
+      ...input,
+      storageKey: `cms/media/${input.id}.png`,
+      originalFilename: `${input.id}.png`,
+      normalizedFilename: `${input.id}.png`,
+      declaredMimeType: "image/png",
+      detectedMimeType: "image/png",
+      byteSize: 8,
+      checksumSha256: null,
+      altText: "Synthetic media",
+    });
   }
   async clubExists(id: string) {
     return this.clubs.has(id);
@@ -561,6 +676,12 @@ export class InMemoryCmsRepository implements CmsRepository {
   }
   async createRevision(content: CmsContent, actorUserId: string) {
     this.revisions.push({ content: { ...content }, actorUserId });
+  }
+  async findMedia(id: string) {
+    return this.media.get(id) ?? null;
+  }
+  async replaceContentMedia(contentId: string, mediaIds: readonly string[]) {
+    this.contentMedia.set(contentId, [...mediaIds]);
   }
   async appendWorkflowEvent(input: Record<string, unknown>) {
     this.workflow.push(input);

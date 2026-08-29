@@ -244,6 +244,60 @@ summary:focus-visible {
 .cms-editor form {
   margin-top: 1rem;
 }
+.cms-editor fieldset,
+.cms-gallery-editor,
+.cms-history,
+.cms-audit-list {
+  margin-top: 1rem;
+}
+.cms-gallery-editor {
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+.cms-gallery-editor ol,
+.cms-audit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-left: 1.25rem;
+}
+.cms-gallery-editor li {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.cms-gallery-editor li span {
+  margin-right: auto;
+}
+.cms-gallery-editor button,
+.cms-history button {
+  min-height: 2.5rem;
+}
+.cms-workflow-comment {
+  display: flex;
+  flex-basis: 100%;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.cms-workflow-comment textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 0.35rem;
+  background: var(--background);
+  color: var(--foreground);
+  padding: 0.7rem;
+  font: inherit;
+}
+.cms-compact-form {
+  position: static;
+  max-width: 42rem;
+}
+.cms-queue-grid:empty::after {
+  content: "No operational queues are assigned to this role.";
+  color: var(--muted-foreground);
+}
 .cms-administration {
   border-top: 1px solid var(--border);
   padding-top: 2rem;

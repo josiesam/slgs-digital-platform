@@ -28,7 +28,7 @@ function LoginPage() {
   return <LoginForm application="CMS" message={message} onSubmit={submit} />;
 }
 
-function LoginForm(props: {
+export function LoginForm(props: {
   application: string;
   message: string;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;

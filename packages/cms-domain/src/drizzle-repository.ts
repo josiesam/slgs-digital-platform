@@ -2,6 +2,7 @@ import { and, eq, ne } from "drizzle-orm";
 
 import {
   club,
+  contentMedia,
   contentItem,
   contentRevision,
   editorialAuditEvent,
@@ -30,6 +31,7 @@ const contentSelection = {
   seoTitle: contentItem.seoTitle,
   seoDescription: contentItem.seoDescription,
   canonicalPath: contentItem.canonicalPath,
+  featuredMediaId: contentItem.featuredMediaId,
   authorUserId: contentItem.authorUserId,
   owningClubId: contentItem.owningClubId,
   state: contentItem.state,
@@ -59,6 +61,7 @@ const values = (item: CmsContent) => ({
   seoTitle: item.seoTitle,
   seoDescription: item.seoDescription,
   canonicalPath: item.canonicalPath,
+  featuredMediaId: item.featuredMediaId,
   authorUserId: item.authorUserId,
   owningClubId: item.owningClubId,
   state: item.state,
@@ -146,6 +149,7 @@ export class DrizzleCmsRepository implements CmsRepository {
         seoTitle: item.seoTitle,
         seoDescription: item.seoDescription,
         canonicalPath: item.canonicalPath,
+        featuredMediaId: item.featuredMediaId,
         owningClubId: item.owningClubId,
         eventStartAt: item.eventStartAt?.toISOString() ?? null,
         eventEndAt: item.eventEndAt?.toISOString() ?? null,
@@ -153,6 +157,22 @@ export class DrizzleCmsRepository implements CmsRepository {
         eventOrganiser: item.eventOrganiser,
       },
     });
+  }
+
+  async replaceContentMedia(contentId: string, mediaIds: readonly string[]) {
+    await this.database
+      .delete(contentMedia)
+      .where(eq(contentMedia.contentId, contentId));
+    if (mediaIds.length) {
+      await this.database.insert(contentMedia).values(
+        mediaIds.map((mediaId, sortOrder) => ({
+          contentId,
+          mediaId,
+          purpose: sortOrder === 0 ? "featured" : "gallery",
+          sortOrder,
+        })),
+      );
+    }
   }
 
   async appendWorkflowEvent(input: {

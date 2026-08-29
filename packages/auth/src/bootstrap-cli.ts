@@ -9,6 +9,7 @@ import {
   approveAdministratorBootstrap,
   initiateAdministratorBootstrap,
   listAdministratorBootstraps,
+  resolveBootstrapRole,
   type BootstrapRole,
 } from "./bootstrap";
 
@@ -19,12 +20,13 @@ Platform System Administration is an external two-person authority, not a global
 Commands:
   pnpm admin:bootstrap setup --operator <operator-reference>
   pnpm admin:bootstrap domain --domain <domain> --operator <operator-reference>
-  pnpm admin:bootstrap initiate --application <cms|sims> --name <name> --email <email> --person-reference <reference> --initiator <operator-reference>
+  pnpm admin:bootstrap initiate --application <cms|sims> [--role <cms_administrator|cms_system_administrator|sims_system_administrator>] --name <name> --email <email> --person-reference <reference> --initiator <operator-reference>
   pnpm admin:bootstrap approve --request <request-id> --approver <different-operator-reference>
   pnpm admin:bootstrap status
 
 The initiate command prompts for the target administrator's initial password without echoing it.
-CMS receives cms_administrator; S.I.M.S. receives sims_system_administrator.
+CMS defaults to cms_administrator and may explicitly bootstrap the first
+cms_system_administrator; S.I.M.S. receives sims_system_administrator.
 The one-time setup command uses DATABASE_MIGRATION_URL to create/rotate a scoped
 slgs_platform_admin database role and writes its URL to the ignored .env file.
 All other commands require PLATFORM_ADMIN_DATABASE_URL.`;
@@ -205,10 +207,10 @@ async function main(): Promise<void> {
       if (application !== "cms" && application !== "sims") {
         throw new Error("--application must be cms or sims.");
       }
-      const role: BootstrapRole =
-        application === "cms"
-          ? "cms_administrator"
-          : "sims_system_administrator";
+      const role: BootstrapRole = resolveBootstrapRole(
+        application,
+        option("role"),
+      );
       const password = await readConfirmedPassword();
       const result = await initiateAdministratorBootstrap(connection.db, {
         application,

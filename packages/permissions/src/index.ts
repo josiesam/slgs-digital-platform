@@ -225,8 +225,8 @@ function scopeMatches(
   if (scope === "own") {
     if (resource?.ownerId !== identityId) return false;
     const resourceScopes = resource.scopes ?? [];
-    if (resourceScopes.length === 0 || entitlement.scopes.length === 0)
-      return true;
+    if (entitlement.scopes.length === 0) return true;
+    if (resourceScopes.length === 0) return false;
     return entitlement.scopes.some((assigned) =>
       resourceScopes.some(
         (candidate) =>

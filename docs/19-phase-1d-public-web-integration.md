@@ -1,8 +1,8 @@
 # Phase 1D — Public Web Integration
 
-Status: Closed
+Status: Conditionally closed — cross-application browser gate pending
 
-Phase 1C is **PHASE 1C — CLOSED** following successful production R2 connectivity, CORS, upload, verification, download, archive, failure-path and cleanup tests.
+The public read boundary, application origin and route/metadata engineering gates pass. The latest functional assessment supersedes earlier closure wording: final Phase 1D closure awaits browser verification of CMS publication appearing on Web and unpublication removing it. Phase 1C is conditionally closed for the same functional gate.
 
 ## Public architecture
 
@@ -44,7 +44,7 @@ Missing CMS pages, empty listings and empty galleries render explicit non-fabric
 
 ## Verification
 
-Unit coverage checks DTO privacy, bounded caching, public route families and SEO projection. The live `phase-1d.sql` verification inserts synthetic content across every CMS state for every public type, proves each view exposes only its published row, checks projection columns and verifies the Web database role is read-only and isolated from CMS, identity and S.I.M.S.
+Unit coverage checks DTO privacy, bounded caching, public route families and SEO projection. The live `phase-1d.sql` verification inserts synthetic content across every CMS state for every public type, proves each view exposes only its published row, proves unpublication removes an article, checks projection columns and verifies the Web database role is read-only and isolated from CMS, identity and S.I.M.S.
 
 Rendered verification confirmed desktop and mobile navigation, a native keyboard-operable mobile disclosure, skip-link target, semantic landmarks, one homepage H1, logical headings, empty/error/404 states and reduced-motion styling. Valid routes returned 200, an unpublished/missing article returned 404, and sitemap/robots returned the correct content types. Lighthouse was not available; no Lighthouse result is claimed.
 
@@ -53,6 +53,8 @@ The approved production public origin is `http://slgs.edu.sl`. `PUBLIC_SITE_URL`
 Application configuration: **VERIFIED**.
 
 Domain/DNS/hosting control: **PENDING INFRASTRUCTURE HANDOVER** from the previous team. This is an operational dependency, not an unmet Phase 1D application criterion. TLS, HTTP-to-HTTPS redirects, secure production-cookie behavior and HSTS require separate verification after handover.
+
+CMS-to-Web browser publication/unpublication: **PENDING FUNCTIONAL GATE**.
 
 ## Decisions required
 

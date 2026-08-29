@@ -67,6 +67,54 @@ describe("CMS workflow service", () => {
     ]);
   });
 
+  it("does not erase untouched draft fields when one field is edited", async () => {
+    const repository = new InMemoryCmsRepository();
+    repository.addClub("club-news");
+    const service = new CmsService(repository);
+    const authorWithMedia = actor("author", [
+      "article:create:own",
+      "article:update:own",
+      "media:update:own",
+    ]);
+    const created = await service.createContent(authorWithMedia, {
+      type: "article",
+      title: "Complete draft",
+      slug: "complete-draft",
+      summary: "Existing summary",
+      body: "Existing body",
+      seoTitle: "Existing SEO title",
+      seoDescription: "Existing SEO description",
+      canonicalPath: "/news/complete-draft",
+      owningClubId: "club-news",
+    });
+    repository.addMedia({
+      id: "media-featured",
+      ownerUserId: "author",
+      owningClubId: "club-news",
+      status: "available",
+    });
+    await service.setContentMedia(authorWithMedia, created.id, [
+      "media-featured",
+    ]);
+
+    const updated = await service.updateContent(authorWithMedia, created.id, {
+      title: "Updated title only",
+    });
+
+    expect(updated).toMatchObject({
+      title: "Updated title only",
+      slug: "complete-draft",
+      summary: "Existing summary",
+      body: "Existing body",
+      seoTitle: "Existing SEO title",
+      seoDescription: "Existing SEO description",
+      canonicalPath: "/news/complete-draft",
+      featuredMediaId: "media-featured",
+      currentRevision: 3,
+    });
+    expect(repository.revisions).toHaveLength(3);
+  });
+
   it("enforces submit, review, approval, publish and unpublish in order", async () => {
     const repository = new InMemoryCmsRepository();
     repository.addClub("club-news");
@@ -207,6 +255,86 @@ describe("CMS workflow service", () => {
     await expect(service.publish(publisher, item.id)).rejects.toMatchObject({
       code: "INVALID_TRANSITION",
     });
+  });
+
+  it("associates only authorized available media with a gallery in order", async () => {
+    const repository = new InMemoryCmsRepository();
+    repository.addClub("club-news");
+    const service = new CmsService(repository);
+    const galleryAuthor = actor("gallery-author", [
+      "gallery:create:own",
+      "gallery:update:own",
+      "media:update:own",
+    ]);
+    const gallery = await service.createContent(galleryAuthor, {
+      type: "gallery",
+      title: "Synthetic gallery",
+      slug: "synthetic-gallery",
+      body: "Gallery introduction",
+      owningClubId: "club-news",
+    });
+    repository.addMedia({
+      id: "media-one",
+      ownerUserId: "gallery-author",
+      owningClubId: "club-news",
+      status: "available",
+    });
+    repository.addMedia({
+      id: "media-two",
+      ownerUserId: "gallery-author",
+      owningClubId: "club-news",
+      status: "available",
+    });
+
+    const updated = await service.setContentMedia(galleryAuthor, gallery.id, [
+      "media-two",
+      "media-one",
+    ]);
+
+    expect(updated.featuredMediaId).toBe("media-two");
+    expect(updated.currentRevision).toBe(2);
+    expect(repository.contentMedia.get(gallery.id)).toEqual([
+      "media-two",
+      "media-one",
+    ]);
+  });
+
+  it("rejects archived and cross-club media associations", async () => {
+    const repository = new InMemoryCmsRepository();
+    repository.addClub("club-news");
+    const service = new CmsService(repository);
+    const galleryAuthor = actor("gallery-author", [
+      "gallery:create:own",
+      "gallery:update:own",
+      "media:update:own",
+      "media:update:club",
+    ]);
+    const gallery = await service.createContent(galleryAuthor, {
+      type: "gallery",
+      title: "Scoped gallery",
+      slug: "scoped-gallery",
+      body: "Gallery introduction",
+      owningClubId: "club-news",
+    });
+    repository.addMedia({
+      id: "archived-media",
+      ownerUserId: "gallery-author",
+      owningClubId: "club-news",
+      status: "archived",
+    });
+    repository.addMedia({
+      id: "cross-club-media",
+      ownerUserId: "another-author",
+      owningClubId: "club-media",
+      status: "available",
+    });
+
+    await expect(
+      service.setContentMedia(galleryAuthor, gallery.id, ["archived-media"]),
+    ).rejects.toMatchObject({ code: "INVALID_MEDIA" });
+    await expect(
+      service.setContentMedia(galleryAuthor, gallery.id, ["cross-club-media"]),
+    ).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
   });
 });
 

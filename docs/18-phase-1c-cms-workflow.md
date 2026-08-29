@@ -1,12 +1,14 @@
 # Phase 1C — CMS Workflow
 
-Status: Closed
+Status: Conditionally closed — browser functional gate pending
+
+The database, domain, authorization and private R2 infrastructure gates pass. The latest functional assessment supersedes earlier closure wording: Phase 1C is not closed until representative role workflows, CMS-to-Web publication/unpublication and the real browser R2 flow pass through the applications.
 
 ## Architecture
 
 The CMS remains a private TanStack Start application. Server functions obtain the authoritative Better Auth session and Phase 1B assignment-scoped grant, validate input and call `@slgs/cms-domain`. Domain services own workflow and media rules; Drizzle repositories own PostgreSQL persistence. Role-aware UI improves clarity but is never the authorization boundary.
 
-The public Web and S.I.M.S. applications receive no CMS schema privileges. Phase 1D will build a separate published read model; Phase 1C does not connect the public application to CMS tables.
+The public Web and S.I.M.S. applications receive no CMS schema privileges. Phase 1D provides a separate published read model; the public application does not read CMS tables.
 
 ## Content model
 
@@ -72,9 +74,17 @@ Security/Platform System Administration owns intake and investigation coordinati
 
 Migrations `0005_phase-1c-cms-workflow.sql`, `0006_phase-1c-multimedia-gallery.sql` and `0007_phase-1c-r2-storage.sql` create and finalize `cms.club`, `content_item`, `content_revision`, `workflow_event`, `media_asset`, `content_media`, `editorial_audit_event` and `retention_policy`; enums, foreign keys, uniqueness/check constraints and indexes; workflow/audit triggers; CMS runtime grants; non-CMS revocations; and Phase 1C role seeds.
 
-Phase 1C exposes no public route or read model. The future Phase 1D contract will copy/project only `published` records and approved media into an explicit public read boundary. Draft, submitted, review, rejected and approved-only records remain private.
+Phase 1C exposes no public route. The Phase 1D contract projects only `published` records with a publication timestamp into an explicit public read boundary. Draft, submitted, in-review, rejected and approved-only records remain private.
 
-## Verification
+## Application remediation verification
+
+The CMS application now loads authoritative draft values before editing and saves immutable revisions without silently clearing untouched content. It exposes event-specific fields, ordered gallery/content media composition, role-aware review/rejection/approval/publish controls, scoped operational queues, revision and workflow history, authorized audit visibility, safe identity labels, club lifecycle controls and confirmation for destructive operations. Application tests cover draft population, event fields, workflow action separation, self-action suppression, scoped dashboard visibility, gallery composition visibility and the generic sign-in failure state.
+
+These deterministic tests do not replace the outstanding browser gate. An isolated Neon branch and temporary synthetic identities are required so the role matrix can be exercised and removed without contaminating shared audit history. The local Neon CLI profile is currently inaccessible while its macOS keychain credential is locked. Real browser role, publish/unpublish and R2 evidence remains pending.
+
+ADR-025 resolves first CMS System Administrator provisioning by allowing the existing two-person Platform System Administration bootstrap to explicitly select `cms_system_administrator`. Existing CMS administrators are not elevated; the path remains one-time, audited, CMS-only and separate from normal CMS role assignment.
+
+## Existing infrastructure verification
 
 The domain suite exercises creation, revision ownership, ordered transitions, rejection/resubmission, self-review, cross-club isolation, approval/publication guards, image signature validation, media ownership/archive and denial auditing. `verification/phase-1c.sql` verifies live schema/roles, CMS/S.I.M.S. permission isolation, transition bypass rejection, self-review/approval rejection, audit immutability and runtime grants inside a rolled-back transaction.
 
@@ -84,4 +94,4 @@ The application credential intentionally does not have bucket-administration per
 
 ## Remaining operational decisions
 
-Cloudflare R2 is the verified production CMS object-store provider. Remaining retention, recovery, monitoring, incident-response and future public-media delivery decisions are operational governance items and do not reopen or condition Phase 1C. S.I.M.S. scope policy remains outside this phase.
+Cloudflare R2 is the verified production CMS object-store provider. Remaining retention, recovery, monitoring, incident-response and future public-media delivery decisions are operational governance items. Phase 1C nevertheless remains conditional until the browser functional gate above passes. S.I.M.S. scope policy remains outside this phase.

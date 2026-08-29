@@ -23,12 +23,52 @@ import {
 } from "./policy";
 
 type Database = DatabaseConnection["db"];
-export type BootstrapRole = "cms_administrator" | "sims_system_administrator";
+export type BootstrapRole =
+  | "cms_administrator"
+  | "cms_system_administrator"
+  | "sims_system_administrator";
 
 const bootstrapRoleNames: Readonly<Record<BootstrapRole, string>> = {
   cms_administrator: "CMS Administrator",
+  cms_system_administrator: "CMS System Administrator",
   sims_system_administrator: "S.I.M.S. System Administrator",
 };
+
+export function assertSupportedBootstrapRequest(
+  application: Application,
+  role: BootstrapRole,
+): void {
+  const contract = ROLE_CONTRACTS[role];
+  if (contract.application !== application) {
+    throw new Error(
+      "Bootstrap role does not belong to the requested application.",
+    );
+  }
+}
+
+export function resolveBootstrapRole(
+  application: Application,
+  requestedRole?: string,
+): BootstrapRole {
+  if (application === "cms") {
+    const role = requestedRole ?? "cms_administrator";
+    if (role !== "cms_administrator" && role !== "cms_system_administrator") {
+      throw new Error(
+        "CMS bootstrap role must be cms_administrator or cms_system_administrator.",
+      );
+    }
+    return role;
+  }
+  if (application === "sims") {
+    if (requestedRole && requestedRole !== "sims_system_administrator") {
+      throw new Error(
+        "S.I.M.S. bootstrap only supports sims_system_administrator.",
+      );
+    }
+    return "sims_system_administrator";
+  }
+  throw new Error("Bootstrap application must be cms or sims.");
+}
 
 export async function addApprovedBootstrapDomain(
   database: Database,
@@ -81,12 +121,7 @@ export async function initiateAdministratorBootstrap(
     readonly initiatorReference: string;
   },
 ): Promise<{ readonly requestId: string; readonly userId: string }> {
-  const contract = ROLE_CONTRACTS[input.role];
-  if (contract.application !== input.application) {
-    throw new Error(
-      "Bootstrap role does not belong to the requested application.",
-    );
-  }
+  assertSupportedBootstrapRequest(input.application, input.role);
   if (!input.name.trim() || !input.personReference.trim()) {
     throw new Error("Name and person reference are required.");
   }
@@ -113,20 +148,19 @@ export async function initiateAdministratorBootstrap(
       throw new Error("The identity contact domain is not approved.");
     }
 
-    const [completed] = await transaction
+    const [existing] = await transaction
       .select({ id: privilegedBootstrap.id })
       .from(privilegedBootstrap)
       .where(
         and(
           eq(privilegedBootstrap.application, input.application),
           eq(privilegedBootstrap.roleKey, input.role),
-          eq(privilegedBootstrap.status, "completed"),
         ),
       )
       .limit(1);
-    if (completed) {
+    if (existing) {
       throw new Error(
-        "The first administrator for this application is already bootstrapped.",
+        "This initial administrator role already has a bootstrap request.",
       );
     }
 
@@ -196,13 +230,15 @@ export async function approveAdministratorBootstrap(
     );
 
     const role = request.roleKey as RoleKey;
-    if (role !== "cms_administrator" && role !== "sims_system_administrator") {
+    if (
+      role !== "cms_administrator" &&
+      role !== "cms_system_administrator" &&
+      role !== "sims_system_administrator"
+    ) {
       throw new Error("Bootstrap request contains an unsupported role.");
     }
+    assertSupportedBootstrapRequest(request.application, role);
     const contract = ROLE_CONTRACTS[role];
-    if (contract.application !== request.application) {
-      throw new Error("Bootstrap request crosses an application boundary.");
-    }
 
     const now = new Date();
     const roleId = crypto.randomUUID();

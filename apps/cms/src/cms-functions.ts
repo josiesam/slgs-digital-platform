@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { z } from "zod";
@@ -20,11 +20,15 @@ import {
 import {
   applicationMembership,
   club,
+  contentMedia,
   contentItem,
+  contentRevision,
   editorialAuditEvent,
   mediaAsset,
+  roleAssignment,
   roleDefinition,
   user,
+  workflowEvent,
 } from "@slgs/db";
 import {
   evaluateAuthorization,
@@ -35,6 +39,7 @@ import {
 } from "@slgs/permissions";
 
 import { database, sessions } from "./auth.server";
+import { filterVisibleContent } from "./dashboard-policy";
 
 const repository = new DrizzleCmsRepository(database.db);
 const service = new CmsService(repository);
@@ -138,55 +143,62 @@ export const getCmsDashboard = createServerFn({ method: "GET" }).handler(
         type: contentItem.type,
         title: contentItem.title,
         slug: contentItem.slug,
+        summary: contentItem.summary,
+        body: contentItem.body,
+        seoTitle: contentItem.seoTitle,
+        seoDescription: contentItem.seoDescription,
+        canonicalPath: contentItem.canonicalPath,
+        featuredMediaId: contentItem.featuredMediaId,
         state: contentItem.state,
         authorUserId: contentItem.authorUserId,
         owningClubId: contentItem.owningClubId,
+        currentRevision: contentItem.currentRevision,
+        eventStartAt: contentItem.eventStartAt,
+        eventEndAt: contentItem.eventEndAt,
+        eventLocation: contentItem.eventLocation,
+        eventOrganiser: contentItem.eventOrganiser,
+        reviewedAt: contentItem.reviewedAt,
         updatedAt: contentItem.updatedAt,
       })
       .from(contentItem)
       .orderBy(desc(contentItem.updatedAt))
       .limit(200);
     const permissions = [...actor.grant.permissions];
-    const contentReadPermissions = permissions.filter(
-      (permission): permission is Permission =>
-        permission === "article:read:club" ||
-        permission === "content:read:club" ||
-        permission === "content:read:assigned" ||
-        permission === "content:read:approved",
-    );
-    const visible = rows.filter((item) => {
-      if (item.authorUserId === identity.userId) return true;
-      const resource = {
-        ownerId: item.authorUserId,
-        state:
-          item.state === "in_review"
-            ? ("submitted" as const)
-            : item.state === "rejected"
-              ? ("draft" as const)
-              : item.state,
-        scopes: [
-          { dimension: "organisation" as const, value: "slgs" },
-          ...(item.owningClubId
-            ? [{ dimension: "club" as const, value: item.owningClubId }]
-            : []),
-        ],
-      };
-      return contentReadPermissions.some(
-        (permission) =>
-          evaluateAuthorization({
-            identityId: identity.userId,
-            application: "cms",
-            permission,
-            grant: actor.grant,
-            authorId: item.authorUserId,
-            resource,
-          }).allowed,
+    const [profile] = await database.db
+      .select({ name: user.name })
+      .from(user)
+      .where(eq(user.id, identity.userId))
+      .limit(1);
+    const assignedRoles = await database.db
+      .select({ name: roleDefinition.name })
+      .from(applicationMembership)
+      .innerJoin(
+        roleAssignment,
+        eq(roleAssignment.membershipId, applicationMembership.id),
+      )
+      .innerJoin(
+        roleDefinition,
+        eq(roleDefinition.id, roleAssignment.roleDefinitionId),
+      )
+      .where(
+        and(
+          eq(applicationMembership.userId, identity.userId),
+          eq(applicationMembership.application, "cms"),
+          eq(applicationMembership.status, "active"),
+          isNull(roleAssignment.revokedAt),
+          eq(roleDefinition.active, true),
+        ),
       );
-    });
+    const visible = filterVisibleContent(rows, identity.userId, actor.grant);
     const allClubs = await database.db
-      .select({ id: club.id, name: club.name })
-      .from(club)
-      .where(eq(club.status, "active"));
+      .select({
+        id: club.id,
+        name: club.name,
+        description: club.description,
+        status: club.status,
+      })
+      .from(club);
+    const activeClubs = allClubs.filter((item) => item.status === "active");
     const assignedClubIds = new Set(
       actor.grant.entitlements.flatMap((entitlement) =>
         entitlement.scopes
@@ -198,6 +210,9 @@ export const getCmsDashboard = createServerFn({ method: "GET" }).handler(
       "configuration:manage:cms",
     );
     const clubs = canManageConfiguration
+      ? activeClubs
+      : activeClubs.filter((item) => assignedClubIds.has(item.id));
+    const managedClubs = canManageConfiguration
       ? allClubs
       : allClubs.filter((item) => assignedClubIds.has(item.id));
     const canManageRoles = permissions.includes("role:create:cms");
@@ -255,15 +270,114 @@ export const getCmsDashboard = createServerFn({ method: "GET" }).handler(
         },
       }).allowed;
     });
+    const mediaAssociations = visible.length
+      ? await database.db
+          .select({
+            contentId: contentMedia.contentId,
+            mediaId: contentMedia.mediaId,
+          })
+          .from(contentMedia)
+          .where(
+            inArray(
+              contentMedia.contentId,
+              visible.map((item) => item.id),
+            ),
+          )
+          .orderBy(asc(contentMedia.sortOrder))
+      : [];
+    const visibleIds = visible.map((item) => item.id);
+    const revisions = visibleIds.length
+      ? await database.db
+          .select({
+            contentId: contentRevision.contentId,
+            revision: contentRevision.revision,
+            createdAt: contentRevision.createdAt,
+            createdByName: user.name,
+          })
+          .from(contentRevision)
+          .innerJoin(user, eq(user.id, contentRevision.createdBy))
+          .where(inArray(contentRevision.contentId, visibleIds))
+          .orderBy(desc(contentRevision.createdAt))
+      : [];
+    const workflow = visibleIds.length
+      ? await database.db
+          .select({
+            contentId: workflowEvent.contentId,
+            fromState: workflowEvent.fromState,
+            toState: workflowEvent.toState,
+            comment: workflowEvent.comment,
+            occurredAt: workflowEvent.occurredAt,
+            actorName: user.name,
+          })
+          .from(workflowEvent)
+          .innerJoin(user, eq(user.id, workflowEvent.actorUserId))
+          .where(inArray(workflowEvent.contentId, visibleIds))
+          .orderBy(desc(workflowEvent.occurredAt))
+      : [];
+    const audit = permissions.includes("audit:read:cms")
+      ? await database.db
+          .select({
+            eventType: editorialAuditEvent.eventType,
+            resourceType: editorialAuditEvent.resourceType,
+            outcome: editorialAuditEvent.outcome,
+            reasonCode: editorialAuditEvent.reasonCode,
+            occurredAt: editorialAuditEvent.occurredAt,
+          })
+          .from(editorialAuditEvent)
+          .orderBy(desc(editorialAuditEvent.occurredAt))
+          .limit(100)
+      : [];
+    const scopeLabels = actor.grant.entitlements.flatMap((entitlement) =>
+      entitlement.scopes.map((scope) => {
+        if (scope.dimension !== "club") {
+          return `${scope.dimension}: ${scope.value}`;
+        }
+        const assignedClub = allClubs.find((item) => item.id === scope.value);
+        return `club: ${assignedClub?.name ?? "Assigned club"}`;
+      }),
+    );
     return {
       userId: identity.userId,
+      identity: {
+        displayName: profile?.name ?? "CMS user",
+        application: "CMS",
+        roles: [...new Set(assignedRoles.map((role) => role.name))],
+        scopes: [...new Set(scopeLabels)],
+      },
       permissions,
       clubs,
+      managedClubs,
       roles,
       members,
       media: visibleMedia,
+      audit: audit.map((event) => ({
+        ...event,
+        occurredAt: event.occurredAt.toISOString(),
+      })),
       content: visible.map((item) => ({
         ...item,
+        eventStartAt: item.eventStartAt?.toISOString() ?? null,
+        eventEndAt: item.eventEndAt?.toISOString() ?? null,
+        reviewedAt: item.reviewedAt?.toISOString() ?? null,
+        mediaIds: mediaAssociations
+          .filter((association) => association.contentId === item.id)
+          .map((association) => association.mediaId),
+        revisions: revisions
+          .filter((revision) => revision.contentId === item.id)
+          .map((revision) => ({
+            revision: revision.revision,
+            createdByName: revision.createdByName,
+            createdAt: revision.createdAt.toISOString(),
+          })),
+        workflow: workflow
+          .filter((event) => event.contentId === item.id)
+          .map((event) => ({
+            fromState: event.fromState,
+            toState: event.toState,
+            comment: event.comment,
+            actorName: event.actorName,
+            occurredAt: event.occurredAt.toISOString(),
+          })),
         updatedAt: item.updatedAt.toISOString(),
       })),
     };
@@ -446,6 +560,29 @@ export const updateCmsContent = createServerFn({ method: "POST" })
     const { actor } = await requestIdentity();
     const updated = await service.updateContent(actor, data.id, data.changes);
     return { id: updated.id, state: updated.state };
+  });
+
+export const setCmsContentMedia = createServerFn({ method: "POST" })
+  .validator((input) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        mediaIds: z.array(z.string().uuid()).max(100),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { actor } = await requestIdentity();
+    const updated = await service.setContentMedia(
+      actor,
+      data.id,
+      data.mediaIds,
+    );
+    return {
+      id: updated.id,
+      currentRevision: updated.currentRevision,
+      featuredMediaId: updated.featuredMediaId,
+    };
   });
 
 export const transitionCmsContent = createServerFn({ method: "POST" })

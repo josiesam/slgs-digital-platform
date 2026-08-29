@@ -65,6 +65,7 @@ pnpm admin:bootstrap domain --domain <approved-domain> --operator <operator-1-re
 
 pnpm admin:bootstrap initiate \
   --application cms \
+  --role cms_administrator \
   --name "<administrator-name>" \
   --email "<administrator-email>" \
   --person-reference "<approved-evidence-reference>" \
@@ -79,4 +80,6 @@ pnpm admin:bootstrap status
 
 `setup` is a one-time infrastructure action that uses `DATABASE_MIGRATION_URL` to create or rotate the scoped `slgs_platform_admin` PostgreSQL role. It writes the resulting connection URL into the ignored `.env` file with owner-only permissions and never prints the credential. Subsequent commands use that scoped credential rather than the migration identity.
 
-Repeat `initiate` and `approve` with `--application sims` for the first S.I.M.S. System Administrator. The CLI selects `cms_administrator` or `sims_system_administrator` automatically. It securely prompts twice for the initial password, refuses identical initiator/approver references, activates the target only on approval, creates only the matching application membership, and writes audit records. Operator references must identify two real, separately verified people and must not be shared-account names.
+Repeat `initiate` and `approve` with `--application sims` for the first S.I.M.S. System Administrator. Omitting `--role` selects the existing `cms_administrator` or `sims_system_administrator` default. ADR-025 permits the same controlled mechanism to provision the first CMS System Administrator with `--application cms --role cms_system_administrator`. This does not elevate an existing CMS administrator, cannot grant S.I.M.S. authority, rejects a duplicate pending or completed initial-role request and retains the two-distinct-operator approval requirement.
+
+The CLI securely prompts twice for the initial password, refuses identical initiator/approver references, activates the target only on approval, creates only the matching application membership, and writes audit records. Operator references must identify two real, independently authenticated and separately authorized Platform System Administration people and must not be shared-account names. Normal CMS role assignment remains available only to an authenticated CMS System Administrator.

@@ -3,6 +3,9 @@ import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 
 import { PageShell } from "@slgs/ui";
 import { getCurrentCmsIdentity } from "../access";
+import { DraftEditor } from "../content-editor";
+import { GalleryMediaEditor } from "../gallery-media-editor";
+import { WorkflowActions, type CmsWorkflowAction } from "../workflow-actions";
 import {
   assignCmsRole,
   archiveCmsMedia,
@@ -14,7 +17,9 @@ import {
   initiateMediaUpload,
   finalizeMediaUpload,
   setCustomCmsRoleActive,
+  setCmsContentMedia,
   transitionCmsContent,
+  updateCmsClub,
   updateCmsContent,
   type CmsPermission,
 } from "../cms-functions";
@@ -39,15 +44,6 @@ const labels: Record<ContentType, string> = {
   announcement: "Announcement",
   gallery: "Gallery",
 };
-type Action =
-  | "submit"
-  | "start_review"
-  | "complete_review"
-  | "reject"
-  | "approve"
-  | "publish"
-  | "unpublish";
-
 function CmsDashboard() {
   const dashboard = Route.useLoaderData();
   const router = useRouter();
@@ -56,6 +52,9 @@ function CmsDashboard() {
   const [pending, setPending] = useState(false);
   const types = (Object.keys(labels) as ContentType[]).filter((type) =>
     permissions.has(`${type}:create:own` as CmsPermission),
+  );
+  const [selectedType, setSelectedType] = useState<ContentType>(
+    types[0] ?? "page",
   );
 
   async function refresh(task: () => Promise<unknown>, success: string) {
@@ -73,9 +72,9 @@ function CmsDashboard() {
       setPending(false);
     }
   }
-  const action = (id: string, value: Action) =>
+  const action = (id: string, value: CmsWorkflowAction, comment?: string) =>
     refresh(
-      () => transitionCmsContent({ data: { id, action: value } }),
+      () => transitionCmsContent({ data: { id, action: value, comment } }),
       "Workflow updated.",
     );
 
@@ -91,10 +90,14 @@ function CmsDashboard() {
           slug: String(data.get("slug")),
           summary: String(data.get("summary") || "") || undefined,
           body: String(data.get("body") || ""),
+          seoTitle: String(data.get("seoTitle") || "") || undefined,
+          seoDescription: String(data.get("seoDescription") || "") || undefined,
+          canonicalPath: String(data.get("canonicalPath") || "") || undefined,
           owningClubId: String(data.get("club") || "") || undefined,
           eventStartAt: String(data.get("eventStartAt") || "") || undefined,
           eventEndAt: String(data.get("eventEndAt") || "") || undefined,
           eventLocation: String(data.get("eventLocation") || "") || undefined,
+          eventOrganiser: String(data.get("eventOrganiser") || "") || undefined,
         },
       });
       form.reset();
@@ -110,8 +113,16 @@ function CmsDashboard() {
             id,
             changes: {
               title: String(data.get("title")),
-              summary: String(data.get("summary") || ""),
+              slug: String(data.get("slug")),
+              summary: String(data.get("summary") || "") || null,
               body: String(data.get("body") || ""),
+              seoTitle: String(data.get("seoTitle") || "") || null,
+              seoDescription: String(data.get("seoDescription") || "") || null,
+              canonicalPath: String(data.get("canonicalPath") || "") || null,
+              eventStartAt: String(data.get("eventStartAt") || "") || null,
+              eventEndAt: String(data.get("eventEndAt") || "") || null,
+              eventLocation: String(data.get("eventLocation") || "") || null,
+              eventOrganiser: String(data.get("eventOrganiser") || "") || null,
             },
           },
         }),
@@ -141,6 +152,32 @@ function CmsDashboard() {
       });
       form.reset();
     }, "Club scope created and audited.");
+  };
+  const updateClub = (event: FormEvent<HTMLFormElement>, id: string) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const status = String(data.get("status")) as
+      "active" | "inactive" | "archived";
+    if (
+      status !== "active" &&
+      !window.confirm(
+        `Change this club to ${status}? Its current operational availability will change.`,
+      )
+    ) {
+      return Promise.resolve();
+    }
+    return refresh(
+      () =>
+        updateCmsClub({
+          data: {
+            id,
+            name: String(data.get("name")),
+            description: String(data.get("description") || "") || undefined,
+            status,
+          },
+        }),
+      "Club lifecycle updated and audited.",
+    );
   };
   const createRole = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -183,10 +220,15 @@ function CmsDashboard() {
     );
   };
   const setRoleActive = (roleId: string, active: boolean) =>
-    refresh(
-      () => setCustomCmsRoleActive({ data: { roleId, active } }),
-      active ? "Custom role activated." : "Custom role deactivated.",
-    );
+    !active &&
+    !window.confirm(
+      "Deactivate this custom role? Existing assignments will stop granting authority.",
+    )
+      ? Promise.resolve()
+      : refresh(
+          () => setCustomCmsRoleActive({ data: { roleId, active } }),
+          active ? "Custom role activated." : "Custom role deactivated.",
+        );
   const uploadMedia = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -223,9 +265,18 @@ function CmsDashboard() {
       window.location.assign(result.downloadUrl);
     }, "Secure download authorized.");
   const archiveMedia = (id: string) =>
+    window.confirm(
+      "Archive this media asset? It will no longer be available for active content.",
+    )
+      ? refresh(
+          () => archiveCmsMedia({ data: { id } }),
+          "Media archived. The private object was retained.",
+        )
+      : Promise.resolve();
+  const saveContentMedia = (id: string, mediaIds: readonly string[]) =>
     refresh(
-      () => archiveCmsMedia({ data: { id } }),
-      "Media archived. The private object was retained.",
+      () => setCmsContentMedia({ data: { id, mediaIds: [...mediaIds] } }),
+      "Gallery composition saved as a new revision.",
     );
 
   return (
@@ -248,7 +299,14 @@ function CmsDashboard() {
           </div>
           <div className="cms-identity" aria-label="Current identity">
             <span>Signed in</span>
-            <strong>{dashboard.userId}</strong>
+            <strong>{dashboard.identity.displayName}</strong>
+            <span>{dashboard.identity.application}</span>
+            <span>
+              {dashboard.identity.roles.join(", ") || "Assigned CMS user"}
+            </span>
+            {dashboard.identity.scopes.length ? (
+              <span>{dashboard.identity.scopes.join(", ")}</span>
+            ) : null}
           </div>
         </header>
         {feedback ? (
@@ -270,6 +328,113 @@ function CmsDashboard() {
                 </strong>
               </article>
             ))}
+          </div>
+        </section>
+        {(permissions.has("club:manage:assigned") ||
+          permissions.has("configuration:manage:cms")) &&
+        dashboard.managedClubs.length ? (
+          <section aria-labelledby="club-management">
+            <h2 id="club-management">Club lifecycle</h2>
+            <div className="cms-admin-grid">
+              {dashboard.managedClubs.map((managedClub) => (
+                <form
+                  className="cms-form"
+                  key={managedClub.id}
+                  onSubmit={(event) => updateClub(event, managedClub.id)}
+                >
+                  <h3>{managedClub.name}</h3>
+                  <label>
+                    Name
+                    <input
+                      name="name"
+                      defaultValue={managedClub.name}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Description
+                    <textarea
+                      name="description"
+                      defaultValue={managedClub.description ?? ""}
+                      rows={3}
+                    />
+                  </label>
+                  <label>
+                    Status
+                    <select name="status" defaultValue={managedClub.status}>
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                      <option value="archived">Archived</option>
+                    </select>
+                  </label>
+                  <button disabled={pending} type="submit">
+                    Update club
+                  </button>
+                </form>
+              ))}
+            </div>
+          </section>
+        ) : null}
+        {permissions.has("configuration:manage:cms") ? (
+          <section aria-labelledby="create-club">
+            <h2 id="create-club">Create club scope</h2>
+            <form className="cms-form cms-compact-form" onSubmit={createClub}>
+              <label htmlFor="club-key">Stable key</label>
+              <input
+                id="club-key"
+                name="key"
+                pattern="[a-z][a-z0-9_-]*"
+                required
+              />
+              <label htmlFor="club-name">Club name</label>
+              <input id="club-name" name="name" required />
+              <label htmlFor="club-description">Description</label>
+              <textarea id="club-description" name="description" rows={3} />
+              <button disabled={pending} type="submit">
+                Create club
+              </button>
+            </form>
+          </section>
+        ) : null}
+        <section aria-labelledby="operational-queues">
+          <h2 id="operational-queues">Operational queues</h2>
+          <div className="cms-stat-grid cms-queue-grid">
+            {permissions.has("content:review:assigned") ? (
+              <article className="cms-stat">
+                <span>Requiring review</span>
+                <strong>
+                  {
+                    dashboard.content.filter((item) =>
+                      ["submitted", "in_review"].includes(item.state),
+                    ).length
+                  }
+                </strong>
+              </article>
+            ) : null}
+            {permissions.has("content:approve:assigned") ? (
+              <article className="cms-stat">
+                <span>Requiring approval</span>
+                <strong>
+                  {
+                    dashboard.content.filter(
+                      (item) => item.state === "in_review" && item.reviewedAt,
+                    ).length
+                  }
+                </strong>
+              </article>
+            ) : null}
+            {permissions.has("content:publish:approved") ? (
+              <article className="cms-stat">
+                <span>Ready to publish</span>
+                <strong>
+                  {
+                    dashboard.content.filter(
+                      (item) => item.state === "approved",
+                    ).length
+                  }
+                </strong>
+              </article>
+            ) : null}
           </div>
         </section>
         <section aria-labelledby="media-library">
@@ -381,115 +546,58 @@ function CmsDashboard() {
                     </div>
                     <h3>{item.title}</h3>
                     <p>/{item.slug}</p>
-                    <div
-                      className="cms-actions"
-                      aria-label={`Actions for ${item.title}`}
-                    >
-                      {item.authorUserId === dashboard.userId &&
-                      ["draft", "rejected"].includes(item.state) ? (
-                        <button
-                          disabled={pending}
-                          onClick={() => action(item.id, "submit")}
-                          type="button"
-                        >
-                          Submit
-                        </button>
-                      ) : null}
-                      {item.state === "submitted" &&
-                      permissions.has("content:review:assigned") &&
-                      item.authorUserId !== dashboard.userId ? (
-                        <button
-                          disabled={pending}
-                          onClick={() => action(item.id, "start_review")}
-                          type="button"
-                        >
-                          Start review
-                        </button>
-                      ) : null}
-                      {item.state === "in_review" &&
-                      permissions.has("content:review:assigned") &&
-                      item.authorUserId !== dashboard.userId ? (
-                        <>
-                          <button
-                            disabled={pending}
-                            onClick={() => action(item.id, "complete_review")}
-                            type="button"
-                          >
-                            Complete review
-                          </button>
-                          <button
-                            className="secondary"
-                            disabled={pending}
-                            onClick={() => action(item.id, "reject")}
-                            type="button"
-                          >
-                            Reject
-                          </button>
-                        </>
-                      ) : null}
-                      {item.state === "in_review" &&
-                      permissions.has("content:approve:assigned") &&
-                      item.authorUserId !== dashboard.userId ? (
-                        <button
-                          disabled={pending}
-                          onClick={() => action(item.id, "approve")}
-                          type="button"
-                        >
-                          Approve
-                        </button>
-                      ) : null}
-                      {item.state === "approved" &&
-                      permissions.has("content:publish:approved") ? (
-                        <button
-                          disabled={pending}
-                          onClick={() => action(item.id, "publish")}
-                          type="button"
-                        >
-                          Publish
-                        </button>
-                      ) : null}
-                      {item.state === "published" &&
-                      permissions.has("content:unpublish:published") ? (
-                        <button
-                          className="secondary"
-                          disabled={pending}
-                          onClick={() => action(item.id, "unpublish")}
-                          type="button"
-                        >
-                          Unpublish
-                        </button>
-                      ) : null}
-                    </div>
+                    <WorkflowActions
+                      content={item}
+                      currentUserId={dashboard.userId}
+                      permissions={permissions}
+                      pending={pending}
+                      onAction={(value, comment) =>
+                        action(item.id, value, comment)
+                      }
+                    />
                     {item.authorUserId === dashboard.userId &&
                     ["draft", "rejected"].includes(item.state) ? (
                       <details className="cms-editor">
                         <summary>Edit draft</summary>
-                        <form onSubmit={(event) => update(event, item.id)}>
-                          <label htmlFor={`title-${item.id}`}>Title</label>
-                          <input
-                            id={`title-${item.id}`}
-                            name="title"
-                            defaultValue={item.title}
-                            required
-                          />
-                          <label htmlFor={`summary-${item.id}`}>Summary</label>
-                          <textarea
-                            id={`summary-${item.id}`}
-                            name="summary"
-                            rows={2}
-                          />
-                          <label htmlFor={`body-${item.id}`}>Content</label>
-                          <textarea
-                            id={`body-${item.id}`}
-                            name="body"
-                            rows={7}
-                          />
-                          <button disabled={pending} type="submit">
-                            Save revision
-                          </button>
-                        </form>
+                        <DraftEditor
+                          content={item}
+                          pending={pending}
+                          onSave={(event) => update(event, item.id)}
+                        />
+                        <GalleryMediaEditor
+                          contentId={item.id}
+                          contentType={item.type}
+                          initialMediaIds={item.mediaIds}
+                          media={dashboard.media}
+                          pending={pending}
+                          onSave={(mediaIds) =>
+                            saveContentMedia(item.id, mediaIds)
+                          }
+                        />
                       </details>
                     ) : null}
+                    <details className="cms-history">
+                      <summary>Revision and workflow history</summary>
+                      <h4>Revisions</h4>
+                      <ol>
+                        {item.revisions.map((revision) => (
+                          <li key={revision.revision}>
+                            Revision {revision.revision} ·{" "}
+                            {revision.createdByName}
+                          </li>
+                        ))}
+                      </ol>
+                      <h4>Workflow</h4>
+                      <ol>
+                        {item.workflow.map((event) => (
+                          <li key={`${event.occurredAt}-${event.toState}`}>
+                            {event.fromState ?? "created"} → {event.toState} ·{" "}
+                            {event.actorName}
+                            {event.comment ? ` — ${event.comment}` : ""}
+                          </li>
+                        ))}
+                      </ol>
+                    </details>
                   </article>
                 ))}
               </div>
@@ -508,7 +616,10 @@ function CmsDashboard() {
                   id="content-type"
                   name="type"
                   required
-                  defaultValue={types[0]}
+                  value={selectedType}
+                  onChange={(event) =>
+                    setSelectedType(event.currentTarget.value as ContentType)
+                  }
                 >
                   {types.map((type) => (
                     <option key={type} value={type}>
@@ -535,8 +646,17 @@ function CmsDashboard() {
                   Lowercase words separated by hyphens.
                 </small>
                 <label htmlFor="content-club">Owning club</label>
-                <select id="content-club" name="club" defaultValue="">
-                  <option value="">School / no club</option>
+                <select
+                  id="content-club"
+                  name="club"
+                  defaultValue=""
+                  required={dashboard.clubs.length > 0}
+                >
+                  <option value="">
+                    {dashboard.clubs.length
+                      ? "Select an authorized club"
+                      : "School / no club"}
+                  </option>
                   {dashboard.clubs.map((item) => (
                     <option key={item.id} value={item.id}>
                       {item.name}
@@ -553,22 +673,57 @@ function CmsDashboard() {
                 <label htmlFor="content-body">Content</label>
                 <textarea id="content-body" name="body" rows={10} />
                 <fieldset>
-                  <legend>Event details, when applicable</legend>
-                  <label htmlFor="event-start">Starts</label>
+                  <legend>Search and sharing</legend>
+                  <label htmlFor="content-seo-title">SEO title</label>
                   <input
-                    id="event-start"
-                    name="eventStartAt"
-                    type="datetime-local"
+                    id="content-seo-title"
+                    name="seoTitle"
+                    maxLength={70}
                   />
-                  <label htmlFor="event-end">Ends</label>
+                  <label htmlFor="content-seo-description">
+                    SEO description
+                  </label>
+                  <textarea
+                    id="content-seo-description"
+                    name="seoDescription"
+                    maxLength={170}
+                    rows={2}
+                  />
+                  <label htmlFor="content-canonical-path">Canonical path</label>
                   <input
-                    id="event-end"
-                    name="eventEndAt"
-                    type="datetime-local"
+                    id="content-canonical-path"
+                    name="canonicalPath"
+                    placeholder={`/${selectedType === "article" ? "news" : selectedType}/example`}
                   />
-                  <label htmlFor="event-location">Location</label>
-                  <input id="event-location" name="eventLocation" />
                 </fieldset>
+                {selectedType === "event" ? (
+                  <fieldset>
+                    <legend>Event details</legend>
+                    <label htmlFor="event-start">Starts</label>
+                    <input
+                      id="event-start"
+                      name="eventStartAt"
+                      type="datetime-local"
+                      required
+                    />
+                    <label htmlFor="event-end">Ends</label>
+                    <input
+                      id="event-end"
+                      name="eventEndAt"
+                      type="datetime-local"
+                    />
+                    <label htmlFor="event-location">Location</label>
+                    <input id="event-location" name="eventLocation" />
+                    <label htmlFor="event-organiser">Organiser</label>
+                    <input id="event-organiser" name="eventOrganiser" />
+                  </fieldset>
+                ) : null}
+                {selectedType === "gallery" ? (
+                  <p className="cms-empty">
+                    Create the draft, then add and order available media in its
+                    gallery composition editor.
+                  </p>
+                ) : null}
                 <button disabled={pending} type="submit">
                   {pending ? "Working…" : "Create draft"}
                 </button>
@@ -589,23 +744,6 @@ function CmsDashboard() {
               </div>
             </div>
             <div className="cms-admin-grid">
-              <form className="cms-form" onSubmit={createClub}>
-                <h3>Create club scope</h3>
-                <label htmlFor="club-key">Stable key</label>
-                <input
-                  id="club-key"
-                  name="key"
-                  pattern="[a-z][a-z0-9_-]*"
-                  required
-                />
-                <label htmlFor="club-name">Club name</label>
-                <input id="club-name" name="name" required />
-                <label htmlFor="club-description">Description</label>
-                <textarea id="club-description" name="description" rows={3} />
-                <button disabled={pending} type="submit">
-                  Create club
-                </button>
-              </form>
               <form className="cms-form" onSubmit={createRole}>
                 <h3>Create custom CMS role</h3>
                 <label htmlFor="role-key">Stable key</label>
@@ -705,6 +843,24 @@ function CmsDashboard() {
                 </article>
               ))}
             </div>
+          </section>
+        ) : null}
+        {permissions.has("audit:read:cms") ? (
+          <section aria-labelledby="cms-audit">
+            <h2 id="cms-audit">CMS audit history</h2>
+            {dashboard.audit.length ? (
+              <ol className="cms-audit-list">
+                {dashboard.audit.map((event) => (
+                  <li key={`${event.occurredAt}-${event.eventType}`}>
+                    <strong>{event.eventType}</strong> · {event.outcome} ·{" "}
+                    {event.resourceType}
+                    {event.reasonCode ? ` · ${event.reasonCode}` : ""}
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="cms-empty">No audit events are visible.</p>
+            )}
           </section>
         ) : null}
       </div>

@@ -171,7 +171,7 @@ This prevents scope borrowing, rejects arbitrary permissions and lets later scho
 
 ## ADR-022 — Normalized CMS workflow with guarded publication
 
-Status: Accepted and infrastructure-verified for Phase 1C
+Status: Accepted and infrastructure-verified for Phase 1C; application gate pending
 
 CMS content uses normalized PostgreSQL records with immutable revisions, append-only workflow events and editorial audit events. The state machine is enforced in the CMS service and reinforced by a database trigger. Author, owning club and publication actors are persisted historical facts. Pages, articles, events, announcements and galleries share the workflow boundary without becoming a general-purpose page builder.
 
@@ -201,6 +201,16 @@ An infrastructure-neutral 60-second in-process cache stores only already-project
 
 Private R2 media is not projected. Public media delivery remains an operational decision and must use a URL-safe public DTO without revealing object keys or granting anonymous access to the private CMS bucket.
 
-The read views and runtime grants passed live synthetic verification. The approved production public origin is `http://slgs.edu.sl`; `PUBLIC_SITE_URL` and application-generated canonical, Open Graph, sitemap and robots URLs were verified against that exact origin. Phase 1D is closed.
+The read views and runtime grants passed live synthetic verification. The approved production public origin is `http://slgs.edu.sl`; `PUBLIC_SITE_URL` and application-generated canonical, Open Graph, sitemap and robots URLs were verified against that exact origin. Phase 1D remains conditionally closed until CMS-to-Web publish/unpublish is browser-verified.
 
 Domain/DNS/hosting control remains **PENDING INFRASTRUCTURE HANDOVER** from the previous team. This operational dependency does not reopen Phase 1D. HTTPS, redirects, secure-cookie deployment behavior and HSTS must be verified separately after handover; HTTPS is not assumed before then.
+
+## ADR-025 — First CMS System Administrator bootstrap
+
+Status: Accepted
+
+Phase 1A privileged bootstrap currently assigns `cms_administrator`. Phase 1C reserves CMS role creation and assignment to `cms_system_administrator`. The result is a circular authority boundary with no approved path to provision the first CMS System Administrator.
+
+The existing two-person Platform System Administration bootstrap is extended to explicitly select the first `cms_system_administrator`. Existing CMS administrators are not elevated and do not gain role-management authority. The operation creates only the requested CMS identity, active CMS membership and CMS System Administrator assignment in one transaction; records both distinct external platform operator references in append-only security audit history; and rejects a second pending or completed request for the same initial role.
+
+Platform System Administration remains an external operational authority rather than an application role. Independent operator authentication and authorization govern access to the scoped platform-administration database credential. The CLI enforces distinct operator references as separation evidence and never grants S.I.M.S. authority through the CMS path. Normal CMS role assignment remains restricted to CMS System Administrators.

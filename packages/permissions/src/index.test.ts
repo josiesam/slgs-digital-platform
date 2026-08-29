@@ -108,6 +108,25 @@ describe("authorization evaluation", () => {
     ).toBe(false);
   });
 
+  it("does not let scoped own authority widen itself by omitting resource scope", () => {
+    const grant = createScopedGrant("cms", [
+      {
+        permissions: ["article:create:own"],
+        scopes: [{ dimension: "club", value: "news" }],
+      },
+    ]);
+
+    expect(
+      evaluateAuthorization({
+        identityId: "author",
+        application: "cms",
+        permission: "article:create:own",
+        grant,
+        resource: { ownerId: "author", scopes: [] },
+      }),
+    ).toEqual({ allowed: false, reason: "scope_mismatch" });
+  });
+
   it("prevents author review and approval but permits another reviewer", () => {
     for (const permission of [
       "content:review:assigned",
