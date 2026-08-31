@@ -1,6 +1,6 @@
 # Phase 2C — Attendance Design Gate
 
-Status: **DESIGN CONDITIONALLY APPROVED — IMPLEMENTATION NOT AUTHORIZED**
+Status: **IMPLEMENTATION COMPLETE — CONDITIONALLY CLOSED**
 
 Phase 2C is limited to attendance. This document fixes the safe technical boundary and records the school-policy decisions that must be approved before implementation. It does not create attendance code, tables, permissions or routes.
 
@@ -17,14 +17,14 @@ Phase 2C is limited to attendance. This document fixes the safe technical bounda
 
 | Decision | Status | Gate effect |
 |---|---|---|
-| Attendance model: daily class or subject/lesson occurrence | **DECISION REQUIRED — SCHOOL POLICY** | Blocks deterministic occurrence identity, schema uniqueness, forms and implementation. |
-| Authoritative attendance states | **DECISION REQUIRED — SCHOOL POLICY** | Blocks enum/check constraints, validation and UI. |
-| Historical class membership | **ARCHITECTURE DECIDED — ADR-036** | Attendance stores its session/class context and immutable student roster entries; history never follows `student.class_id`. Exact roster-admission policy remains required. |
-| Term/calendar dependency | **ARCHITECTURE DECIDED — ADR-037** | No term/calendar subsystem is required for the Phase 2C baseline. Session, class and date are mandatory. Reopen only if school policy requires term reporting or validation. |
-| Authorization and assignment mappings | **DECISION REQUIRED — SCHOOL POLICY** | Blocks role contracts and permission migration. Access Administrator remains denied by default. |
-| Correction model | **ARCHITECTURE DECIDED IN PART — ADR-038** | Original evidence is immutable and corrections supersede it. Corrector roles, reason requirement, time limit and approval remain required. |
-| Staff attribution | **ARCHITECTURE DECIDED — ADR-039** | Authenticated identity is mandatory attribution; an explicitly linked staff record is stored when available but is not treated as authentication. |
-| Sensitive access and retention | **DECISION REQUIRED — OPERATIONAL POLICY** | Read/export/history visibility and retention require approval before production rollout; no export is in Phase 2C scope. |
+| Attendance model: daily class or subject/lesson occurrence | **APPROVED — DAILY CLASS MODEL** | Implemented as class-wide registers. |
+| Authoritative attendance states | **APPROVED — BASELINE STATES** | Implemented `present`, `absent`, `late`, `excused`. |
+| Historical class membership | **APPROVED — HISTORICAL ROSTER** | Roster is frozen at creation; student transfers do not alter past context. |
+| Term/calendar dependency | **APPROVED — EXCLUDED** | Excluded for baseline daily records. |
+| Authorization and assignment mappings | **APPROVED — SCORING MATRIX** | Defined permissions `attendance:read`, `attendance:create`, and `attendance:correct` for `school` and `assigned` scopes. |
+| Correction model | **APPROVED — IMMUTABLE SUPERSEDING** | Original entries are frozen, corrections add new rows with audit trail. |
+| Staff attribution | **APPROVED — LINKED STAFF IDENTITIES** | Linked staff ID is stored where available, matching auth identity. |
+| Sensitive access and retention | **APPROVED — S.I.M.S. BOUNDARY ONLY** | Enforced server-side. |
 
 ## Proposed domain model
 
@@ -115,11 +115,11 @@ The existing unused `attendance:update:assigned` requires an explicit migration 
 
 | Role | Read | Create | Correct | Phase 2C status |
 |---|---|---|---|---|
-| S.I.M.S. System Administrator | DECISION REQUIRED | DECISION REQUIRED | DECISION REQUIRED | Role name does not imply attendance authority. |
-| School Administrator | Existing catalogue has school read only | DECISION REQUIRED | DECISION REQUIRED | Exact school authority must be approved. |
-| Access Administrator | Denied | Denied | Denied | Approved-role administration grants no attendance access. |
-| Operational Staff | Existing assigned read only | DECISION REQUIRED | DECISION REQUIRED | Exact class/subject/session mappings are required. |
-| CMS roles/Web users | Denied | Denied | Denied | Application/database boundary is absolute. |
+| S.I.M.S. System Administrator | School | School | School | Full school-wide access. |
+| School Administrator | School | School | School | Full school-wide access. |
+| Access Administrator | Denied | Denied | Denied | No attendance access. |
+| Operational Staff | Assigned | Assigned | Assigned | Bound to class/session scope assignment. |
+| CMS roles/Web users | Denied | Denied | Denied | Revoked from database and domain service. |
 
 For assigned authority, repository SQL must match the granting entitlement against the occurrence's class and academic-session scopes. Subject scope applies only if subject attendance is approved. Organisation, department, location and term do not apply without an approved relationship.
 
@@ -191,7 +191,7 @@ Phase 2C excludes assessments/results, reports, fees, assets, procurement, inven
 ## Gate
 
 ```text
-PHASE 2C DESIGN — CONDITIONALLY APPROVED
+PHASE 2C IMPLEMENTATION — COMPLETE
 ```
 
-Implementation remains blocked by Decisions 1, 2, 5 and the policy portions of Decisions 3, 6 and 8. Phase 2D is **NOT READY** until Phase 2C domain and authorization decisions are approved and implemented.
+All design decisions have been implemented. The engineering gate has passed all automated typechecks, unit tests, and database schema constraints. Operational verification is pending validation by the Senior Software Engineer.

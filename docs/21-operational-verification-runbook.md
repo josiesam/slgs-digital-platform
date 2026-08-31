@@ -37,8 +37,8 @@ Implementation, engineering verification, operational verification and productio
 | Phase 2B core implementation/tests | CODE IMPLEMENTATION / AUTOMATED TEST | Codex | Maintain schema, services, UI and tests | Review evidence | Complete |
 | Phase 2B runtime-role verifier | PRIVILEGED OPERATIONAL VERIFICATION | Senior Engineer | Maintain fail-closed synthetic verifier | Execute on disposable branch | Pending |
 | Phase 2B authenticated browser matrix | PRIVILEGED OPERATIONAL VERIFICATION | Senior Engineer | Provide routes and assertions | Execute with synthetic personas and clean up | Pending |
-| Phase 2C architecture/design gate | ARCHITECTURE / DOCUMENTATION | Codex | Maintain approved boundary and decisions | Project Owner approves policy decisions | Conditionally approved |
-| Phase 2C disposable database/browser verification | PRIVILEGED OPERATIONAL VERIFICATION | Senior Engineer | Provide fail-closed tooling and matrix after implementation | Execute with synthetic data and clean up | Not applicable until implementation |
+| Phase 2C architecture/design gate | ARCHITECTURE / DOCUMENTATION | Codex | Maintain approved boundary and decisions | Project Owner approves policy decisions | Complete |
+| Phase 2C disposable database/browser verification | PRIVILEGED OPERATIONAL VERIFICATION | Senior Engineer | Provide fail-closed tooling and matrix | Execute with synthetic data on disposable branch and clean up | Pending |
 | Audit retention and operational scopes | PROJECT-OWNER DECISION | Project Owner | Preserve extension points/default deny | Approve policy | Pending |
 | Production secrets and monitoring | PRODUCTION CONFIGURATION | Senior Engineer | Validate schemas/fail closed | Configure, rotate and sign off | Pending |
 
@@ -173,9 +173,21 @@ At desktop (~1280 px) and mobile (~375 px), verify headings, labels, keyboard or
 
 Run the Phase 2B database verifier only when both disposable-environment variables are set. It inserts deterministic synthetic shapes inside a transaction and rolls back. Record the three runtime-role pass summaries, authenticated browser matrix and disposable branch deletion; do not record URLs, credentials, cookies or real school data.
 
-### Phase 2C future matrix
+### Phase 2C matrix
 
-Phase 2C is not implemented. After policy approval and implementation, the Senior Software Engineer will verify the approved School/System/Operational role matrix, occurrence creation/view/correction, same-scope success, cross-class/session denial, Access Administrator/CMS/Web denial, historical context, immutable corrections, audit events, responsive keyboard operation and disposable-environment cleanup. No Phase 2C operational claim may be made before then.
+Verify the daily class occurrence model, baseline states, and immutable corrections:
+
+- System Administrator: list/detail/create/finalize daily registers for any class; correct finalized entries.
+- School Administrator: list/detail/create/finalize daily registers for any class; correct finalized entries.
+- Operational Staff: list/detail/create/finalize daily registers only for classes and sessions matching their assigned scope; same-scope correct entries; cross-scope reads, writes, and corrections must be denied.
+- Access Administrator, CMS, and Web identities: every attendance loader and mutation denied.
+- Verify that editing entries for a finalized register is blocked.
+- Verify that correction of a finalized entry requires a mandatory reason, and creates an append-only correction log without modifying the original entry.
+- Run the Phase 2C database verifier on a disposable branch using:
+  ```bash
+  pnpm --filter @slgs/db db:verify:phase2c
+  ```
+  Verify that the S.I.M.S. runtime role passes all least-privilege checks, and that `slgs_cms` and `slgs_web` are fully denied access to the attendance tables.
 
 ## Evidence and sign-off
 

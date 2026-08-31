@@ -211,6 +211,8 @@ describe("application-scoped roles", () => {
       "academic_session:create:school",
       "academic_session:update:school",
       "attendance:read:school",
+      "attendance:create:school",
+      "attendance:correct:school",
       "assessment:read:school",
       "report:read:school",
       "assignment:manage:school",

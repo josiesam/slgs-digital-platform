@@ -285,24 +285,24 @@ The initial model stores only identifiers, names, lifecycle, essential dates/rel
 
 ## ADR-036 — Attendance preserves attendance-time class context
 
-Status: Accepted for Phase 2C design
+Status: Accepted and implemented for Phase 2C
 
 Attendance history must not be derived from the student's mutable current class. Each occurrence and entry preserves its academic-session/class context and immutable student roster association. Phase 2C may add the minimum historical roster structure required by the approved attendance model without reopening Phase 2B. Roster admission/removal policy remains `DECISION REQUIRED`.
 
 ## ADR-037 — No mandatory term/calendar subsystem for Phase 2C
 
-Status: Accepted for Phase 2C design
+Status: Accepted and implemented for Phase 2C
 
 Academic session, class and attendance date are sufficient technical anchors for the Phase 2C baseline. The existing `term` scope dimension is not a term domain model and must not be used as one. A term/calendar dependency may be added only if school policy requires it.
 
 ## ADR-038 — Attendance corrections preserve original evidence
 
-Status: Accepted for Phase 2C design; correction policy required
+Status: Accepted and implemented for Phase 2C
 
 Attendance corrections use immutable superseding evidence rather than destructive overwrite or deletion. The correction records actor identity, timestamp and the superseded entry/version. Corrector roles, mandatory reason, time limit and approval requirements remain `DECISION REQUIRED`.
 
 ## ADR-039 — Authenticated recorder with optional staff attribution
 
-Status: Accepted for Phase 2C design
+Status: Accepted and implemented for Phase 2C
 
 Every attendance write is attributed to the authenticated Better Auth identity derived server-side. Where that identity has an explicit Phase 2B staff link, attendance may also preserve the staff ID. A staff record is not authentication authority, and absence of a staff link cannot be silently replaced by a browser-supplied staff or actor ID.

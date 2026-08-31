@@ -39,6 +39,15 @@ function SimsFoundationPage() {
             Open S.I.M.S. core administration
           </a>
         ) : null}
+        {permissions.some((p) => p.startsWith("attendance:read:")) ? (
+          <Link
+            className="font-medium underline"
+            to="/attendance"
+            search={{ search: "" }}
+          >
+            Open S.I.M.S. attendance administration
+          </Link>
+        ) : null}
       </div>
     </PageShell>
   );

@@ -73,6 +73,8 @@ export const PERMISSION_CATALOGUE = [
   "academic_session:create:school",
   "academic_session:update:school",
   "attendance:read:school",
+  "attendance:create:school",
+  "attendance:correct:school",
   "assessment:read:school",
   "report:read:school",
   "assignment:manage:school",
@@ -89,6 +91,8 @@ export const PERMISSION_CATALOGUE = [
   "student:read:assigned",
   "student:update:assigned",
   "attendance:read:assigned",
+  "attendance:create:assigned",
+  "attendance:correct:assigned",
   "attendance:update:assigned",
 ] as const;
 

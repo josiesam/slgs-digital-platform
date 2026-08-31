@@ -85,6 +85,13 @@
       "when": 1788170400000,
       "tag": "0011_phase-2b-sims-core",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1788152525303,
+      "tag": "0012_phase-2c-attendance",
+      "breakpoints": true
     }
   ]
 }

@@ -10,6 +10,21 @@ import {
 } from "@slgs/permissions";
 
 export { PermissionDeniedError } from "@slgs/permissions";
+export * from "./attendance";
+
+import {
+  type AttendanceOccurrenceStatus,
+  type AttendanceState,
+  type AttendanceOccurrenceInput,
+  type AttendanceEntryInput,
+  type AttendanceCorrectionInput,
+  type AttendanceOccurrenceRecord,
+  type AttendanceEntryRecord,
+  type AttendanceCorrectionRecord,
+  attendanceOccurrenceInputSchema,
+  attendanceEntryInputSchema,
+  attendanceCorrectionInputSchema,
+} from "./attendance";
 
 export const coreRecordStatusSchema = z.enum([
   "active",
@@ -208,6 +223,21 @@ export interface SimsCoreRepository {
   saveSubject(record: SubjectRecord): Promise<void>;
   saveStudent(record: StudentRecord): Promise<void>;
   saveStaff(record: StaffRecord): Promise<void>;
+  findStaffByIdentity(identityUserId: string): Promise<StaffRecord | null>;
+  findAttendanceOccurrence(id: string): Promise<AttendanceOccurrenceRecord | null>;
+  findAttendanceOccurrenceByContext(academicSessionId: string, classId: string, date: string): Promise<AttendanceOccurrenceRecord | null>;
+  findAttendanceEntry(id: string): Promise<AttendanceEntryRecord | null>;
+  findAttendanceEntryByStudent(occurrenceId: string, studentId: string): Promise<AttendanceEntryRecord | null>;
+  listAttendanceEntries(occurrenceId: string): Promise<readonly AttendanceEntryRecord[]>;
+  listAttendanceCorrections(entryId: string): Promise<readonly AttendanceCorrectionRecord[]>;
+  createAttendanceOccurrence(record: AttendanceOccurrenceRecord): Promise<void>;
+  saveAttendanceOccurrence(record: AttendanceOccurrenceRecord): Promise<void>;
+  createAttendanceEntry(record: AttendanceEntryRecord): Promise<void>;
+  saveAttendanceEntry(record: AttendanceEntryRecord): Promise<void>;
+  createAttendanceCorrection(record: AttendanceCorrectionRecord): Promise<void>;
+  listAttendanceOccurrences(query: CoreListQuery & { classId?: string, academicSessionId?: string, date?: string }, access: CoreListAccess): Promise<readonly AttendanceOccurrenceRecord[]>;
+  getAttendanceHistory(studentId: string, access: CoreListAccess): Promise<readonly { entry: AttendanceEntryRecord, occurrence: AttendanceOccurrenceRecord }[]>;
+  getRosterForClass(classId: string): Promise<readonly StudentRecord[]>;
   appendAudit(event: SimsCoreAuditEvent): Promise<void>;
 }
 
@@ -217,11 +247,12 @@ const permissionDomains = {
   subject: "subject",
   student: "student",
   staff: "staff",
+  attendance: "attendance",
 } as const;
 
 type PermissionDomain =
   (typeof permissionDomains)[keyof typeof permissionDomains];
-type CoreAction = "read" | "create" | "update";
+type CoreAction = "read" | "create" | "update" | "correct";
 
 const grantFor = (actor: SessionIdentity) => actor.grants.get("sims");
 
@@ -875,6 +906,338 @@ export function createSimsCoreService(repository: SimsCoreRepository) {
         );
         return record;
       });
+    },
+
+    async createAttendanceOccurrence(input: {
+      actor: SessionIdentity;
+      input: AttendanceOccurrenceInput;
+    }): Promise<AttendanceOccurrenceRecord> {
+      const data = attendanceOccurrenceInputSchema.parse(input.input);
+      const session = await repository.findAcademicSession(data.academicSessionId);
+      if (!session) throw new Error("The selected academic session does not exist.");
+      const activeClass = await repository.findAcademicClass(data.classId);
+      if (!activeClass) throw new Error("The selected class does not exist.");
+      
+      const scopes = {
+        scopes: [
+          { dimension: "class" as const, value: activeClass.id },
+          { dimension: "academic_session" as const, value: activeClass.academicSessionId },
+        ],
+      };
+      
+      await authorizeMutation(
+        repository,
+        input.actor,
+        permissionDomains.attendance,
+        "create",
+        scopes,
+        null,
+      );
+      
+      const existing = await repository.findAttendanceOccurrenceByContext(
+        data.academicSessionId,
+        data.classId,
+        data.attendanceDate,
+      );
+      if (existing) {
+        throw new Error("An attendance occurrence already exists for this class and date.");
+      }
+      
+      const staffLink = await repository.findStaffByIdentity(input.actor.userId);
+      const record: AttendanceOccurrenceRecord = {
+        id: crypto.randomUUID(),
+        academicSessionId: data.academicSessionId,
+        classId: data.classId,
+        attendanceDate: data.attendanceDate,
+        status: "active",
+        recorderUserId: input.actor.userId,
+        recorderStaffId: staffLink?.id ?? null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      
+      return repository.transaction(async (transaction) => {
+        await transaction.createAttendanceOccurrence(record);
+        await transaction.appendAudit(
+          makeAudit(
+            input.actor,
+            "attendance.occurrence_created",
+            "attendance_occurrence",
+            record.id,
+            "success",
+            null,
+          ),
+        );
+        return record;
+      });
+    },
+
+    async recordAttendanceEntry(input: {
+      actor: SessionIdentity;
+      occurrenceId: string;
+      entries: readonly AttendanceEntryInput[];
+    }): Promise<void> {
+      const occurrence = await repository.findAttendanceOccurrence(input.occurrenceId);
+      if (!occurrence) throw new Error("Attendance occurrence not found.");
+      if (occurrence.status === "finalized") {
+        throw new Error("Cannot record entries for a finalized occurrence.");
+      }
+      
+      const scopes = await classScopes(repository, occurrence.classId);
+      await authorizeMutation(
+        repository,
+        input.actor,
+        permissionDomains.attendance,
+        "create",
+        scopes,
+        occurrence.id,
+      );
+      
+      const parsedEntries = z.array(attendanceEntryInputSchema).parse(input.entries);
+      
+      const roster = await repository.getRosterForClass(occurrence.classId);
+      const rosterIds = new Set(roster.map((s) => s.id));
+      
+      for (const entry of parsedEntries) {
+        if (!rosterIds.has(entry.studentId)) {
+          throw new Error("One or more students are not eligible for this roster.");
+        }
+      }
+      
+      return repository.transaction(async (transaction) => {
+        for (const entry of parsedEntries) {
+          const existing = await transaction.findAttendanceEntryByStudent(
+            occurrence.id,
+            entry.studentId,
+          );
+          
+          if (existing) {
+            const updated = {
+              ...existing,
+              state: entry.state,
+              updatedAt: new Date(),
+            };
+            await transaction.saveAttendanceEntry(updated);
+          } else {
+            const record: AttendanceEntryRecord = {
+              id: crypto.randomUUID(),
+              occurrenceId: occurrence.id,
+              studentId: entry.studentId,
+              state: entry.state,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            };
+            await transaction.createAttendanceEntry(record);
+          }
+          
+          await transaction.appendAudit(
+            makeAudit(
+              input.actor,
+              "attendance.entry_recorded",
+              "attendance_entry",
+              occurrence.id,
+              "success",
+              null,
+            ),
+          );
+        }
+      });
+    },
+
+    async finalizeAttendanceOccurrence(input: {
+      actor: SessionIdentity;
+      id: string;
+    }): Promise<AttendanceOccurrenceRecord> {
+      const occurrence = await repository.findAttendanceOccurrence(input.id);
+      if (!occurrence) throw new Error("Attendance occurrence not found.");
+      
+      const scopes = await classScopes(repository, occurrence.classId);
+      await authorizeMutation(
+        repository,
+        input.actor,
+        permissionDomains.attendance,
+        "create",
+        scopes,
+        occurrence.id,
+      );
+      
+      const updated: AttendanceOccurrenceRecord = {
+        ...occurrence,
+        status: "finalized",
+        updatedAt: new Date(),
+      };
+      
+      return repository.transaction(async (transaction) => {
+        await transaction.saveAttendanceOccurrence(updated);
+        await transaction.appendAudit(
+          makeAudit(
+            input.actor,
+            "attendance.occurrence_finalized",
+            "attendance_occurrence",
+            occurrence.id,
+            "success",
+            null,
+          ),
+        );
+        return updated;
+      });
+    },
+
+    async correctAttendanceEntry(input: {
+      actor: SessionIdentity;
+      entryId: string;
+      input: AttendanceCorrectionInput;
+    }): Promise<AttendanceCorrectionRecord> {
+      const data = attendanceCorrectionInputSchema.parse(input.input);
+      const entry = await repository.findAttendanceEntry(input.entryId);
+      if (!entry) throw new Error("Attendance entry not found.");
+      
+      const occurrence = await repository.findAttendanceOccurrence(entry.occurrenceId);
+      if (!occurrence) throw new Error("Attendance occurrence not found.");
+      
+      const scopes = await classScopes(repository, occurrence.classId);
+      
+      await authorizeMutation(
+        repository,
+        input.actor,
+        permissionDomains.attendance,
+        "correct",
+        scopes,
+        entry.id,
+      );
+      
+      const staffLink = await repository.findStaffByIdentity(input.actor.userId);
+      const correction: AttendanceCorrectionRecord = {
+        id: crypto.randomUUID(),
+        entryId: entry.id,
+        state: data.state,
+        actorUserId: input.actor.userId,
+        actorStaffId: staffLink?.id ?? null,
+        reason: data.reason,
+        createdAt: new Date(),
+      };
+      
+      return repository.transaction(async (transaction) => {
+        await transaction.createAttendanceCorrection(correction);
+        await transaction.appendAudit(
+          makeAudit(
+            input.actor,
+            "attendance.entry_corrected",
+            "attendance_correction",
+            correction.id,
+            "success",
+            null,
+          ),
+        );
+        return correction;
+      });
+    },
+
+    async getAttendanceOccurrence(
+      actor: SessionIdentity,
+      id: string,
+    ): Promise<AttendanceOccurrenceRecord | null> {
+      const record = await repository.findAttendanceOccurrence(id);
+      if (!record) return null;
+      const scopes = await classScopes(repository, record.classId);
+      await authorizeRead(
+        repository,
+        actor,
+        permissionDomains.attendance,
+        scopes,
+        id,
+      );
+      return record;
+    },
+
+    async listAttendanceOccurrences(
+      actor: SessionIdentity,
+      query: CoreListQueryInput & { classId?: string, academicSessionId?: string, date?: string } = {},
+    ): Promise<readonly AttendanceOccurrenceRecord[]> {
+      const parsed = coreListQuerySchema.extend({
+        classId: z.string().optional(),
+        academicSessionId: z.string().optional(),
+        date: z.string().optional(),
+      }).parse(query);
+      
+      const access = await listAccess(repository, actor, permissionDomains.attendance);
+      return repository.listAttendanceOccurrences(parsed, access);
+    },
+
+    async listAttendanceEntries(
+      actor: SessionIdentity,
+      occurrenceId: string,
+    ): Promise<readonly AttendanceEntryRecord[]> {
+      const occurrence = await repository.findAttendanceOccurrence(occurrenceId);
+      if (!occurrence) throw new Error("Attendance occurrence not found.");
+      
+      const scopes = await classScopes(repository, occurrence.classId);
+      await authorizeRead(
+        repository,
+        actor,
+        permissionDomains.attendance,
+        scopes,
+        occurrenceId,
+      );
+      return repository.listAttendanceEntries(occurrenceId);
+    },
+
+    async listAttendanceCorrections(
+      actor: SessionIdentity,
+      entryId: string,
+    ): Promise<readonly AttendanceCorrectionRecord[]> {
+      const entry = await repository.findAttendanceEntry(entryId);
+      if (!entry) throw new Error("Attendance entry not found.");
+      
+      const occurrence = await repository.findAttendanceOccurrence(entry.occurrenceId);
+      if (!occurrence) throw new Error("Attendance occurrence not found.");
+      
+      const scopes = await classScopes(repository, occurrence.classId);
+      await authorizeRead(
+        repository,
+        actor,
+        permissionDomains.attendance,
+        scopes,
+        entry.occurrenceId,
+      );
+      
+      return repository.listAttendanceCorrections(entryId);
+    },
+
+    async getAttendanceHistory(
+      actor: SessionIdentity,
+      studentId: string,
+    ): Promise<readonly { entry: AttendanceEntryRecord, occurrence: AttendanceOccurrenceRecord }[]> {
+      const studentRecord = await repository.findStudent(studentId);
+      if (!studentRecord) throw new Error("Student not found.");
+      
+      const scopes = await classScopes(repository, studentRecord.classId);
+      await authorizeRead(
+        repository,
+        actor,
+        permissionDomains.attendance,
+        scopes,
+        studentId,
+      );
+      
+      const access = await listAccess(repository, actor, permissionDomains.attendance);
+      return repository.getAttendanceHistory(studentId, access);
+    },
+
+    async getRosterForOccurrenceCreation(
+      actor: SessionIdentity,
+      classId: string,
+    ): Promise<readonly StudentRecord[]> {
+      const scopes = await classScopes(repository, classId);
+      await authorizeMutation(
+        repository,
+        actor,
+        permissionDomains.attendance,
+        "create",
+        scopes,
+        null,
+      );
+      return repository.getRosterForClass(classId);
     },
   };
 }

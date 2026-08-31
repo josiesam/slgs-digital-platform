@@ -9,6 +9,13 @@ import {
   type SimsCoreAuditEvent,
   type SimsCoreRepository,
   type StudentRecord,
+  type AcademicClassRecord,
+  type AcademicSessionRecord,
+  type StaffRecord,
+  type SubjectRecord,
+  type AttendanceOccurrenceRecord,
+  type AttendanceEntryRecord,
+  type AttendanceCorrectionRecord,
 } from "./index";
 
 const actor = (grant: ReturnType<typeof createGrant>): SessionIdentity => ({
@@ -36,6 +43,42 @@ class MemoryRepository implements SimsCoreRepository {
     NonNullable<Awaited<ReturnType<SimsCoreRepository["findStaff"]>>>
   >();
   readonly audits: SimsCoreAuditEvent[] = [];
+
+  async findStaffByIdentity(identityUserId: string): Promise<StaffRecord | null> {
+    return null;
+  }
+  async findAttendanceOccurrence(id: string): Promise<AttendanceOccurrenceRecord | null> {
+    return null;
+  }
+  async findAttendanceOccurrenceByContext(academicSessionId: string, classId: string, date: string): Promise<AttendanceOccurrenceRecord | null> {
+    return null;
+  }
+  async findAttendanceEntry(id: string): Promise<AttendanceEntryRecord | null> {
+    return null;
+  }
+  async findAttendanceEntryByStudent(occurrenceId: string, studentId: string): Promise<AttendanceEntryRecord | null> {
+    return null;
+  }
+  async listAttendanceEntries(occurrenceId: string): Promise<readonly AttendanceEntryRecord[]> {
+    return [];
+  }
+  async listAttendanceCorrections(entryId: string): Promise<readonly AttendanceCorrectionRecord[]> {
+    return [];
+  }
+  async createAttendanceOccurrence(record: AttendanceOccurrenceRecord): Promise<void> {}
+  async saveAttendanceOccurrence(record: AttendanceOccurrenceRecord): Promise<void> {}
+  async createAttendanceEntry(record: AttendanceEntryRecord): Promise<void> {}
+  async saveAttendanceEntry(record: AttendanceEntryRecord): Promise<void> {}
+  async createAttendanceCorrection(record: AttendanceCorrectionRecord): Promise<void> {}
+  async listAttendanceOccurrences(query: any, access: any): Promise<readonly AttendanceOccurrenceRecord[]> {
+    return [];
+  }
+  async getAttendanceHistory(studentId: string, access: any): Promise<readonly { entry: AttendanceEntryRecord, occurrence: AttendanceOccurrenceRecord }[]> {
+    return [];
+  }
+  async getRosterForClass(classId: string): Promise<readonly StudentRecord[]> {
+    return [];
+  }
 
   async transaction<T>(
     work: (repository: SimsCoreRepository) => Promise<T>,

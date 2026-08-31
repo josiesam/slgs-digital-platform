@@ -19,6 +19,9 @@ import {
   staff,
   student,
   subject,
+  attendanceOccurrence,
+  attendanceEntry,
+  attendanceCorrection,
   type DatabaseConnection,
 } from "@slgs/db";
 
@@ -32,6 +35,10 @@ import type {
   StaffRecord,
   StudentRecord,
   SubjectRecord,
+  AttendanceOccurrenceRecord,
+  AttendanceEntryRecord,
+  AttendanceCorrectionRecord,
+  AttendanceOccurrenceStatus,
 } from "./index";
 import { decodeCoreCursor } from "./index";
 
@@ -359,6 +366,198 @@ export class DrizzleSimsCoreRepository implements SimsCoreRepository {
       .update(staff)
       .set(record)
       .where(eq(staff.id, record.id));
+  }
+
+  async findStaffByIdentity(identityUserId: string) {
+    return (
+      (await this.executor.query.staff.findFirst({
+        where: eq(staff.identityUserId, identityUserId),
+      })) ?? null
+    );
+  }
+
+  async findAttendanceOccurrence(id: string) {
+    return (
+      (await this.executor.query.attendanceOccurrence.findFirst({
+        where: eq(attendanceOccurrence.id, id),
+      })) ?? null
+    );
+  }
+
+  async findAttendanceOccurrenceByContext(academicSessionId: string, classId: string, date: string) {
+    return (
+      (await this.executor.query.attendanceOccurrence.findFirst({
+        where: and(
+          eq(attendanceOccurrence.academicSessionId, academicSessionId),
+          eq(attendanceOccurrence.classId, classId),
+          eq(attendanceOccurrence.attendanceDate, date),
+        ),
+      })) ?? null
+    );
+  }
+
+  async findAttendanceEntry(id: string) {
+    return (
+      (await this.executor.query.attendanceEntry.findFirst({
+        where: eq(attendanceEntry.id, id),
+      })) ?? null
+    );
+  }
+
+  async findAttendanceEntryByStudent(occurrenceId: string, studentId: string) {
+    return (
+      (await this.executor.query.attendanceEntry.findFirst({
+        where: and(
+          eq(attendanceEntry.occurrenceId, occurrenceId),
+          eq(attendanceEntry.studentId, studentId),
+        ),
+      })) ?? null
+    );
+  }
+
+  async listAttendanceEntries(occurrenceId: string) {
+    return this.executor
+      .select()
+      .from(attendanceEntry)
+      .where(eq(attendanceEntry.occurrenceId, occurrenceId))
+      .orderBy(asc(attendanceEntry.studentId));
+  }
+
+  async listAttendanceCorrections(entryId: string) {
+    return this.executor
+      .select()
+      .from(attendanceCorrection)
+      .where(eq(attendanceCorrection.entryId, entryId))
+      .orderBy(desc(attendanceCorrection.createdAt));
+  }
+
+  async createAttendanceOccurrence(record: AttendanceOccurrenceRecord) {
+    await this.executor.insert(attendanceOccurrence).values(record);
+  }
+
+  async saveAttendanceOccurrence(record: AttendanceOccurrenceRecord) {
+    await this.executor
+      .update(attendanceOccurrence)
+      .set(record)
+      .where(eq(attendanceOccurrence.id, record.id));
+  }
+
+  async createAttendanceEntry(record: AttendanceEntryRecord) {
+    await this.executor.insert(attendanceEntry).values(record);
+  }
+
+  async saveAttendanceEntry(record: AttendanceEntryRecord) {
+    await this.executor
+      .update(attendanceEntry)
+      .set(record)
+      .where(eq(attendanceEntry.id, record.id));
+  }
+
+  async createAttendanceCorrection(record: AttendanceCorrectionRecord) {
+    await this.executor.insert(attendanceCorrection).values(record);
+  }
+
+  async listAttendanceOccurrences(
+    query: CoreListQuery & { classId?: string; academicSessionId?: string; date?: string },
+    access: CoreListAccess,
+  ) {
+    const sessionIds = valuesFor(access, "academic_session");
+    const classIds = valuesFor(access, "class");
+    
+    const visibility =
+      access.scopes === null
+        ? undefined
+        : and(
+            classIds.length ? inArray(attendanceOccurrence.classId, classIds) : sql`true`,
+            sessionIds.length
+              ? inArray(attendanceOccurrence.academicSessionId, sessionIds)
+              : sql`true`,
+          );
+          
+    const conditions = compact([
+      query.search
+        ? or(
+            ilike(academicClass.name, `%${query.search}%`),
+            ilike(academicClass.code, `%${query.search}%`),
+          )
+        : undefined,
+      query.status
+        ? eq(attendanceOccurrence.status, query.status as AttendanceOccurrenceStatus)
+        : undefined,
+      query.classId ? eq(attendanceOccurrence.classId, query.classId) : undefined,
+      query.academicSessionId ? eq(attendanceOccurrence.academicSessionId, query.academicSessionId) : undefined,
+      query.date ? eq(attendanceOccurrence.attendanceDate, query.date) : undefined,
+      cursorCondition(attendanceOccurrence.attendanceDate, attendanceOccurrence.id, query),
+      visibility,
+    ]);
+
+    return this.executor
+      .select({
+        id: attendanceOccurrence.id,
+        academicSessionId: attendanceOccurrence.academicSessionId,
+        classId: attendanceOccurrence.classId,
+        attendanceDate: attendanceOccurrence.attendanceDate,
+        status: attendanceOccurrence.status,
+        recorderUserId: attendanceOccurrence.recorderUserId,
+        recorderStaffId: attendanceOccurrence.recorderStaffId,
+        createdAt: attendanceOccurrence.createdAt,
+        updatedAt: attendanceOccurrence.updatedAt,
+      })
+      .from(attendanceOccurrence)
+      .leftJoin(academicClass, eq(attendanceOccurrence.classId, academicClass.id))
+      .where(and(...conditions))
+      .orderBy(
+        query.direction === "asc"
+          ? asc(attendanceOccurrence.attendanceDate)
+          : desc(attendanceOccurrence.attendanceDate),
+        query.direction === "asc"
+          ? asc(attendanceOccurrence.id)
+          : desc(attendanceOccurrence.id),
+      )
+      .limit(query.limit);
+  }
+
+  async getAttendanceHistory(studentId: string, access: CoreListAccess) {
+    const sessionIds = valuesFor(access, "academic_session");
+    const classIds = valuesFor(access, "class");
+    
+    const visibility =
+      access.scopes === null
+        ? undefined
+        : and(
+            classIds.length ? inArray(attendanceOccurrence.classId, classIds) : sql`true`,
+            sessionIds.length
+              ? inArray(attendanceOccurrence.academicSessionId, sessionIds)
+              : sql`true`,
+          );
+
+    return this.executor
+      .select({
+        entry: attendanceEntry,
+        occurrence: attendanceOccurrence,
+      })
+      .from(attendanceEntry)
+      .innerJoin(attendanceOccurrence, eq(attendanceEntry.occurrenceId, attendanceOccurrence.id))
+      .where(
+        and(
+          eq(attendanceEntry.studentId, studentId),
+          visibility ?? sql`true`,
+        )
+      )
+      .orderBy(desc(attendanceOccurrence.attendanceDate));
+  }
+
+  async getRosterForClass(classId: string) {
+    return this.executor
+      .select()
+      .from(student)
+      .where(
+        and(
+          eq(student.classId, classId),
+          eq(student.status, "active"),
+        )
+      )
+      .orderBy(asc(student.lastName), asc(student.firstName));
   }
 
   async appendAudit(event: SimsCoreAuditEvent) {

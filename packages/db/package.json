@@ -15,6 +15,7 @@
     "db:verify:phase1d": "psql --set=ON_ERROR_STOP=1 \"$DATABASE_MIGRATION_URL\" --file verification/phase-1d.sql",
     "db:verify:phase2a": "psql --set=ON_ERROR_STOP=1 \"$SIMS_DATABASE_URL\" --file verification/phase-2a.sql && psql --set=ON_ERROR_STOP=1 \"$CMS_DATABASE_URL\" --file verification/phase-2a-cms.sql && psql --set=ON_ERROR_STOP=1 \"$WEB_DATABASE_URL\" --file verification/phase-2a-web.sql",
     "db:verify:phase2b": "test \"$SLGS_VERIFICATION_DISPOSABLE\" = \"true\" && test -n \"$SLGS_VERIFICATION_ENVIRONMENT_ID\" && psql --set=ON_ERROR_STOP=1 \"$SIMS_DATABASE_URL\" --file verification/phase-2b.sql && psql --set=ON_ERROR_STOP=1 \"$CMS_DATABASE_URL\" --file verification/phase-2b-cms.sql && psql --set=ON_ERROR_STOP=1 \"$WEB_DATABASE_URL\" --file verification/phase-2b-web.sql",
+    "db:verify:phase2c": "test \"$SLGS_VERIFICATION_DISPOSABLE\" = \"true\" && test -n \"$SLGS_VERIFICATION_ENVIRONMENT_ID\" && psql --set=ON_ERROR_STOP=1 \"$SIMS_DATABASE_URL\" --file verification/phase-2c.sql && psql --set=ON_ERROR_STOP=1 \"$CMS_DATABASE_URL\" --file verification/phase-2c-cms.sql && psql --set=ON_ERROR_STOP=1 \"$WEB_DATABASE_URL\" --file verification/phase-2c-web.sql",
     "lint": "eslint src drizzle.config.ts",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc -p tsconfig.json"

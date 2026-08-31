@@ -10,16 +10,25 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AttendanceRouteImport } from './routes/attendance'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AdminIdentitiesRouteImport } from './routes/admin.identities'
 import { Route as AdminRolesRouteImport } from './routes/admin.roles'
+import { Route as AttendanceIdRouteImport } from './routes/attendance.$id'
+import { Route as AttendanceNewRouteImport } from './routes/attendance.new'
 import { Route as CoreResourceRouteImport } from './routes/core.$resource'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AttendanceIdCorrectionsRouteImport } from './routes/attendance.$id.corrections'
 import { Route as CoreResourceIdRouteImport } from './routes/core.$resource.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AttendanceRoute = AttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -37,6 +46,16 @@ const AdminRolesRoute = AdminRolesRouteImport.update({
   path: '/admin/roles',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AttendanceIdRoute = AttendanceIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AttendanceRoute,
+} as any)
+const AttendanceNewRoute = AttendanceNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AttendanceRoute,
+} as any)
 const CoreResourceRoute = CoreResourceRouteImport.update({
   id: '/core/$resource',
   path: '/core/$resource',
@@ -47,6 +66,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AttendanceIdCorrectionsRoute = AttendanceIdCorrectionsRouteImport.update({
+  id: '/corrections',
+  path: '/corrections',
+  getParentRoute: () => AttendanceIdRoute,
+} as any)
 const CoreResourceIdRoute = CoreResourceIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -55,64 +79,89 @@ const CoreResourceIdRoute = CoreResourceIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/attendance': typeof AttendanceRouteWithChildren
   '/login': typeof LoginRoute
   '/admin/identities': typeof AdminIdentitiesRoute
   '/admin/roles': typeof AdminRolesRoute
+  '/attendance/$id': typeof AttendanceIdRouteWithChildren
+  '/attendance/new': typeof AttendanceNewRoute
   '/core/$resource': typeof CoreResourceRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/attendance/$id/corrections': typeof AttendanceIdCorrectionsRoute
   '/core/$resource/$id': typeof CoreResourceIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/attendance': typeof AttendanceRouteWithChildren
   '/login': typeof LoginRoute
   '/admin/identities': typeof AdminIdentitiesRoute
   '/admin/roles': typeof AdminRolesRoute
+  '/attendance/$id': typeof AttendanceIdRouteWithChildren
+  '/attendance/new': typeof AttendanceNewRoute
   '/core/$resource': typeof CoreResourceRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/attendance/$id/corrections': typeof AttendanceIdCorrectionsRoute
   '/core/$resource/$id': typeof CoreResourceIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/attendance': typeof AttendanceRouteWithChildren
   '/login': typeof LoginRoute
   '/admin/identities': typeof AdminIdentitiesRoute
   '/admin/roles': typeof AdminRolesRoute
+  '/attendance/$id': typeof AttendanceIdRouteWithChildren
+  '/attendance/new': typeof AttendanceNewRoute
   '/core/$resource': typeof CoreResourceRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/attendance/$id/corrections': typeof AttendanceIdCorrectionsRoute
   '/core/$resource/$id': typeof CoreResourceIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/attendance'
     | '/login'
     | '/admin/identities'
     | '/admin/roles'
+    | '/attendance/$id'
+    | '/attendance/new'
     | '/core/$resource'
     | '/api/auth/$'
+    | '/attendance/$id/corrections'
     | '/core/$resource/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/attendance'
     | '/login'
     | '/admin/identities'
     | '/admin/roles'
+    | '/attendance/$id'
+    | '/attendance/new'
     | '/core/$resource'
     | '/api/auth/$'
+    | '/attendance/$id/corrections'
     | '/core/$resource/$id'
   id:
     | '__root__'
     | '/'
+    | '/attendance'
     | '/login'
     | '/admin/identities'
     | '/admin/roles'
+    | '/attendance/$id'
+    | '/attendance/new'
     | '/core/$resource'
     | '/api/auth/$'
+    | '/attendance/$id/corrections'
     | '/core/$resource/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AttendanceRoute: typeof AttendanceRouteWithChildren
   LoginRoute: typeof LoginRoute
   AdminIdentitiesRoute: typeof AdminIdentitiesRoute
   AdminRolesRoute: typeof AdminRolesRoute
@@ -127,6 +176,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/attendance': {
+      id: '/attendance'
+      path: '/attendance'
+      fullPath: '/attendance'
+      preLoaderRoute: typeof AttendanceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -150,6 +206,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRolesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/attendance/$id': {
+      id: '/attendance/$id'
+      path: '/$id'
+      fullPath: '/attendance/$id'
+      preLoaderRoute: typeof AttendanceIdRouteImport
+      parentRoute: typeof AttendanceRoute
+    }
+    '/attendance/new': {
+      id: '/attendance/new'
+      path: '/new'
+      fullPath: '/attendance/new'
+      preLoaderRoute: typeof AttendanceNewRouteImport
+      parentRoute: typeof AttendanceRoute
+    }
     '/core/$resource': {
       id: '/core/$resource'
       path: '/core/$resource'
@@ -164,6 +234,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/attendance/$id/corrections': {
+      id: '/attendance/$id/corrections'
+      path: '/corrections'
+      fullPath: '/attendance/$id/corrections'
+      preLoaderRoute: typeof AttendanceIdCorrectionsRouteImport
+      parentRoute: typeof AttendanceIdRoute
+    }
     '/core/$resource/$id': {
       id: '/core/$resource/$id'
       path: '/$id'
@@ -173,6 +250,32 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AttendanceIdRouteChildren {
+  AttendanceIdCorrectionsRoute: typeof AttendanceIdCorrectionsRoute
+}
+
+const AttendanceIdRouteChildren: AttendanceIdRouteChildren = {
+  AttendanceIdCorrectionsRoute: AttendanceIdCorrectionsRoute,
+}
+
+const AttendanceIdRouteWithChildren = AttendanceIdRoute._addFileChildren(
+  AttendanceIdRouteChildren,
+)
+
+interface AttendanceRouteChildren {
+  AttendanceIdRoute: typeof AttendanceIdRouteWithChildren
+  AttendanceNewRoute: typeof AttendanceNewRoute
+}
+
+const AttendanceRouteChildren: AttendanceRouteChildren = {
+  AttendanceIdRoute: AttendanceIdRouteWithChildren,
+  AttendanceNewRoute: AttendanceNewRoute,
+}
+
+const AttendanceRouteWithChildren = AttendanceRoute._addFileChildren(
+  AttendanceRouteChildren,
+)
 
 interface CoreResourceRouteChildren {
   CoreResourceIdRoute: typeof CoreResourceIdRoute
@@ -188,6 +291,7 @@ const CoreResourceRouteWithChildren = CoreResourceRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AttendanceRoute: AttendanceRouteWithChildren,
   LoginRoute: LoginRoute,
   AdminIdentitiesRoute: AdminIdentitiesRoute,
   AdminRolesRoute: AdminRolesRoute,
