@@ -15,7 +15,7 @@ This list records both resolved foundation choices and product or production dec
 11. Offline/PWA scope.
 12. QR/barcode approach.
 13. Exact CMS approvers.
-14. Exact SLGS student/staff fields.
+14. Additional SLGS student/staff sensitive fields, field-level visibility and retention. Phase 2B accepts only the minimal fields in ADR-035.
 15. Whether fees are in the first S.I.M.S. release.
 
 Codex must not silently decide these when implementation materially depends on them.
@@ -32,3 +32,7 @@ Codex must not silently decide these when implementation materially depends on t
 - AUTH-001 remains open for S.I.M.S. operational scopes. AUTH-002 through AUTH-006 are resolved for CMS by ADR-022 and `docs/18-phase-1c-cms-workflow.md`.
 - First CMS System Administrator provisioning is resolved by ADR-025: the existing two-person Platform System Administration bootstrap may explicitly provision the first `cms_system_administrator` without elevating `cms_administrator` or affecting S.I.M.S.
 - First S.I.M.S. Access Administrator provisioning is resolved by ADR-029: the same two-person Platform System Administration bootstrap may explicitly provision the first `sims_access_administrator` without changing System Administrator permissions, CMS access or the five-System-Administrator limit.
+- Verification ownership is resolved by ADR-030: Codex owns implementation/tooling/documentation while the Senior Software Engineer owns secrets, privileged execution, cleanup and operational sign-off. Sanitized evidence, never credentials, crosses that boundary.
+- Phase 2B operational-role mappings, single-active-session policy, staff organisation model, long-term subject/session model and archival/reactivation authority remain `DECISION REQUIRED`. ADR-031 through ADR-035 preserve safe defaults until approval.
+- Phase 2C attendance requires project-owner decisions on attendance unit/ownership, allowed states, roster history, correction authority and role/scope visibility before implementation. These are recorded in `docs/23-phase-2c-attendance-readiness.md`; they do not reopen the Phase 2B foundation.
+- Phase 2C technical decisions are recorded by ADR-036 through ADR-039. Project-owner approval remains required for daily versus subject/lesson attendance, authoritative states, roster admission policy, exact role/scope mappings, correction reason/time/approval rules and sensitive-data retention. `docs/24-phase-2c-attendance.md` is authoritative for the design gate.

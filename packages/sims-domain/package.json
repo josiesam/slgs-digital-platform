@@ -1,0 +1,27 @@
+{
+  "name": "@slgs/sims-domain",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./drizzle-repository": "./src/drizzle-repository.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@slgs/auth": "workspace:*",
+    "@slgs/db": "workspace:*",
+    "@slgs/permissions": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "vitest": "catalog:"
+  }
+}

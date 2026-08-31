@@ -14,6 +14,7 @@
     "@slgs/auth": "workspace:*",
     "@slgs/db": "workspace:*",
     "@slgs/permissions": "workspace:*",
+    "@slgs/sims-domain": "workspace:*",
     "@slgs/ui": "workspace:*",
     "@tanstack/react-router": "catalog:",
     "@tanstack/react-start": "catalog:",

@@ -75,18 +75,22 @@ May manage CMS-only custom role definitions and approved CMS role assignments. C
 ## S.I.M.S. roles
 
 ### System Administrator
-Full S.I.M.S. administration.
+S.I.M.S. system/configuration administration and school-wide Phase 2B student, staff, class, subject and academic-session read/create/update. Does not inherit approved-role assignment authority.
 
 ### School Administrator
-Student/staff/academic/operational administration as assigned.
+School-wide Phase 2B student, staff, class, subject and academic-session read/create/update. Does not inherit identity, access-role, custom-role or infrastructure administration.
 
 ### Access Administrator
-Assigns and revokes approved roles. Cannot create role definitions.
+Assigns and revokes approved roles. Cannot create role definitions and receives no Phase 2B confidential-record permission by implication.
 
 ### Operational Staff
-Read/update only within explicit assignment scopes. Final school roles and scope assignments are `DECISION REQUIRED`.
+Retains explicit assigned student read/update only. New staff/class/subject/session mappings and final school scope assignments are `DECISION REQUIRED`; no deletion is permitted.
 
 Academic, ICT and auditor role variants remain future school-policy decisions and are not active Phase 1B role definitions.
+
+## Phase 2C attendance design
+
+No new attendance authority is active. The proposed `attendance:read/create/correct` school/assigned catalogue and exact role mappings remain `DECISION REQUIRED` in `docs/24-phase-2c-attendance.md`. Access Administrator, CMS roles and Web users receive no attendance access by implication. Existing `attendance:update:assigned` must not be interpreted as destructive correction authority.
 
 ## Permission rules
 

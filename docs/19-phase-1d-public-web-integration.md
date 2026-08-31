@@ -1,6 +1,6 @@
 # Phase 1D — Public Web Integration
 
-Status: Conditionally closed — cross-application browser gate pending
+Status: **IMPLEMENTATION COMPLETE — OPERATIONAL VERIFICATION PENDING**
 
 The public read boundary, application origin and route/metadata engineering gates pass. The latest functional assessment supersedes earlier closure wording: final Phase 1D closure awaits browser verification of CMS publication appearing on Web and unpublication removing it. Phase 1C is conditionally closed for the same functional gate.
 

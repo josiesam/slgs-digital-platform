@@ -1,6 +1,6 @@
 # Phase 2A — S.I.M.S. Identity and Administration Foundation
 
-Status: **PHASE 2A — CONDITIONALLY CLOSED**
+Status: **IMPLEMENTATION COMPLETE — OPERATIONAL VERIFICATION PENDING**
 
 Phase 0, 1A and 1B remain closed. Phase 1C and 1D remain conditionally closed. This phase does not implement attendance, students, classes, assessments, assets or any other operational S.I.M.S. domain.
 
@@ -26,8 +26,8 @@ Identity evidence remains optional. `person_reference` is an opaque association/
 
 - S.I.M.S. System Administrator: identity lifecycle, S.I.M.S. role definitions, configuration and S.I.M.S. audit visibility. It does not inherit role-assignment authority.
 - S.I.M.S. Access Administrator: reads S.I.M.S. membership state and assigns/revokes active approved S.I.M.S. roles. It cannot define roles or manage identity lifecycle.
-- School Administrator: retains only the closed school-level read/assignment catalogue. Phase 2A exposes no student or school-record UI.
-- Operational Staff: retains explicitly bound assignment scopes and no delete permission. A scoped role assignment is rejected when no explicit allowed scope is supplied.
+- School Administrator: Phase 2A exposed no student or school-record UI. Phase 2B subsequently adds the approved school-wide core read/create/update catalogue; see `docs/22-phase-2b-sims-core.md`.
+- Operational Staff: retains explicitly bound assignment scopes and no delete permission. Phase 2B implements only the previously approved assigned student read/update mapping; further mappings remain a school-policy decision.
 
 System-managed roles cannot be deactivated through the custom-role service. The five-active-S.I.M.S.-System-Administrator database constraint remains authoritative.
 
@@ -77,4 +77,4 @@ The first S.I.M.S. Access Administrator bootstrap is resolved by ADR-029 using t
 - Browser verification confirms labelled login, generic authentication failure, keyboard focusability and a 390-pixel layout without horizontal overflow.
 - Authenticated lifecycle/role browser matrix and fixture creation/cleanup: pending before Phase 2A can be closed.
 
-The authenticated final gate must use a new `phase2a-*` branch. The old Phase 1C branch is prohibited. Until branch creation is approved/completed, no Phase 2A fixture records or R2 objects exist to clean up. The S.I.M.S. browser remains at the login boundary awaiting a synthetic administrator session; server/domain evidence is not recorded as a browser pass.
+The Senior Software Engineer owns the authenticated final gate and must use a new `phase2a-*` branch; the old Phase 1C branch is prohibited. Codex supplies the fixture, verifier and browser specification in `docs/21-operational-verification-runbook.md` and records sanitized evidence. Missing agent access to credentials is not an architecture or implementation blocker.

@@ -13,7 +13,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AdminIdentitiesRouteImport } from './routes/admin.identities'
 import { Route as AdminRolesRouteImport } from './routes/admin.roles'
+import { Route as CoreResourceRouteImport } from './routes/core.$resource'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as CoreResourceIdRouteImport } from './routes/core.$resource.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -35,10 +37,20 @@ const AdminRolesRoute = AdminRolesRouteImport.update({
   path: '/admin/roles',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CoreResourceRoute = CoreResourceRouteImport.update({
+  id: '/core/$resource',
+  path: '/core/$resource',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
+} as any)
+const CoreResourceIdRoute = CoreResourceIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => CoreResourceRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -46,14 +58,18 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/admin/identities': typeof AdminIdentitiesRoute
   '/admin/roles': typeof AdminRolesRoute
+  '/core/$resource': typeof CoreResourceRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/core/$resource/$id': typeof CoreResourceIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/admin/identities': typeof AdminIdentitiesRoute
   '/admin/roles': typeof AdminRolesRoute
+  '/core/$resource': typeof CoreResourceRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/core/$resource/$id': typeof CoreResourceIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -61,21 +77,38 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/admin/identities': typeof AdminIdentitiesRoute
   '/admin/roles': typeof AdminRolesRoute
+  '/core/$resource': typeof CoreResourceRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/core/$resource/$id': typeof CoreResourceIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/login' | '/admin/identities' | '/admin/roles' | '/api/auth/$'
+    | '/'
+    | '/login'
+    | '/admin/identities'
+    | '/admin/roles'
+    | '/core/$resource'
+    | '/api/auth/$'
+    | '/core/$resource/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/admin/identities' | '/admin/roles' | '/api/auth/$'
+  to:
+    | '/'
+    | '/login'
+    | '/admin/identities'
+    | '/admin/roles'
+    | '/core/$resource'
+    | '/api/auth/$'
+    | '/core/$resource/$id'
   id:
     | '__root__'
     | '/'
     | '/login'
     | '/admin/identities'
     | '/admin/roles'
+    | '/core/$resource'
     | '/api/auth/$'
+    | '/core/$resource/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -83,6 +116,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   AdminIdentitiesRoute: typeof AdminIdentitiesRoute
   AdminRolesRoute: typeof AdminRolesRoute
+  CoreResourceRoute: typeof CoreResourceRouteWithChildren
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -116,6 +150,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRolesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/core/$resource': {
+      id: '/core/$resource'
+      path: '/core/$resource'
+      fullPath: '/core/$resource'
+      preLoaderRoute: typeof CoreResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -123,14 +164,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/core/$resource/$id': {
+      id: '/core/$resource/$id'
+      path: '/$id'
+      fullPath: '/core/$resource/$id'
+      preLoaderRoute: typeof CoreResourceIdRouteImport
+      parentRoute: typeof CoreResourceRoute
+    }
   }
 }
+
+interface CoreResourceRouteChildren {
+  CoreResourceIdRoute: typeof CoreResourceIdRoute
+}
+
+const CoreResourceRouteChildren: CoreResourceRouteChildren = {
+  CoreResourceIdRoute: CoreResourceIdRoute,
+}
+
+const CoreResourceRouteWithChildren = CoreResourceRoute._addFileChildren(
+  CoreResourceRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   AdminIdentitiesRoute: AdminIdentitiesRoute,
   AdminRolesRoute: AdminRolesRoute,
+  CoreResourceRoute: CoreResourceRouteWithChildren,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

@@ -6,10 +6,12 @@ import { databaseEnvironmentSchema } from "@slgs/validation";
 import * as schema from "./schema/identity";
 import * as cmsSchema from "./schema/cms";
 import * as publicContentSchema from "./schema/public-content";
+import * as simsSchema from "./schema/sims";
 
 export * from "./schema/cms";
 export * from "./schema/identity";
 export * from "./schema/public-content";
+export * from "./schema/sims";
 
 export function createDatabase(
   environment: Record<string, string | undefined>,
@@ -23,7 +25,12 @@ export function createDatabase(
   return {
     client,
     db: drizzle(client, {
-      schema: { ...schema, ...cmsSchema, ...publicContentSchema },
+      schema: {
+        ...schema,
+        ...cmsSchema,
+        ...publicContentSchema,
+        ...simsSchema,
+      },
     }),
   };
 }

@@ -85,6 +85,69 @@
   padding: 0.75rem 1rem;
 }
 
+.sims-core-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+.sims-core-nav [aria-current="page"] {
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.sims-core-form {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+
+.sims-core-form label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.sims-core-form :is(input, select, textarea) {
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.sims-core-form textarea {
+  min-height: 7rem;
+}
+
+.sims-core-form :is(input, select, textarea, button):focus-visible,
+.sims-core-list a:focus-visible,
+.sims-core-nav a:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.sims-core-list {
+  display: grid;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+}
+
+.sims-core-list a {
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  display: grid;
+  gap: 0.25rem 1rem;
+  grid-template-columns: minmax(12rem, 2fr) minmax(8rem, 1fr) auto;
+  padding: 0.75rem;
+}
+
+.sims-next {
+  display: inline-block;
+  font-weight: 600;
+  margin-top: 1rem;
+  text-decoration: underline;
+}
+
 @media (max-width: 40rem) {
   .sims-form,
   .sims-actions {
@@ -96,5 +159,9 @@
   .sims-actions label,
   .sims-admin button {
     width: 100%;
+  }
+
+  .sims-core-list a {
+    grid-template-columns: 1fr;
   }
 }

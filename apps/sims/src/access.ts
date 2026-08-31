@@ -10,6 +10,9 @@ export const getCurrentSimsIdentity = createServerFn({ method: "GET" }).handler(
       headers: getRequestHeaders(),
     });
     const identity = await requireIdentity(sessions, request);
-    return { userId: identity.userId };
+    return {
+      userId: identity.userId,
+      permissions: [...(identity.grants.get("sims")?.permissions ?? [])],
+    };
   },
 );

@@ -2,6 +2,7 @@ import { PageShell } from "@slgs/ui";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 
 import { getCurrentSimsIdentity } from "../access";
+import { canNavigateToSimsCore } from "../core-policy";
 
 export const Route = createFileRoute("/")({
   beforeLoad: async () => {
@@ -15,6 +16,8 @@ export const Route = createFileRoute("/")({
 });
 
 function SimsFoundationPage() {
+  const { permissions } = Route.useRouteContext();
+  const canReadCore = canNavigateToSimsCore(permissions);
   return (
     <PageShell
       application="SLGS S.I.M.S."
@@ -25,12 +28,17 @@ function SimsFoundationPage() {
           S.I.M.S. foundation
         </h1>
         <p className="text-lg leading-8 text-muted-foreground">
-          Identity and S.I.M.S. membership checks are active. Phase 2A is
-          limited to staff identity and access administration.
+          Identity and S.I.M.S. membership checks are active. Administrative
+          records are separated from authentication identities.
         </p>
         <Link className="font-medium underline" to="/admin/identities">
           Open identity administration
         </Link>
+        {canReadCore ? (
+          <a className="font-medium underline" href="/core/students">
+            Open S.I.M.S. core administration
+          </a>
+        ) : null}
       </div>
     </PageShell>
   );

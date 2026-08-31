@@ -1,6 +1,6 @@
 # Phase 1C — CMS Workflow
 
-Status: Conditionally closed — browser functional gate pending
+Status: **IMPLEMENTATION COMPLETE — OPERATIONAL VERIFICATION PENDING**
 
 The database, domain, authorization and private R2 infrastructure gates pass. The latest functional assessment supersedes earlier closure wording: Phase 1C is not closed until representative role workflows, CMS-to-Web publication/unpublication and the real browser R2 flow pass through the applications.
 
@@ -80,7 +80,7 @@ Phase 1C exposes no public route. The Phase 1D contract projects only `published
 
 The CMS application now loads authoritative draft values before editing and saves immutable revisions without silently clearing untouched content. It exposes event-specific fields, ordered gallery/content media composition, role-aware review/rejection/approval/publish controls, scoped operational queues, revision and workflow history, authorized audit visibility, safe identity labels, club lifecycle controls and confirmation for destructive operations. Application tests cover draft population, event fields, workflow action separation, self-action suppression, scoped dashboard visibility, gallery composition visibility and the generic sign-in failure state.
 
-These deterministic tests do not replace the outstanding browser gate. An isolated Neon branch and temporary synthetic identities are required so the role matrix can be exercised and removed without contaminating shared audit history. The local Neon CLI profile is currently inaccessible while its macOS keychain credential is locked. Real browser role, publish/unpublish and R2 evidence remains pending.
+These deterministic tests do not replace the outstanding operational browser gate. A Senior Software Engineer executes it with an isolated Neon branch, temporary synthetic identities and locally managed secrets according to `docs/21-operational-verification-runbook.md`. Missing Codex access to those secrets is not an implementation defect.
 
 ADR-025 resolves first CMS System Administrator provisioning by allowing the existing two-person Platform System Administration bootstrap to explicitly select `cms_system_administrator`. Existing CMS administrators are not elevated; the path remains one-time, audited, CMS-only and separate from normal CMS role assignment.
 

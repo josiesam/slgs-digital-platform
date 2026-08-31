@@ -11,6 +11,28 @@ import {
 } from "./index";
 
 describe("authorization evaluation", () => {
+  it("contains the approved Phase 2B core capabilities without deletion", () => {
+    for (const permission of [
+      "student:create:school",
+      "student:update:school",
+      "staff:create:school",
+      "staff:update:school",
+      "class:read:school",
+      "class:create:school",
+      "class:update:school",
+      "subject:read:school",
+      "subject:create:school",
+      "subject:update:school",
+      "academic_session:read:school",
+      "academic_session:create:school",
+      "academic_session:update:school",
+    ]) {
+      expect(permissionSchema.safeParse(permission).success).toBe(true);
+    }
+    expect(
+      permissionSchema.options.some((value) => value.includes(":delete")),
+    ).toBe(false);
+  });
   it("denies unauthenticated, missing, invalid, and cross-application access", () => {
     const cms = createGrant("cms", ["content:publish:approved"]);
     expect(

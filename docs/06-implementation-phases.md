@@ -1,5 +1,23 @@
 # Implementation Phases
 
+## Current status
+
+| Phase | Implementation | Automated engineering verification | Operational verification |
+|---|---|---|---|
+| Phase 0 | Complete | Complete | Complete |
+| Phase 1A | Complete | Complete | Complete |
+| Phase 1B | Complete | Complete | Complete |
+| Phase 1C | Complete | Complete | Pending privileged browser/R2 gate |
+| Phase 1D | Complete | Complete | Pending CMS-to-Web browser gate and infrastructure handover |
+| Phase 2A | Complete | Complete | Pending privileged Neon/browser/cleanup gate |
+| Phase 2B | Complete | Complete | Pending disposable runtime/browser/cleanup gate |
+
+**PHASE 2 IMPLEMENTATION — APPROVED.** Outstanding Phase 1C, 1D and 2A work is operational verification owned by the Senior Software Engineer and is not an architecture blocker. See `docs/21-operational-verification-runbook.md`.
+
+Phase 2B is **CONDITIONALLY CLOSED**. Its implementation and automated engineering gate pass; disposable runtime-role/RLS verification, authenticated browser verification and cleanup evidence remain with the Senior Software Engineer. Phase 2C attendance is ready only after the design decisions in `docs/23-phase-2c-attendance-readiness.md` are approved.
+
+Phase 2C attendance design is **CONDITIONALLY APPROVED; IMPLEMENTATION NOT AUTHORIZED**. Historical context, no mandatory term subsystem, immutable correction evidence and recorder attribution are accepted in ADR-036 through ADR-039. Attendance model, states, authorization mappings and correction/retention policy remain required before implementation. See `docs/24-phase-2c-attendance.md`. Phase 2D is not ready.
+
 ## Phase 0 — Repository foundation
 
 Deliver:
@@ -63,6 +81,10 @@ Exit criteria:
 ## Phase 3 — S.I.M.S. Core
 
 Phase 2A is the approved S.I.M.S. identity and administration foundation preceding wider operational S.I.M.S. work. It includes staff identity lifecycle, S.I.M.S. membership/role administration, audit hardening and disposable test fixtures only. See `docs/20-phase-2a-sims-identity-administration.md`.
+
+**Phase 2B — S.I.M.S. Core** is implementation-complete with operational verification pending. It provides the minimum coherent administrative domain foundation for student records, staff records, classes, subjects and academic sessions. See `docs/22-phase-2b-sims-core.md`. Student records remain distinct from authenticating identities and student login remains prohibited. Attendance, assessments/results and reports may follow only after their referenced core structures and authorization scopes are approved and stable. Fees, assets/procurement, notifications, analytics and AI remain outside Phase 2B.
+
+Before exposing confidential operational records to Operational Staff, the Project Owner must approve exact assignment scopes and sensitive-field rules. This decision constrains role rollout but does not block schema/domain foundation work under System/School Administrator authorization and default deny.
 
 Deliver:
 - authentication/authorization

@@ -242,3 +242,67 @@ Status: Accepted for Phase 2A
 The existing two-person Platform System Administration bootstrap may explicitly provision the first `sims_access_administrator`. This is a one-time initial-role ceremony governed by the same approved contact-domain validation, distinct external operator references, transaction and append-only audit history as the existing privileged bootstrap.
 
 The default S.I.M.S. bootstrap remains `sims_system_administrator`. The Access Administrator receives only its existing closed role contract and no System Administrator permission. The mechanism creates no CMS membership, does not grant either S.I.M.S. role the other's authority, creates no permanent application bypass, and does not affect the five-active-System-Administrator database limit. Subsequent assignments continue through normal Access Administrator authorization.
+
+## ADR-030 — Least-privilege verification ownership
+
+Status: Accepted
+
+Codex / Development Agent owns architecture, implementation, migrations, automated tests, fixture and verification tooling, browser specifications, security review and authoritative engineering documentation. The Senior Software Engineer / Project Owner owns production/live secrets, authenticated infrastructure and browser execution, environment configuration, cleanup and operational sign-off.
+
+An agent's lack of access to privileged credentials is not an implementation defect. Phase reporting separates implementation, automated engineering verification, privileged operational verification and production readiness. Operational evidence is exchanged only as sanitized outputs, screenshots and pass/fail summaries; raw credentials, connection strings, session material and private keys are never required in chat.
+
+This boundary applies least privilege to humans and agents and does not weaken any application or database control. The authoritative procedure and ownership matrix are in `docs/21-operational-verification-runbook.md`.
+
+## ADR-031 — Administrative people records are not authentication identities
+
+Status: Accepted for Phase 2B
+
+Student and staff administrative records live in the private S.I.M.S. domain. A student has no Better Auth relationship or credential in Phase 2B. A staff record may optionally reference one existing Better Auth identity explicitly; it never duplicates a password, session, recovery or MFA secret.
+
+## ADR-032 — Session-scoped academic classes and subjects
+
+Status: Accepted for Phase 2B; subject long-term policy review required
+
+Academic classes and subjects reference an academic session. Their codes are unique within that session rather than globally, preserving recurring class/subject labels without conflating years. Student current-class is optional. Enrolment, teacher allocation, attendance and assessment relationships are deferred. Whether subjects should later have a session-independent catalogue is `DECISION REQUIRED` before Phase 2C relies on it.
+
+## ADR-033 — Non-destructive S.I.M.S. core lifecycle
+
+Status: Accepted for Phase 2B
+
+Students, staff, classes and subjects use active/inactive/archived states; sessions use planned/active/closed. Application runtime roles receive no DELETE permission. Historical referential integrity uses restrictive foreign keys. Reactivation/retention approval is `DECISION REQUIRED`.
+
+## ADR-034 — Phase 2B school-wide authority and unresolved operational scopes
+
+Status: Accepted for Phase 2B
+
+S.I.M.S. System and School Administrators receive the approved school-wide read/create/update core catalogue. Access Administrators receive no core-record authority. Operational Staff retain only existing assigned student read/update; no new staff/class/subject/session mapping is inferred until school approval. Assignment scope filtering executes server-side and each entitlement retains its own scope.
+
+## ADR-035 — Minimal confidential S.I.M.S. fields and isolated runtime schema
+
+Status: Accepted for Phase 2B
+
+The initial model stores only identifiers, names, lifecycle, essential dates/relationships, optional staff contact email and optional staff identity linkage. Date of birth, guardian/contact, department and other sensitive attributes remain absent pending approved purpose, visibility and retention rules. The `sims` schema is available only to `slgs_sims` with SELECT/INSERT/UPDATE; CMS/Web receive no privilege and no public projection exists.
+
+## ADR-036 — Attendance preserves attendance-time class context
+
+Status: Accepted for Phase 2C design
+
+Attendance history must not be derived from the student's mutable current class. Each occurrence and entry preserves its academic-session/class context and immutable student roster association. Phase 2C may add the minimum historical roster structure required by the approved attendance model without reopening Phase 2B. Roster admission/removal policy remains `DECISION REQUIRED`.
+
+## ADR-037 — No mandatory term/calendar subsystem for Phase 2C
+
+Status: Accepted for Phase 2C design
+
+Academic session, class and attendance date are sufficient technical anchors for the Phase 2C baseline. The existing `term` scope dimension is not a term domain model and must not be used as one. A term/calendar dependency may be added only if school policy requires it.
+
+## ADR-038 — Attendance corrections preserve original evidence
+
+Status: Accepted for Phase 2C design; correction policy required
+
+Attendance corrections use immutable superseding evidence rather than destructive overwrite or deletion. The correction records actor identity, timestamp and the superseded entry/version. Corrector roles, mandatory reason, time limit and approval requirements remain `DECISION REQUIRED`.
+
+## ADR-039 — Authenticated recorder with optional staff attribution
+
+Status: Accepted for Phase 2C design
+
+Every attendance write is attributed to the authenticated Better Auth identity derived server-side. Where that identity has an explicit Phase 2B staff link, attendance may also preserve the staff ID. A staff record is not authentication authority, and absence of a staff link cannot be silently replaced by a browser-supplied staff or actor ID.

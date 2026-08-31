@@ -55,3 +55,9 @@ Every substantial task should end with:
 - migration/seed changes
 - security considerations
 - remaining TODOs/risks
+
+## Verification ownership
+
+Codex owns implementation, migrations, automated tests, fixture/verification tooling, reproducible procedures, security review and `/docs/` evidence. The Senior Software Engineer / Project Owner owns privileged infrastructure, secrets, authenticated operational browser execution, production configuration, cleanup and final operational sign-off.
+
+Missing agent access to a secret is not an implementation failure. Report implementation status, engineering verification, operational verification and production readiness separately. Never ask for raw credentials in chat; accept sanitized outputs and pass/fail evidence. Follow `docs/21-operational-verification-runbook.md`.
