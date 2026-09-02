@@ -215,10 +215,22 @@
   font: inherit;
   font-weight: 650;
   cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.cms-actions button:hover:not(:disabled),
+.cms-form button:hover:not(:disabled),
+.cms-editor button:hover:not(:disabled) {
+  background: var(--slgs-purple-hover, #542f7f);
+  border-color: var(--slgs-purple-hover, #542f7f);
 }
 .cms-actions button.secondary {
   background: transparent;
+  border-color: var(--border);
   color: var(--foreground);
+}
+.cms-actions button.secondary:hover:not(:disabled) {
+  background: var(--muted);
+  color: var(--primary);
 }
 button:disabled {
   cursor: not-allowed;
@@ -229,7 +241,7 @@ input:focus-visible,
 textarea:focus-visible,
 select:focus-visible,
 summary:focus-visible {
-  outline: 3px solid var(--primary);
+  outline: 3px solid var(--ring, var(--slgs-focus));
   outline-offset: 2px;
 }
 .cms-editor {

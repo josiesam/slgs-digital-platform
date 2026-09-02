@@ -8,20 +8,84 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+
+  --color-slgs-purple: var(--slgs-purple);
+  --color-slgs-purple-dark: var(--slgs-purple-dark);
+  --color-slgs-purple-light: var(--slgs-purple-light);
+  --color-slgs-silver: var(--slgs-silver);
+  --color-slgs-silver-light: var(--slgs-silver-light);
+  --color-slgs-silver-dark: var(--slgs-silver-dark);
+  --color-slgs-khaki: var(--slgs-khaki);
+  --color-slgs-khaki-light: var(--slgs-khaki-light);
+  --color-slgs-khaki-dark: var(--slgs-khaki-dark);
+  --color-slgs-white: var(--slgs-white);
+  --color-slgs-off-white: var(--slgs-off-white);
+  --color-slgs-ink: var(--slgs-ink);
+  --color-slgs-muted: var(--slgs-muted);
+  --color-slgs-border: var(--slgs-border);
+  --color-slgs-red: var(--slgs-red);
+  --color-slgs-purple-hover: var(--slgs-purple-hover);
+  --color-slgs-focus: var(--slgs-focus);
 }
 
 :root {
-  --background: oklch(0.985 0.008 90);
-  --foreground: oklch(0.24 0.035 255);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.24 0.035 255);
-  --primary: oklch(0.34 0.095 258);
-  --primary-foreground: oklch(0.985 0.008 90);
-  --muted: oklch(0.95 0.012 90);
-  --muted-foreground: oklch(0.48 0.025 255);
-  --border: oklch(0.88 0.018 255);
+  /* Primary SLGS identity based on uniform tie & crest */
+  --slgs-purple: #69439a;
+  --slgs-purple-dark: #42245f;
+  --slgs-purple-light: #8564ae;
+
+  /* Silver / metallic tie stripes */
+  --slgs-silver: #a7a9ac;
+  --slgs-silver-light: #e1e2e3;
+  --slgs-silver-dark: #73767a;
+
+  /* Khaki uniform trousers */
+  --slgs-khaki: #c2b28a;
+  --slgs-khaki-light: #eee9dc;
+  --slgs-khaki-dark: #8d7d58;
+
+  /* White / page surfaces */
+  --slgs-white: #ffffff;
+  --slgs-off-white: #faf9f6;
+
+  /* Typography */
+  --slgs-ink: #252329;
+  --slgs-muted: #65616a;
+
+  /* Borders */
+  --slgs-border: #dedbe1;
+
+  /* Badge accent */
+  --slgs-red: #c94a43;
+
+  /* Interaction */
+  --slgs-purple-hover: #542f7f;
+  --slgs-focus: #9a78c2;
+
+  /* Theme Mapping */
+  --background: var(--slgs-white);
+  --foreground: var(--slgs-ink);
+  --card: var(--slgs-white);
+  --card-foreground: var(--slgs-ink);
+  --primary: var(--slgs-purple);
+  --primary-foreground: var(--slgs-white);
+  --muted: var(--slgs-off-white);
+  --muted-foreground: var(--slgs-muted);
+  --border: var(--slgs-border);
+  --ring: var(--slgs-focus);
+  --accent: var(--slgs-khaki-light);
+  --accent-foreground: var(--slgs-purple-dark);
+  --destructive: var(--slgs-red);
+  --destructive-foreground: var(--slgs-white);
   --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
 }
 
 * {
@@ -34,3 +98,4 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
 }
+

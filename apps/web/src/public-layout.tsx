@@ -35,8 +35,8 @@ export function PublicLayout({ children }: { readonly children: ReactNode }) {
       </a>
       <header className="site-header">
         <div className="utility-bar">
-          <span>Sierra Leone Grammar School</span>
-          <span>Public information</span>
+          <a href="mailto:info@slgs.edu.sl">Email: info@slgs.edu.sl</a>
+          <a href="tel:+23276490656">Have any question? +232 76 490656</a>
         </div>
         <div className="navigation-bar">
           <Link
