@@ -1,8 +1,17 @@
 {
-  "extends": ["//"],
+  "extends": [
+    "//"
+  ],
   "tasks": {
     "build": {
-      "outputs": ["dist/**", ".output/**"]
+      "outputs": [
+        ".vercel/output/**"
+      ],
+      "env": [
+        "PUBLIC_SITE_URL",
+        "DATABASE_URL",
+        "WEB_DATABASE_URL"
+      ]
     }
   }
 }
