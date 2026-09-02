@@ -15,6 +15,7 @@
     "@slgs/ui": "workspace:*",
     "@tanstack/react-router": "catalog:",
     "@tanstack/react-start": "catalog:",
+    "nitro": "3.0.260610-beta",
     "react": "catalog:",
     "react-dom": "catalog:",
     "zod": "catalog:"
