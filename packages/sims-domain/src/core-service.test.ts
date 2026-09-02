@@ -9,10 +9,7 @@ import {
   type SimsCoreAuditEvent,
   type SimsCoreRepository,
   type StudentRecord,
-  type AcademicClassRecord,
-  type AcademicSessionRecord,
   type StaffRecord,
-  type SubjectRecord,
   type AttendanceOccurrenceRecord,
   type AttendanceEntryRecord,
   type AttendanceCorrectionRecord,
@@ -44,39 +41,73 @@ class MemoryRepository implements SimsCoreRepository {
   >();
   readonly audits: SimsCoreAuditEvent[] = [];
 
-  async findStaffByIdentity(identityUserId: string): Promise<StaffRecord | null> {
+  async findStaffByIdentity(
+    _identityUserId: string,
+  ): Promise<StaffRecord | null> {
     return null;
   }
-  async findAttendanceOccurrence(id: string): Promise<AttendanceOccurrenceRecord | null> {
+  async findAttendanceOccurrence(
+    _id: string,
+  ): Promise<AttendanceOccurrenceRecord | null> {
     return null;
   }
-  async findAttendanceOccurrenceByContext(academicSessionId: string, classId: string, date: string): Promise<AttendanceOccurrenceRecord | null> {
+  async findAttendanceOccurrenceByContext(
+    _academicSessionId: string,
+    _classId: string,
+    _date: string,
+  ): Promise<AttendanceOccurrenceRecord | null> {
     return null;
   }
-  async findAttendanceEntry(id: string): Promise<AttendanceEntryRecord | null> {
+  async findAttendanceEntry(
+    _id: string,
+  ): Promise<AttendanceEntryRecord | null> {
     return null;
   }
-  async findAttendanceEntryByStudent(occurrenceId: string, studentId: string): Promise<AttendanceEntryRecord | null> {
+  async findAttendanceEntryByStudent(
+    _occurrenceId: string,
+    _studentId: string,
+  ): Promise<AttendanceEntryRecord | null> {
     return null;
   }
-  async listAttendanceEntries(occurrenceId: string): Promise<readonly AttendanceEntryRecord[]> {
+  async listAttendanceEntries(
+    _occurrenceId: string,
+  ): Promise<readonly AttendanceEntryRecord[]> {
     return [];
   }
-  async listAttendanceCorrections(entryId: string): Promise<readonly AttendanceCorrectionRecord[]> {
+  async listAttendanceCorrections(
+    _entryId: string,
+  ): Promise<readonly AttendanceCorrectionRecord[]> {
     return [];
   }
-  async createAttendanceOccurrence(record: AttendanceOccurrenceRecord): Promise<void> {}
-  async saveAttendanceOccurrence(record: AttendanceOccurrenceRecord): Promise<void> {}
-  async createAttendanceEntry(record: AttendanceEntryRecord): Promise<void> {}
-  async saveAttendanceEntry(record: AttendanceEntryRecord): Promise<void> {}
-  async createAttendanceCorrection(record: AttendanceCorrectionRecord): Promise<void> {}
-  async listAttendanceOccurrences(query: any, access: any): Promise<readonly AttendanceOccurrenceRecord[]> {
+  async createAttendanceOccurrence(
+    _record: AttendanceOccurrenceRecord,
+  ): Promise<void> {}
+  async saveAttendanceOccurrence(
+    _record: AttendanceOccurrenceRecord,
+  ): Promise<void> {}
+  async createAttendanceEntry(_record: AttendanceEntryRecord): Promise<void> {}
+  async saveAttendanceEntry(_record: AttendanceEntryRecord): Promise<void> {}
+  async createAttendanceCorrection(
+    _record: AttendanceCorrectionRecord,
+  ): Promise<void> {}
+  async listAttendanceOccurrences(
+    _query: unknown,
+    _access: unknown,
+  ): Promise<readonly AttendanceOccurrenceRecord[]> {
     return [];
   }
-  async getAttendanceHistory(studentId: string, access: any): Promise<readonly { entry: AttendanceEntryRecord, occurrence: AttendanceOccurrenceRecord }[]> {
+  async getAttendanceHistory(
+    _studentId: string,
+    _access: unknown,
+  ): Promise<
+    readonly {
+      entry: AttendanceEntryRecord;
+      occurrence: AttendanceOccurrenceRecord;
+    }[]
+  > {
     return [];
   }
-  async getRosterForClass(classId: string): Promise<readonly StudentRecord[]> {
+  async getRosterForClass(_classId: string): Promise<readonly StudentRecord[]> {
     return [];
   }
 

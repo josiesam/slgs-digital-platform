@@ -2,7 +2,7 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "outputs": ["dist/**", ".output/**"]
+      "outputs": [".output/**", ".vercel/output/**"]
     }
   }
 }

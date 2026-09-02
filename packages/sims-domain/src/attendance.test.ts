@@ -18,7 +18,9 @@ import {
   type AttendanceCorrectionRecord,
 } from "./index";
 
-const getActor = (grant: ReturnType<typeof createGrant> | ReturnType<typeof createScopedGrant>): SessionIdentity => ({
+const getActor = (
+  grant: ReturnType<typeof createGrant> | ReturnType<typeof createScopedGrant>,
+): SessionIdentity => ({
   userId: "actor-1",
   sessionId: "session-1",
   grants: new Map([["sims", grant]]),
@@ -46,7 +48,7 @@ class MockAttendanceRepository implements SimsCoreRepository {
   async findAcademicClass(id: string) {
     return this.classes.get(id) ?? null;
   }
-  async findSubject(id: string) {
+  async findSubject(_id: string) {
     return null;
   }
   async findStudent(id: string) {
@@ -55,11 +57,21 @@ class MockAttendanceRepository implements SimsCoreRepository {
   async findStaff(id: string) {
     return this.staff.get(id) ?? null;
   }
-  async listAcademicSessions() { return []; }
-  async listAcademicClasses() { return []; }
-  async listSubjects() { return []; }
-  async listStudents() { return []; }
-  async listStaff() { return []; }
+  async listAcademicSessions() {
+    return [];
+  }
+  async listAcademicClasses() {
+    return [];
+  }
+  async listSubjects() {
+    return [];
+  }
+  async listStudents() {
+    return [];
+  }
+  async listStaff() {
+    return [];
+  }
 
   async createAcademicSession(record: AcademicSessionRecord) {
     this.sessions.set(record.id, record);
@@ -67,28 +79,36 @@ class MockAttendanceRepository implements SimsCoreRepository {
   async createAcademicClass(record: AcademicClassRecord) {
     this.classes.set(record.id, record);
   }
-  async createSubject(record: SubjectRecord) {}
+  async createSubject(_record: SubjectRecord) {}
   async createStudent(record: StudentRecord) {
     this.students.set(record.id, record);
   }
   async createStaff(record: StaffRecord) {
     this.staff.set(record.id, record);
   }
-  async saveAcademicSession(record: AcademicSessionRecord) {}
-  async saveAcademicClass(record: AcademicClassRecord) {}
-  async saveSubject(record: SubjectRecord) {}
-  async saveStudent(record: StudentRecord) {}
-  async saveStaff(record: StaffRecord) {}
+  async saveAcademicSession(_record: AcademicSessionRecord) {}
+  async saveAcademicClass(_record: AcademicClassRecord) {}
+  async saveSubject(_record: SubjectRecord) {}
+  async saveStudent(_record: StudentRecord) {}
+  async saveStaff(_record: StaffRecord) {}
 
   async findStaffByIdentity(identityUserId: string) {
-    return [...this.staff.values()].find((s) => s.identityUserId === identityUserId) ?? null;
+    return (
+      [...this.staff.values()].find(
+        (s) => s.identityUserId === identityUserId,
+      ) ?? null
+    );
   }
 
   async findAttendanceOccurrence(id: string) {
     return this.occurrences.get(id) ?? null;
   }
 
-  async findAttendanceOccurrenceByContext(academicSessionId: string, classId: string, date: string) {
+  async findAttendanceOccurrenceByContext(
+    academicSessionId: string,
+    classId: string,
+    date: string,
+  ) {
     return (
       [...this.occurrences.values()].find(
         (o) =>
@@ -112,7 +132,9 @@ class MockAttendanceRepository implements SimsCoreRepository {
   }
 
   async listAttendanceEntries(occurrenceId: string) {
-    return [...this.entries.values()].filter((e) => e.occurrenceId === occurrenceId);
+    return [...this.entries.values()].filter(
+      (e) => e.occurrenceId === occurrenceId,
+    );
   }
 
   async listAttendanceCorrections(entryId: string) {
@@ -204,7 +226,11 @@ describe("Phase 2C Attendance Domain & Auth Service", () => {
     expect(repository.occurrences.has(occurrence.id)).toBe(true);
 
     // Audit logged
-    expect(repository.audits.some((a) => a.eventType === "attendance.occurrence_created")).toBe(true);
+    expect(
+      repository.audits.some(
+        (a) => a.eventType === "attendance.occurrence_created",
+      ),
+    ).toBe(true);
 
     // Duplicate creation rejected
     await expect(
@@ -293,7 +319,9 @@ describe("Phase 2C Attendance Domain & Auth Service", () => {
       }),
     ).resolves.not.toThrow();
 
-    const recorded = [...repository.entries.values()].find((e) => e.studentId === "student-1");
+    const recorded = [...repository.entries.values()].find(
+      (e) => e.studentId === "student-1",
+    );
     expect(recorded).toBeDefined();
 
     // Blocked student not in class-1
@@ -353,12 +381,20 @@ describe("Phase 2C Attendance Domain & Auth Service", () => {
     });
 
     const creatorAndCorrector = getActor(
-      createGrant("sims", ["attendance:create:school", "attendance:correct:school"]),
+      createGrant("sims", [
+        "attendance:create:school",
+        "attendance:correct:school",
+      ]),
     );
 
     // Finalize
-    await service.finalizeAttendanceOccurrence({ actor: creatorAndCorrector, id: "occurrence-1" });
-    expect(repository.occurrences.get("occurrence-1")?.status).toBe("finalized");
+    await service.finalizeAttendanceOccurrence({
+      actor: creatorAndCorrector,
+      id: "occurrence-1",
+    });
+    expect(repository.occurrences.get("occurrence-1")?.status).toBe(
+      "finalized",
+    );
 
     // Ordinary entry marking is frozen
     await expect(
@@ -423,7 +459,10 @@ describe("Phase 2C Attendance Domain & Auth Service", () => {
     const staffActor = getActor(
       createScopedGrant("sims", [
         {
-          permissions: ["attendance:create:assigned", "attendance:read:assigned"],
+          permissions: [
+            "attendance:create:assigned",
+            "attendance:read:assigned",
+          ],
           scopes: [{ dimension: "class", value: "class-1" }],
         },
       ]),

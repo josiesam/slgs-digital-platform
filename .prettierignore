@@ -1,6 +1,7 @@
 .agents/
 .git/
 .output/
+.vercel/
 .turbo/
 coverage/
 dist/

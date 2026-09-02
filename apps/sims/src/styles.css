@@ -55,7 +55,9 @@
   min-height: 2.75rem;
   padding: 0.5rem 0.875rem;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .sims-admin button:hover:not(:disabled) {
@@ -154,7 +156,9 @@
   grid-template-columns: minmax(12rem, 2fr) minmax(8rem, 1fr) auto;
   padding: 0.75rem;
   text-decoration: none;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
 }
 
 .sims-core-list a:hover {

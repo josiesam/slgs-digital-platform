@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { createFileRoute, redirect, useRouter, Link } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  redirect,
+  useRouter,
+  Link,
+} from "@tanstack/react-router";
 import { z } from "zod";
 
 import { PageShell } from "@slgs/ui";
@@ -29,25 +34,43 @@ export const Route = createFileRoute("/attendance/$id/corrections")({
     const data = await getSimsAttendanceOccurrence({ data: { id: params.id } });
     if (!data) return { occurrence: null, entry: null, roster: [] };
 
-    const entry = data.entries.find((e: any) => e.id === deps.entryId);
+    const entry = data.entries.find((e) => e.id === deps.entryId);
     const roster = await getRosterForAttendanceCreation({
       data: { classId: data.occurrence.classId },
     });
 
-    return { occurrence: data.occurrence, entry, roster: roster as any[] };
+    return {
+      occurrence: data.occurrence,
+      entry,
+      roster: roster as Array<{
+        id: string;
+        firstName: string;
+        lastName: string;
+        studentNumber: string;
+      }>,
+    };
   },
   component: AttendanceCorrectionsPage,
 });
 
+interface CorrectionLogItem {
+  id: string;
+  state: "present" | "absent" | "late" | "excused";
+  createdAt: string;
+  actorUserId: string;
+  reason: string;
+}
+
 function AttendanceCorrectionsPage() {
-  const { occurrence, entry, roster } = Route.useLoaderData() as any;
-  const search = Route.useSearch();
+  const { occurrence, entry, roster } = Route.useLoaderData();
   const router = useRouter();
 
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  const [selectedState, setSelectedState] = useState<"present" | "absent" | "late" | "excused">("present");
+  const [selectedState, setSelectedState] = useState<
+    "present" | "absent" | "late" | "excused"
+  >("present");
   const [reason, setReason] = useState("");
 
   if (!occurrence || !entry) {
@@ -56,9 +79,12 @@ function AttendanceCorrectionsPage() {
         <main className="sims-admin">
           <header>
             <a href="/attendance">← Back to registers</a>
-            <h1 className="text-3xl font-semibold tracking-tight mt-4">Record Not Found</h1>
+            <h1 className="text-3xl font-semibold tracking-tight mt-4">
+              Record Not Found
+            </h1>
             <p className="text-muted-foreground mt-2">
-              The entry or register does not exist or is outside your authorized scope.
+              The entry or register does not exist or is outside your authorized
+              scope.
             </p>
           </header>
         </main>
@@ -66,7 +92,7 @@ function AttendanceCorrectionsPage() {
     );
   }
 
-  const student = (roster as any[]).find((s: any) => s.id === entry.studentId);
+  const student = roster.find((s) => s.id === entry.studentId);
   const studentName = student
     ? `${student.lastName}, ${student.firstName}`
     : "Unknown Student";
@@ -74,7 +100,8 @@ function AttendanceCorrectionsPage() {
   const getEffectiveState = () => {
     if (entry.corrections && entry.corrections.length > 0) {
       const latest = [...entry.corrections].sort(
-        (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        (a: CorrectionLogItem, b: CorrectionLogItem) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       )[0];
       return latest ? latest.state : entry.state;
     }
@@ -105,32 +132,42 @@ function AttendanceCorrectionsPage() {
       setMessage("Correction submitted successfully!");
       setReason("");
       // Redirect back to register detail
-      router.navigate({ to: "/attendance/$id", params: { id: occurrence!.id } });
-    } catch (err: any) {
-      setMessage(err instanceof Error ? err.message : "Failed to submit correction.");
+      router.navigate({
+        to: "/attendance/$id",
+        params: { id: occurrence!.id },
+      });
+    } catch (err: unknown) {
+      setMessage(
+        err instanceof Error ? err.message : "Failed to submit correction.",
+      );
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <PageShell
-      application="SLGS S.I.M.S."
-      eyebrow="Confidential corrections"
-    >
+    <PageShell application="SLGS S.I.M.S." eyebrow="Confidential corrections">
       <main className="sims-admin max-w-3xl">
         <header className="flex flex-col gap-2">
-          <Link to="/attendance/$id" params={{ id: occurrence!.id }}>
+          <Link to="/attendance/$id" params={{ id: occurrence.id }}>
             ← Back to register
           </Link>
-          <h1 className="text-3xl font-semibold tracking-tight">Correct Attendance Entry</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Correct Attendance Entry
+          </h1>
           <p className="text-muted-foreground text-sm">
-            Student: <strong className="text-foreground">{studentName}</strong> ({student?.studentNumber})
+            Student: <strong className="text-foreground">{studentName}</strong>{" "}
+            ({student?.studentNumber})
           </p>
         </header>
 
-        <section aria-labelledby="history-heading" className="p-6 border rounded-lg bg-card shadow-sm">
-          <h2 id="history-heading" className="text-lg font-medium mb-4">Correction History (Audit Trail)</h2>
+        <section
+          aria-labelledby="history-heading"
+          className="p-6 border rounded-lg bg-card shadow-sm"
+        >
+          <h2 id="history-heading" className="text-lg font-medium mb-4">
+            Correction History (Audit Trail)
+          </h2>
           <div className="flex flex-col gap-4">
             <div className="flex justify-between items-center text-sm border-b pb-2">
               <span>Original Attendance State:</span>
@@ -138,7 +175,7 @@ function AttendanceCorrectionsPage() {
                 {entry.state}
               </span>
             </div>
-            
+
             <div className="flex justify-between items-center text-sm border-b pb-2 font-medium">
               <span>Current Effective State:</span>
               <span className="capitalize font-semibold px-2 py-0.5 rounded bg-green-100 text-green-800">
@@ -152,17 +189,23 @@ function AttendanceCorrectionsPage() {
                   History of Corrections
                 </span>
                 <ol className="relative border-l border-border ml-2 flex flex-col gap-4 pl-4">
-                  {entry.corrections.map((corr: any) => (
+                  {entry.corrections.map((corr: CorrectionLogItem) => (
                     <li key={corr.id} className="text-xs">
                       <div className="absolute -left-1.5 mt-1.5 h-3 w-3 rounded-full border border-card bg-primary"></div>
                       <time className="text-muted-foreground font-mono block mb-1">
                         {new Date(corr.createdAt).toLocaleString()}
                       </time>
                       <p className="font-semibold text-primary mb-1">
-                        Corrected to: <span className="capitalize font-bold">{corr.state}</span>
+                        Corrected to:{" "}
+                        <span className="capitalize font-bold">
+                          {corr.state}
+                        </span>
                       </p>
                       <p className="text-muted-foreground">
-                        Actor: <code className="text-xs font-mono">{corr.actorUserId}</code>
+                        Actor:{" "}
+                        <code className="text-xs font-mono">
+                          {corr.actorUserId}
+                        </code>
                       </p>
                       <p className="text-foreground italic mt-1 bg-muted p-2 rounded">
                         " {corr.reason} "
@@ -179,14 +222,23 @@ function AttendanceCorrectionsPage() {
           </div>
         </section>
 
-        <section aria-labelledby="form-heading" className="p-6 border rounded-lg bg-card shadow-sm">
-          <h2 id="form-heading" className="text-lg font-medium mb-4">Submit Correction</h2>
+        <section
+          aria-labelledby="form-heading"
+          className="p-6 border rounded-lg bg-card shadow-sm"
+        >
+          <h2 id="form-heading" className="text-lg font-medium mb-4">
+            Submit Correction
+          </h2>
           <form onSubmit={submitCorrection} className="flex flex-col gap-4">
             <label className="grid gap-1">
               New Attendance State
               <select
                 value={selectedState}
-                onChange={(e) => setSelectedState(e.target.value as any)}
+                onChange={(e) =>
+                  setSelectedState(
+                    e.target.value as "present" | "absent" | "late" | "excused",
+                  )
+                }
                 required
                 className="border p-2 rounded"
               >
@@ -217,9 +269,12 @@ function AttendanceCorrectionsPage() {
               >
                 {saving ? "Submitting Correction..." : "Submit Correction"}
               </button>
-              
+
               {message && (
-                <p role="status" className="sims-feedback max-w-md text-sm font-medium">
+                <p
+                  role="status"
+                  className="sims-feedback max-w-md text-sm font-medium"
+                >
                   {message}
                 </p>
               )}

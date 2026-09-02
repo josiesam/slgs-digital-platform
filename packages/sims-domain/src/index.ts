@@ -13,8 +13,6 @@ export { PermissionDeniedError } from "@slgs/permissions";
 export * from "./attendance";
 
 import {
-  type AttendanceOccurrenceStatus,
-  type AttendanceState,
   type AttendanceOccurrenceInput,
   type AttendanceEntryInput,
   type AttendanceCorrectionInput,
@@ -224,19 +222,47 @@ export interface SimsCoreRepository {
   saveStudent(record: StudentRecord): Promise<void>;
   saveStaff(record: StaffRecord): Promise<void>;
   findStaffByIdentity(identityUserId: string): Promise<StaffRecord | null>;
-  findAttendanceOccurrence(id: string): Promise<AttendanceOccurrenceRecord | null>;
-  findAttendanceOccurrenceByContext(academicSessionId: string, classId: string, date: string): Promise<AttendanceOccurrenceRecord | null>;
+  findAttendanceOccurrence(
+    id: string,
+  ): Promise<AttendanceOccurrenceRecord | null>;
+  findAttendanceOccurrenceByContext(
+    academicSessionId: string,
+    classId: string,
+    date: string,
+  ): Promise<AttendanceOccurrenceRecord | null>;
   findAttendanceEntry(id: string): Promise<AttendanceEntryRecord | null>;
-  findAttendanceEntryByStudent(occurrenceId: string, studentId: string): Promise<AttendanceEntryRecord | null>;
-  listAttendanceEntries(occurrenceId: string): Promise<readonly AttendanceEntryRecord[]>;
-  listAttendanceCorrections(entryId: string): Promise<readonly AttendanceCorrectionRecord[]>;
+  findAttendanceEntryByStudent(
+    occurrenceId: string,
+    studentId: string,
+  ): Promise<AttendanceEntryRecord | null>;
+  listAttendanceEntries(
+    occurrenceId: string,
+  ): Promise<readonly AttendanceEntryRecord[]>;
+  listAttendanceCorrections(
+    entryId: string,
+  ): Promise<readonly AttendanceCorrectionRecord[]>;
   createAttendanceOccurrence(record: AttendanceOccurrenceRecord): Promise<void>;
   saveAttendanceOccurrence(record: AttendanceOccurrenceRecord): Promise<void>;
   createAttendanceEntry(record: AttendanceEntryRecord): Promise<void>;
   saveAttendanceEntry(record: AttendanceEntryRecord): Promise<void>;
   createAttendanceCorrection(record: AttendanceCorrectionRecord): Promise<void>;
-  listAttendanceOccurrences(query: CoreListQuery & { classId?: string, academicSessionId?: string, date?: string }, access: CoreListAccess): Promise<readonly AttendanceOccurrenceRecord[]>;
-  getAttendanceHistory(studentId: string, access: CoreListAccess): Promise<readonly { entry: AttendanceEntryRecord, occurrence: AttendanceOccurrenceRecord }[]>;
+  listAttendanceOccurrences(
+    query: CoreListQuery & {
+      classId?: string;
+      academicSessionId?: string;
+      date?: string;
+    },
+    access: CoreListAccess,
+  ): Promise<readonly AttendanceOccurrenceRecord[]>;
+  getAttendanceHistory(
+    studentId: string,
+    access: CoreListAccess,
+  ): Promise<
+    readonly {
+      entry: AttendanceEntryRecord;
+      occurrence: AttendanceOccurrenceRecord;
+    }[]
+  >;
   getRosterForClass(classId: string): Promise<readonly StudentRecord[]>;
   appendAudit(event: SimsCoreAuditEvent): Promise<void>;
 }
@@ -913,18 +939,24 @@ export function createSimsCoreService(repository: SimsCoreRepository) {
       input: AttendanceOccurrenceInput;
     }): Promise<AttendanceOccurrenceRecord> {
       const data = attendanceOccurrenceInputSchema.parse(input.input);
-      const session = await repository.findAcademicSession(data.academicSessionId);
-      if (!session) throw new Error("The selected academic session does not exist.");
+      const session = await repository.findAcademicSession(
+        data.academicSessionId,
+      );
+      if (!session)
+        throw new Error("The selected academic session does not exist.");
       const activeClass = await repository.findAcademicClass(data.classId);
       if (!activeClass) throw new Error("The selected class does not exist.");
-      
+
       const scopes = {
         scopes: [
           { dimension: "class" as const, value: activeClass.id },
-          { dimension: "academic_session" as const, value: activeClass.academicSessionId },
+          {
+            dimension: "academic_session" as const,
+            value: activeClass.academicSessionId,
+          },
         ],
       };
-      
+
       await authorizeMutation(
         repository,
         input.actor,
@@ -933,17 +965,21 @@ export function createSimsCoreService(repository: SimsCoreRepository) {
         scopes,
         null,
       );
-      
+
       const existing = await repository.findAttendanceOccurrenceByContext(
         data.academicSessionId,
         data.classId,
         data.attendanceDate,
       );
       if (existing) {
-        throw new Error("An attendance occurrence already exists for this class and date.");
+        throw new Error(
+          "An attendance occurrence already exists for this class and date.",
+        );
       }
-      
-      const staffLink = await repository.findStaffByIdentity(input.actor.userId);
+
+      const staffLink = await repository.findStaffByIdentity(
+        input.actor.userId,
+      );
       const record: AttendanceOccurrenceRecord = {
         id: crypto.randomUUID(),
         academicSessionId: data.academicSessionId,
@@ -955,7 +991,7 @@ export function createSimsCoreService(repository: SimsCoreRepository) {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      
+
       return repository.transaction(async (transaction) => {
         await transaction.createAttendanceOccurrence(record);
         await transaction.appendAudit(
@@ -977,12 +1013,14 @@ export function createSimsCoreService(repository: SimsCoreRepository) {
       occurrenceId: string;
       entries: readonly AttendanceEntryInput[];
     }): Promise<void> {
-      const occurrence = await repository.findAttendanceOccurrence(input.occurrenceId);
+      const occurrence = await repository.findAttendanceOccurrence(
+        input.occurrenceId,
+      );
       if (!occurrence) throw new Error("Attendance occurrence not found.");
       if (occurrence.status === "finalized") {
         throw new Error("Cannot record entries for a finalized occurrence.");
       }
-      
+
       const scopes = await classScopes(repository, occurrence.classId);
       await authorizeMutation(
         repository,
@@ -992,25 +1030,29 @@ export function createSimsCoreService(repository: SimsCoreRepository) {
         scopes,
         occurrence.id,
       );
-      
-      const parsedEntries = z.array(attendanceEntryInputSchema).parse(input.entries);
-      
+
+      const parsedEntries = z
+        .array(attendanceEntryInputSchema)
+        .parse(input.entries);
+
       const roster = await repository.getRosterForClass(occurrence.classId);
       const rosterIds = new Set(roster.map((s) => s.id));
-      
+
       for (const entry of parsedEntries) {
         if (!rosterIds.has(entry.studentId)) {
-          throw new Error("One or more students are not eligible for this roster.");
+          throw new Error(
+            "One or more students are not eligible for this roster.",
+          );
         }
       }
-      
+
       return repository.transaction(async (transaction) => {
         for (const entry of parsedEntries) {
           const existing = await transaction.findAttendanceEntryByStudent(
             occurrence.id,
             entry.studentId,
           );
-          
+
           if (existing) {
             const updated = {
               ...existing,
@@ -1029,7 +1071,7 @@ export function createSimsCoreService(repository: SimsCoreRepository) {
             };
             await transaction.createAttendanceEntry(record);
           }
-          
+
           await transaction.appendAudit(
             makeAudit(
               input.actor,
@@ -1050,7 +1092,7 @@ export function createSimsCoreService(repository: SimsCoreRepository) {
     }): Promise<AttendanceOccurrenceRecord> {
       const occurrence = await repository.findAttendanceOccurrence(input.id);
       if (!occurrence) throw new Error("Attendance occurrence not found.");
-      
+
       const scopes = await classScopes(repository, occurrence.classId);
       await authorizeMutation(
         repository,
@@ -1060,13 +1102,13 @@ export function createSimsCoreService(repository: SimsCoreRepository) {
         scopes,
         occurrence.id,
       );
-      
+
       const updated: AttendanceOccurrenceRecord = {
         ...occurrence,
         status: "finalized",
         updatedAt: new Date(),
       };
-      
+
       return repository.transaction(async (transaction) => {
         await transaction.saveAttendanceOccurrence(updated);
         await transaction.appendAudit(
@@ -1091,12 +1133,14 @@ export function createSimsCoreService(repository: SimsCoreRepository) {
       const data = attendanceCorrectionInputSchema.parse(input.input);
       const entry = await repository.findAttendanceEntry(input.entryId);
       if (!entry) throw new Error("Attendance entry not found.");
-      
-      const occurrence = await repository.findAttendanceOccurrence(entry.occurrenceId);
+
+      const occurrence = await repository.findAttendanceOccurrence(
+        entry.occurrenceId,
+      );
       if (!occurrence) throw new Error("Attendance occurrence not found.");
-      
+
       const scopes = await classScopes(repository, occurrence.classId);
-      
+
       await authorizeMutation(
         repository,
         input.actor,
@@ -1105,8 +1149,10 @@ export function createSimsCoreService(repository: SimsCoreRepository) {
         scopes,
         entry.id,
       );
-      
-      const staffLink = await repository.findStaffByIdentity(input.actor.userId);
+
+      const staffLink = await repository.findStaffByIdentity(
+        input.actor.userId,
+      );
       const correction: AttendanceCorrectionRecord = {
         id: crypto.randomUUID(),
         entryId: entry.id,
@@ -1116,7 +1162,7 @@ export function createSimsCoreService(repository: SimsCoreRepository) {
         reason: data.reason,
         createdAt: new Date(),
       };
-      
+
       return repository.transaction(async (transaction) => {
         await transaction.createAttendanceCorrection(correction);
         await transaction.appendAudit(
@@ -1152,15 +1198,25 @@ export function createSimsCoreService(repository: SimsCoreRepository) {
 
     async listAttendanceOccurrences(
       actor: SessionIdentity,
-      query: CoreListQueryInput & { classId?: string, academicSessionId?: string, date?: string } = {},
+      query: CoreListQueryInput & {
+        classId?: string;
+        academicSessionId?: string;
+        date?: string;
+      } = {},
     ): Promise<readonly AttendanceOccurrenceRecord[]> {
-      const parsed = coreListQuerySchema.extend({
-        classId: z.string().optional(),
-        academicSessionId: z.string().optional(),
-        date: z.string().optional(),
-      }).parse(query);
-      
-      const access = await listAccess(repository, actor, permissionDomains.attendance);
+      const parsed = coreListQuerySchema
+        .extend({
+          classId: z.string().optional(),
+          academicSessionId: z.string().optional(),
+          date: z.string().optional(),
+        })
+        .parse(query);
+
+      const access = await listAccess(
+        repository,
+        actor,
+        permissionDomains.attendance,
+      );
       return repository.listAttendanceOccurrences(parsed, access);
     },
 
@@ -1168,9 +1224,10 @@ export function createSimsCoreService(repository: SimsCoreRepository) {
       actor: SessionIdentity,
       occurrenceId: string,
     ): Promise<readonly AttendanceEntryRecord[]> {
-      const occurrence = await repository.findAttendanceOccurrence(occurrenceId);
+      const occurrence =
+        await repository.findAttendanceOccurrence(occurrenceId);
       if (!occurrence) throw new Error("Attendance occurrence not found.");
-      
+
       const scopes = await classScopes(repository, occurrence.classId);
       await authorizeRead(
         repository,
@@ -1188,10 +1245,12 @@ export function createSimsCoreService(repository: SimsCoreRepository) {
     ): Promise<readonly AttendanceCorrectionRecord[]> {
       const entry = await repository.findAttendanceEntry(entryId);
       if (!entry) throw new Error("Attendance entry not found.");
-      
-      const occurrence = await repository.findAttendanceOccurrence(entry.occurrenceId);
+
+      const occurrence = await repository.findAttendanceOccurrence(
+        entry.occurrenceId,
+      );
       if (!occurrence) throw new Error("Attendance occurrence not found.");
-      
+
       const scopes = await classScopes(repository, occurrence.classId);
       await authorizeRead(
         repository,
@@ -1200,17 +1259,22 @@ export function createSimsCoreService(repository: SimsCoreRepository) {
         scopes,
         entry.occurrenceId,
       );
-      
+
       return repository.listAttendanceCorrections(entryId);
     },
 
     async getAttendanceHistory(
       actor: SessionIdentity,
       studentId: string,
-    ): Promise<readonly { entry: AttendanceEntryRecord, occurrence: AttendanceOccurrenceRecord }[]> {
+    ): Promise<
+      readonly {
+        entry: AttendanceEntryRecord;
+        occurrence: AttendanceOccurrenceRecord;
+      }[]
+    > {
       const studentRecord = await repository.findStudent(studentId);
       if (!studentRecord) throw new Error("Student not found.");
-      
+
       const scopes = await classScopes(repository, studentRecord.classId);
       await authorizeRead(
         repository,
@@ -1219,8 +1283,12 @@ export function createSimsCoreService(repository: SimsCoreRepository) {
         scopes,
         studentId,
       );
-      
-      const access = await listAccess(repository, actor, permissionDomains.attendance);
+
+      const access = await listAccess(
+        repository,
+        actor,
+        permissionDomains.attendance,
+      );
       return repository.getAttendanceHistory(studentId, access);
     },
 

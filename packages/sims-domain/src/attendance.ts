@@ -1,9 +1,16 @@
 import { z } from "zod";
 
 export const attendanceOccurrenceStatusSchema = z.enum(["active", "finalized"]);
-export type AttendanceOccurrenceStatus = z.infer<typeof attendanceOccurrenceStatusSchema>;
+export type AttendanceOccurrenceStatus = z.infer<
+  typeof attendanceOccurrenceStatusSchema
+>;
 
-export const attendanceStateSchema = z.enum(["present", "absent", "late", "excused"]);
+export const attendanceStateSchema = z.enum([
+  "present",
+  "absent",
+  "late",
+  "excused",
+]);
 export type AttendanceState = z.infer<typeof attendanceStateSchema>;
 
 export const attendanceOccurrenceInputSchema = z.object({
@@ -11,7 +18,9 @@ export const attendanceOccurrenceInputSchema = z.object({
   classId: z.string().trim().min(1),
   attendanceDate: z.iso.date(),
 });
-export type AttendanceOccurrenceInput = z.infer<typeof attendanceOccurrenceInputSchema>;
+export type AttendanceOccurrenceInput = z.infer<
+  typeof attendanceOccurrenceInputSchema
+>;
 
 export const attendanceEntryInputSchema = z.object({
   studentId: z.string().trim().min(1),
@@ -23,7 +32,9 @@ export const attendanceCorrectionInputSchema = z.object({
   state: attendanceStateSchema,
   reason: z.string().trim().min(1).max(500),
 });
-export type AttendanceCorrectionInput = z.infer<typeof attendanceCorrectionInputSchema>;
+export type AttendanceCorrectionInput = z.infer<
+  typeof attendanceCorrectionInputSchema
+>;
 
 export interface AttendanceOccurrenceRecord {
   readonly id: string;

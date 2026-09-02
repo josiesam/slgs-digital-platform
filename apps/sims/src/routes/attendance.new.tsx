@@ -28,8 +28,8 @@ export const Route = createFileRoute("/attendance/new")({
     });
 
     return {
-      classes: classes as any[],
-      sessions: sessions as any[],
+      classes: classes as Array<{ id: string; name: string; code: string }>,
+      sessions: sessions as Array<{ id: string; name: string }>,
     };
   },
   component: TakeAttendancePage,
@@ -43,7 +43,7 @@ interface StudentRosterItem {
 }
 
 function TakeAttendancePage() {
-  const { classes, sessions } = Route.useLoaderData() as any;
+  const { classes, sessions } = Route.useLoaderData();
   const router = useRouter();
 
   const [selectedSessionId, setSelectedSessionId] = useState("");
@@ -51,11 +51,13 @@ function TakeAttendancePage() {
   const [attendanceDate, setAttendanceDate] = useState(
     new Date().toISOString().split("T")[0] ?? "",
   );
-  
+
   const [roster, setRoster] = useState<readonly StudentRosterItem[]>([]);
   const [loadingRoster, setLoadingRoster] = useState(false);
-  const [attendanceMarks, setAttendanceMarks] = useState<Record<string, "present" | "absent" | "late" | "excused">>({});
-  
+  const [attendanceMarks, setAttendanceMarks] = useState<
+    Record<string, "present" | "absent" | "late" | "excused">
+  >({});
+
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -74,15 +76,20 @@ function TakeAttendancePage() {
           data: { classId: selectedClassId },
         });
         setRoster(list);
-        
+
         // Default all students to "present"
-        const defaultMarks: Record<string, "present" | "absent" | "late" | "excused"> = {};
+        const defaultMarks: Record<
+          string,
+          "present" | "absent" | "late" | "excused"
+        > = {};
         for (const student of list) {
           defaultMarks[student.id] = "present";
         }
         setAttendanceMarks(defaultMarks);
       } catch {
-        setMessage("Failed to load class roster. Verify your class assignment scope.");
+        setMessage(
+          "Failed to load class roster. Verify your class assignment scope.",
+        );
         setRoster([]);
       } finally {
         setLoadingRoster(false);
@@ -92,7 +99,10 @@ function TakeAttendancePage() {
     loadRoster();
   }, [selectedClassId]);
 
-  const markStudent = (studentId: string, state: "present" | "absent" | "late" | "excused") => {
+  const markStudent = (
+    studentId: string,
+    state: "present" | "absent" | "late" | "excused",
+  ) => {
     setAttendanceMarks((prev) => ({
       ...prev,
       [studentId]: state,
@@ -124,10 +134,12 @@ function TakeAttendancePage() {
       });
 
       // 2. Prepare entries
-      const entries = Object.entries(attendanceMarks).map(([studentId, state]) => ({
-        studentId,
-        state,
-      }));
+      const entries = Object.entries(attendanceMarks).map(
+        ([studentId, state]) => ({
+          studentId,
+          state,
+        }),
+      );
 
       // 3. Record entries
       await recordSimsAttendanceEntries({
@@ -140,9 +152,11 @@ function TakeAttendancePage() {
       setMessage("Attendance successfully recorded!");
       // Redirect to the register detail page
       router.navigate({ to: `/attendance/${occurrence.id}` });
-    } catch (err: any) {
+    } catch (err: unknown) {
       setMessage(
-        err instanceof Error ? err.message : "Failed to save attendance. Verify permissions or duplicates.",
+        err instanceof Error
+          ? err.message
+          : "Failed to save attendance. Verify permissions or duplicates.",
       );
     } finally {
       setSaving(false);
@@ -157,14 +171,21 @@ function TakeAttendancePage() {
       <main className="sims-admin max-w-4xl">
         <header className="flex flex-col gap-2">
           <a href="/attendance">← Back to registers</a>
-          <h1 className="text-3xl font-semibold tracking-tight">Record Daily Attendance</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Record Daily Attendance
+          </h1>
           <p className="text-muted-foreground text-sm">
             Configure the academic session, class, and date to load the roster.
           </p>
         </header>
 
-        <section aria-labelledby="settings-heading" className="p-6 border rounded-lg bg-card shadow-sm">
-          <h2 id="settings-heading" className="text-lg font-medium mb-4">1. Register Details</h2>
+        <section
+          aria-labelledby="settings-heading"
+          className="p-6 border rounded-lg bg-card shadow-sm"
+        >
+          <h2 id="settings-heading" className="text-lg font-medium mb-4">
+            1. Register Details
+          </h2>
           <div className="sims-form flex gap-4 flex-wrap">
             <label className="flex-1 min-w-[200px]">
               Academic Session
@@ -174,7 +195,7 @@ function TakeAttendancePage() {
                 required
               >
                 <option value="">Select session</option>
-                {sessions.map((s: any) => (
+                {sessions.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}
                   </option>
@@ -190,7 +211,7 @@ function TakeAttendancePage() {
                 required
               >
                 <option value="">Select class</option>
-                {classes.map((c: any) => (
+                {classes.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name} ({c.code})
                   </option>
@@ -211,24 +232,37 @@ function TakeAttendancePage() {
         </section>
 
         {selectedClassId && (
-          <section aria-labelledby="roster-heading" className="p-6 border rounded-lg bg-card shadow-sm">
+          <section
+            aria-labelledby="roster-heading"
+            className="p-6 border rounded-lg bg-card shadow-sm"
+          >
             <h2 id="roster-heading" className="text-lg font-medium mb-4">
               2. Student Roster ({roster.length} active students)
             </h2>
-            
+
             {loadingRoster ? (
-              <p className="text-muted-foreground py-4 text-center">Loading roster...</p>
+              <p className="text-muted-foreground py-4 text-center">
+                Loading roster...
+              </p>
             ) : roster.length === 0 ? (
-              <p className="text-muted-foreground py-4 text-center">No active students found in this class.</p>
+              <p className="text-muted-foreground py-4 text-center">
+                No active students found in this class.
+              </p>
             ) : (
               <form onSubmit={submitAttendance} className="flex flex-col gap-6">
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse text-left text-sm">
                     <thead>
                       <tr className="border-b border-border bg-muted/50">
-                        <th className="p-3 font-semibold text-muted-foreground">Student Name</th>
-                        <th className="p-3 font-semibold text-muted-foreground">Student ID</th>
-                        <th className="p-3 font-semibold text-muted-foreground text-center">Mark Status</th>
+                        <th className="p-3 font-semibold text-muted-foreground">
+                          Student Name
+                        </th>
+                        <th className="p-3 font-semibold text-muted-foreground">
+                          Student ID
+                        </th>
+                        <th className="p-3 font-semibold text-muted-foreground text-center">
+                          Mark Status
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
@@ -242,22 +276,35 @@ function TakeAttendancePage() {
                           </td>
                           <td className="p-3">
                             <div className="flex justify-center gap-4 flex-wrap">
-                              {["present", "absent", "late", "excused"].map((status) => (
-                                <label
-                                  key={status}
-                                  className="flex items-center gap-1.5 cursor-pointer font-medium select-none capitalize text-xs"
-                                >
-                                  <input
-                                    type="radio"
-                                    name={`mark-${student.id}`}
-                                    checked={attendanceMarks[student.id] === status}
-                                    onChange={() => markStudent(student.id, status as any)}
-                                    className="h-4 w-4 rounded-full text-primary focus:ring-primary"
-                                    aria-label={`Mark ${student.firstName} ${student.lastName} as ${status}`}
-                                  />
-                                  {status}
-                                </label>
-                              ))}
+                              {["present", "absent", "late", "excused"].map(
+                                (status) => (
+                                  <label
+                                    key={status}
+                                    className="flex items-center gap-1.5 cursor-pointer font-medium select-none capitalize text-xs"
+                                  >
+                                    <input
+                                      type="radio"
+                                      name={`mark-${student.id}`}
+                                      checked={
+                                        attendanceMarks[student.id] === status
+                                      }
+                                      onChange={() =>
+                                        markStudent(
+                                          student.id,
+                                          status as
+                                            | "present"
+                                            | "absent"
+                                            | "late"
+                                            | "excused",
+                                        )
+                                      }
+                                      className="h-4 w-4 rounded-full text-primary focus:ring-primary"
+                                      aria-label={`Mark ${student.firstName} ${student.lastName} as ${status}`}
+                                    />
+                                    {status}
+                                  </label>
+                                ),
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -274,9 +321,12 @@ function TakeAttendancePage() {
                   >
                     {saving ? "Saving Register..." : "Submit Register"}
                   </button>
-                  
+
                   {message && (
-                    <p role="status" className="sims-feedback max-w-lg text-sm font-medium">
+                    <p
+                      role="status"
+                      className="sims-feedback max-w-lg text-sm font-medium"
+                    >
                       {message}
                     </p>
                   )}

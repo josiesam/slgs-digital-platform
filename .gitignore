@@ -2,6 +2,7 @@ node_modules/
 .turbo/
 dist/
 .output/
+.vercel/
 .vinxi/
 coverage/
 *.tsbuildinfo

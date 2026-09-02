@@ -215,7 +215,9 @@
   font: inherit;
   font-weight: 650;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 .cms-actions button:hover:not(:disabled),
 .cms-form button:hover:not(:disabled),

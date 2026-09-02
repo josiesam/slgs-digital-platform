@@ -66,13 +66,16 @@ export const getSimsAttendanceOccurrence = createServerFn({ method: "GET" })
     const actor = await requestIdentity();
     const occurrence = await service.getAttendanceOccurrence(actor, data.id);
     if (!occurrence) return null;
-    
+
     const entries = await service.listAttendanceEntries(actor, data.id);
-    
+
     // For each entry, get its corrections
     const entriesWithCorrections = await Promise.all(
       entries.map(async (entry) => {
-        const corrections = await service.listAttendanceCorrections(actor, entry.id);
+        const corrections = await service.listAttendanceCorrections(
+          actor,
+          entry.id,
+        );
         return {
           ...serializeEntry(entry),
           corrections: corrections.map(serializeCorrection),
@@ -90,7 +93,10 @@ export const createSimsAttendanceOccurrence = createServerFn({ method: "POST" })
   .validator((input) => attendanceOccurrenceInputSchema.parse(input))
   .handler(async ({ data }) => {
     const actor = await requestIdentity();
-    const record = await service.createAttendanceOccurrence({ actor, input: data });
+    const record = await service.createAttendanceOccurrence({
+      actor,
+      input: data,
+    });
     return serializeOccurrence(record);
   });
 
@@ -113,11 +119,16 @@ export const recordSimsAttendanceEntries = createServerFn({ method: "POST" })
     return { success: true };
   });
 
-export const finalizeSimsAttendanceOccurrence = createServerFn({ method: "POST" })
+export const finalizeSimsAttendanceOccurrence = createServerFn({
+  method: "POST",
+})
   .validator((input) => z.object({ id: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const actor = await requestIdentity();
-    const record = await service.finalizeAttendanceOccurrence({ actor, id: data.id });
+    const record = await service.finalizeAttendanceOccurrence({
+      actor,
+      id: data.id,
+    });
     return serializeOccurrence(record);
   });
 
@@ -155,7 +166,10 @@ export const getRosterForAttendanceCreation = createServerFn({ method: "GET" })
   .validator((input) => z.object({ classId: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const actor = await requestIdentity();
-    const roster = await service.getRosterForOccurrenceCreation(actor, data.classId);
+    const roster = await service.getRosterForOccurrenceCreation(
+      actor,
+      data.classId,
+    );
     return roster.map((student) => ({
       ...student,
       createdAt: student.createdAt.toISOString(),

@@ -46,8 +46,15 @@ export const Route = createFileRoute("/attendance")({
 
     return {
       occurrences,
-      classes: classesResult.records as any[],
-      sessions: sessionsResult.records as any[],
+      classes: classesResult.records as Array<{
+        id: string;
+        name: string;
+        code: string;
+      }>,
+      sessions: sessionsResult.records as Array<{
+        id: string;
+        name: string;
+      }>,
     };
   },
   component: AttendanceListPage,
@@ -58,11 +65,11 @@ function AttendanceListPage() {
   const search = Route.useSearch();
 
   const getClassCode = (id: string) => {
-    return (classes as any[]).find((c) => c.id === id)?.code ?? id;
+    return classes.find((c) => c.id === id)?.code ?? id;
   };
 
   const getSessionName = (id: string) => {
-    return (sessions as any[]).find((s) => s.id === id)?.name ?? id;
+    return sessions.find((s) => s.id === id)?.name ?? id;
   };
 
   return (
@@ -78,9 +85,12 @@ function AttendanceListPage() {
           <a href="/">← Back to foundation</a>
           <div className="flex justify-between items-center flex-wrap gap-4">
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight">Attendance Registers</h1>
+              <h1 className="text-3xl font-semibold tracking-tight">
+                Attendance Registers
+              </h1>
               <p className="text-muted-foreground text-sm">
-                Manage daily student class registers. All changes are logged for audits.
+                Manage daily student class registers. All changes are logged for
+                audits.
               </p>
             </div>
             <Link
@@ -93,7 +103,9 @@ function AttendanceListPage() {
         </header>
 
         <section aria-labelledby="filters-heading">
-          <h2 id="filters-heading" className="text-lg font-medium">Filter Registers</h2>
+          <h2 id="filters-heading" className="text-lg font-medium">
+            Filter Registers
+          </h2>
           <form className="sims-form" method="get">
             <label>
               Search Class Code
@@ -106,7 +118,10 @@ function AttendanceListPage() {
             </label>
             <label>
               Academic Session
-              <select name="academicSessionId" defaultValue={search.academicSessionId ?? ""}>
+              <select
+                name="academicSessionId"
+                defaultValue={search.academicSessionId ?? ""}
+              >
                 <option value="">All sessions</option>
                 {sessions.map((session) => (
                   <option key={session.id} value={session.id}>
@@ -128,11 +143,7 @@ function AttendanceListPage() {
             </label>
             <label>
               Date
-              <input
-                name="date"
-                type="date"
-                defaultValue={search.date ?? ""}
-              />
+              <input name="date" type="date" defaultValue={search.date ?? ""} />
             </label>
             <label>
               Status
@@ -142,12 +153,16 @@ function AttendanceListPage() {
                 <option value="finalized">Finalized</option>
               </select>
             </label>
-            <button type="submit" className="font-semibold">Apply Filters</button>
+            <button type="submit" className="font-semibold">
+              Apply Filters
+            </button>
           </form>
         </section>
 
         <section aria-labelledby="records-heading">
-          <h2 id="records-heading" className="text-lg font-medium">Daily Class Registers</h2>
+          <h2 id="records-heading" className="text-lg font-medium">
+            Daily Class Registers
+          </h2>
           {occurrences.length === 0 ? (
             <p className="text-muted-foreground p-4 border border-dashed rounded-md text-center">
               No daily attendance occurrences found matching your filters.

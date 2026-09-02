@@ -171,10 +171,12 @@ export const simsAttendanceOccurrenceStatus = pgEnum(
   ["active", "finalized"],
 );
 
-export const simsAttendanceState = pgEnum(
-  "sims_attendance_state",
-  ["present", "absent", "late", "excused"],
-);
+export const simsAttendanceState = pgEnum("sims_attendance_state", [
+  "present",
+  "absent",
+  "late",
+  "excused",
+]);
 
 export const attendanceOccurrence = simsSchema.table(
   "attendance_occurrence",
@@ -191,8 +193,9 @@ export const attendanceOccurrence = simsSchema.table(
     recorderUserId: text("recorder_user_id")
       .notNull()
       .references(() => user.id, { onDelete: "restrict" }),
-    recorderStaffId: text("recorder_staff_id")
-      .references(() => staff.id, { onDelete: "restrict" }),
+    recorderStaffId: text("recorder_staff_id").references(() => staff.id, {
+      onDelete: "restrict",
+    }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -250,14 +253,13 @@ export const attendanceCorrection = simsSchema.table(
     actorUserId: text("actor_user_id")
       .notNull()
       .references(() => user.id, { onDelete: "restrict" }),
-    actorStaffId: text("actor_staff_id")
-      .references(() => staff.id, { onDelete: "restrict" }),
+    actorStaffId: text("actor_staff_id").references(() => staff.id, {
+      onDelete: "restrict",
+    }),
     reason: text().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
   },
-  (table) => [
-    index("sims_attendance_correction_entry_idx").on(table.entryId),
-  ],
+  (table) => [index("sims_attendance_correction_entry_idx").on(table.entryId)],
 );

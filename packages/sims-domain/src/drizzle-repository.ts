@@ -384,7 +384,11 @@ export class DrizzleSimsCoreRepository implements SimsCoreRepository {
     );
   }
 
-  async findAttendanceOccurrenceByContext(academicSessionId: string, classId: string, date: string) {
+  async findAttendanceOccurrenceByContext(
+    academicSessionId: string,
+    classId: string,
+    date: string,
+  ) {
     return (
       (await this.executor.query.attendanceOccurrence.findFirst({
         where: and(
@@ -458,22 +462,28 @@ export class DrizzleSimsCoreRepository implements SimsCoreRepository {
   }
 
   async listAttendanceOccurrences(
-    query: CoreListQuery & { classId?: string; academicSessionId?: string; date?: string },
+    query: CoreListQuery & {
+      classId?: string;
+      academicSessionId?: string;
+      date?: string;
+    },
     access: CoreListAccess,
   ) {
     const sessionIds = valuesFor(access, "academic_session");
     const classIds = valuesFor(access, "class");
-    
+
     const visibility =
       access.scopes === null
         ? undefined
         : and(
-            classIds.length ? inArray(attendanceOccurrence.classId, classIds) : sql`true`,
+            classIds.length
+              ? inArray(attendanceOccurrence.classId, classIds)
+              : sql`true`,
             sessionIds.length
               ? inArray(attendanceOccurrence.academicSessionId, sessionIds)
               : sql`true`,
           );
-          
+
     const conditions = compact([
       query.search
         ? or(
@@ -482,12 +492,25 @@ export class DrizzleSimsCoreRepository implements SimsCoreRepository {
           )
         : undefined,
       query.status
-        ? eq(attendanceOccurrence.status, query.status as AttendanceOccurrenceStatus)
+        ? eq(
+            attendanceOccurrence.status,
+            query.status as AttendanceOccurrenceStatus,
+          )
         : undefined,
-      query.classId ? eq(attendanceOccurrence.classId, query.classId) : undefined,
-      query.academicSessionId ? eq(attendanceOccurrence.academicSessionId, query.academicSessionId) : undefined,
-      query.date ? eq(attendanceOccurrence.attendanceDate, query.date) : undefined,
-      cursorCondition(attendanceOccurrence.attendanceDate, attendanceOccurrence.id, query),
+      query.classId
+        ? eq(attendanceOccurrence.classId, query.classId)
+        : undefined,
+      query.academicSessionId
+        ? eq(attendanceOccurrence.academicSessionId, query.academicSessionId)
+        : undefined,
+      query.date
+        ? eq(attendanceOccurrence.attendanceDate, query.date)
+        : undefined,
+      cursorCondition(
+        attendanceOccurrence.attendanceDate,
+        attendanceOccurrence.id,
+        query,
+      ),
       visibility,
     ]);
 
@@ -504,7 +527,10 @@ export class DrizzleSimsCoreRepository implements SimsCoreRepository {
         updatedAt: attendanceOccurrence.updatedAt,
       })
       .from(attendanceOccurrence)
-      .leftJoin(academicClass, eq(attendanceOccurrence.classId, academicClass.id))
+      .leftJoin(
+        academicClass,
+        eq(attendanceOccurrence.classId, academicClass.id),
+      )
       .where(and(...conditions))
       .orderBy(
         query.direction === "asc"
@@ -520,12 +546,14 @@ export class DrizzleSimsCoreRepository implements SimsCoreRepository {
   async getAttendanceHistory(studentId: string, access: CoreListAccess) {
     const sessionIds = valuesFor(access, "academic_session");
     const classIds = valuesFor(access, "class");
-    
+
     const visibility =
       access.scopes === null
         ? undefined
         : and(
-            classIds.length ? inArray(attendanceOccurrence.classId, classIds) : sql`true`,
+            classIds.length
+              ? inArray(attendanceOccurrence.classId, classIds)
+              : sql`true`,
             sessionIds.length
               ? inArray(attendanceOccurrence.academicSessionId, sessionIds)
               : sql`true`,
@@ -537,12 +565,12 @@ export class DrizzleSimsCoreRepository implements SimsCoreRepository {
         occurrence: attendanceOccurrence,
       })
       .from(attendanceEntry)
-      .innerJoin(attendanceOccurrence, eq(attendanceEntry.occurrenceId, attendanceOccurrence.id))
+      .innerJoin(
+        attendanceOccurrence,
+        eq(attendanceEntry.occurrenceId, attendanceOccurrence.id),
+      )
       .where(
-        and(
-          eq(attendanceEntry.studentId, studentId),
-          visibility ?? sql`true`,
-        )
+        and(eq(attendanceEntry.studentId, studentId), visibility ?? sql`true`),
       )
       .orderBy(desc(attendanceOccurrence.attendanceDate));
   }
@@ -551,12 +579,7 @@ export class DrizzleSimsCoreRepository implements SimsCoreRepository {
     return this.executor
       .select()
       .from(student)
-      .where(
-        and(
-          eq(student.classId, classId),
-          eq(student.status, "active"),
-        )
-      )
+      .where(and(eq(student.classId, classId), eq(student.status, "active")))
       .orderBy(asc(student.lastName), asc(student.firstName));
   }
 
