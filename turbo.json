@@ -9,7 +9,9 @@
       "env": [
         "PUBLIC_SITE_URL",
         "DATABASE_URL",
-        "WEB_DATABASE_URL"
+        "WEB_DATABASE_URL",
+        "BETTER_AUTH_SECRET",
+        "CMS_BETTER_AUTH_BASE_URL",
       ]
     },
     "dev": {
