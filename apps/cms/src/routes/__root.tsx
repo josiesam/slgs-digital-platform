@@ -13,6 +13,23 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "SLGS CMS" },
+      { name: "description", content: "CMS Dashboard" },
+      { property: "og:type", content: "website" },
+    ],
+    links: [
+      { rel: "icon", href: "/favicon.ico" },
+      {
+        rel: "icon",
+        type: "image/png",
+        sizes: "16x16",
+        href: "/favicon-16x16.png",
+      },
+      {
+        rel: "icon",
+        type: "image/png",
+        sizes: "32x32",
+        href: "/favicon-32x32.png",
+      },
     ],
   }),
   component: RootComponent,

@@ -183,6 +183,9 @@ importers:
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.2(kysely@0.29.5)(postgres@3.4.9)
+      nitro:
+        specifier: 3.0.260610-beta
+        version: 3.0.260610-beta(chokidar@5.0.0)(drizzle-orm@0.45.2(kysely@0.29.5)(postgres@3.4.9))(jiti@2.7.0)(rollup@4.63.0)(vite@7.3.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.12))
       react:
         specifier: 'catalog:'
         version: 19.2.8

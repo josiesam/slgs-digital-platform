@@ -1,6 +1,7 @@
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react from "@vitejs/plugin-react";
+import { nitro } from "nitro/vite";
 import { fileURLToPath } from "node:url";
 import { defineConfig, loadEnv } from "vite";
 
@@ -14,7 +15,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     envDir: workspaceRoot,
-    plugins: [tanstackStart(), tailwindcss(), react()],
+    plugins: [tanstackStart(), nitro(), tailwindcss(), react()],
     server: { port: 3002 },
   };
 });
