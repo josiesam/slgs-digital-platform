@@ -47,6 +47,26 @@ body {
   background: var(--slgs-white);
 }
 
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+}
+
+.site-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.site-shell > main {
+  flex: 1;
+}
+
 /* ----------------------------------------
    Accessibility
 ---------------------------------------- */
