@@ -47,10 +47,6 @@ body {
   background: var(--slgs-white);
 }
 
-a {
-  color: inherit;
-}
-
 /* ----------------------------------------
    Accessibility
 ---------------------------------------- */
@@ -277,8 +273,7 @@ a {
 }
 
 .home-hero .eyebrow,
-.announcement-band .eyebrow,
-.contact-callout .eyebrow {
+.announcement-band .eyebrow {
   color: #d8bce9;
 }
 
@@ -359,8 +354,7 @@ a {
    Announcement / Contact
 ---------------------------------------- */
 
-.announcement-band,
-.contact-callout {
+.announcement-band {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -373,8 +367,7 @@ a {
   color: var(--slgs-white);
 }
 
-.announcement-band h2,
-.contact-callout h2 {
+.announcement-band h2 {
   margin: 0;
 
   font:
@@ -632,36 +625,57 @@ a {
 
 .site-footer {
   display: flex;
-  justify-content: space-between;
-
-  gap: 2rem;
-
+  flex-direction: column;
   padding: 3rem max(1.25rem, calc((100vw - 76rem) / 2));
 
   background: var(--slgs-purple-dark);
   color: var(--slgs-white);
 }
 
+.site-footer__contact-callout {
+  gap: 2rem;
+
+  background: var(--slgs-purple-dark);
+  color: var(--slgs-white);
+}
+.site-footer__contact-callout .eyebrow {
+  color: #d8bce9;
+}
+.site-footer__contact-callout h2 {
+  margin: 0;
+
+  font:
+    700 1.8rem Georgia,
+    serif;
+}
+
+.site-footer__link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .site-footer p {
   color: #d9cde2;
 }
 
-.site-footer nav {
+/* .site-footer nav {
   display: flex;
   gap: 1.5rem;
   align-items: center;
-}
+} */
 
-.site-footer a {
+/* .site-footer a {
   min-height: 2.75rem;
 
   display: inline-flex;
   align-items: center;
+  align-self: flex-end;
 }
 
 .site-footer a:hover {
   color: #d8bce9;
-}
+} */
 
 /* ----------------------------------------
    Responsive
@@ -705,7 +719,6 @@ a {
   }
 
   .announcement-band,
-  .contact-callout,
   .site-footer {
     align-items: flex-start;
     flex-direction: column;
@@ -723,11 +736,6 @@ a {
   .pathways article {
     min-height: auto;
     padding: 2rem 1.25rem;
-  }
-
-  .site-footer nav {
-    flex-direction: column;
-    align-items: flex-start;
   }
 }
 

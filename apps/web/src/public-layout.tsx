@@ -1,3 +1,4 @@
+import { IconClock, IconMail, IconMapPin } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
@@ -44,7 +45,12 @@ export function PublicLayout({ children }: { readonly children: ReactNode }) {
             to="/"
             aria-label="Sierra Leone Grammar School home"
           >
-            <span aria-hidden="true">SLGS</span>
+            <img
+              src="/web-app-manifest-512x512.png"
+              width={50}
+              height={50}
+              alt="SLGS Logo"
+            />
             <strong>Sierra Leone Grammar School</strong>
           </Link>
           <nav className="desktop-navigation" aria-label="Primary">
@@ -60,14 +66,87 @@ export function PublicLayout({ children }: { readonly children: ReactNode }) {
       </header>
       <main id="main-content">{children}</main>
       <footer className="site-footer">
-        <div>
-          <strong>Sierra Leone Grammar School</strong>
-          <p>Official contact details are awaiting school approval.</p>
+        <div className="site-footer__contact ">
+          <div className="flex flex-col md:flex-row justify-between gap-4 md:gap-0 pb-4">
+            <div className="flex flex-col gap-1 items-center justify-center">
+              <IconMapPin stroke={2} />
+              <p className="text-center">
+                Sierra Leone Grammar School
+                <br />
+                Freetown, Sierra Leone
+              </p>
+            </div>
+            <div className="flex flex-col gap-1 items-center justify-center">
+              <IconClock stroke={2} />
+              <p className="text-center">
+                <strong>School Day</strong>
+                <br />
+                Mon - Fri: 08:10AM to 15:15PM
+              </p>
+            </div>
+            <div className="flex flex-col gap-1 items-center justify-center">
+              <IconMail stroke={2} />
+              <p className="text-center">
+                <strong>Email</strong>
+                <br />
+                info@slgs.edu.sl
+              </p>
+            </div>
+          </div>
+          <div className="site-footer__contact-callout">
+            <div>
+              <h2>International Alumni Groups</h2>
+            </div>
+            <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4  list-disc px-5 ">
+              <li className="underline underline-offset-4">
+                <a
+                  href="http://www.regentonians.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-slgs-white/50"
+                >
+                  UK Group
+                </a>
+              </li>
+
+              <li className="underline underline-offset-4">
+                <a
+                  href="https://slgsaana-westcoast.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-slgs-white/50"
+                >
+                  US Group - West Coast
+                </a>
+              </li>
+
+              <li className="underline underline-offset-4">
+                <a
+                  href="https://slgsaanase.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-slgs-white/50"
+                >
+                  US Group - South Coast
+                </a>
+              </li>
+
+              <li className="underline underline-offset-4">
+                <a
+                  href="http://slgsaanadc.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-slgs-white/50"
+                >
+                  US Group - Washington DC
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
-        <nav aria-label="Footer">
-          <Link to="/contact">Contact</Link>
-          <Link to="/parents">Parent resources</Link>
-        </nav>
+        <div className="pt-4 ">
+          <p>{`© ${new Date().getFullYear()} Sierra Leone Grammar School. All rights reserved.`}</p>
+        </div>
       </footer>
     </div>
   );

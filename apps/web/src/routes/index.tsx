@@ -146,19 +146,6 @@ function HomePage() {
           <EmptyState>No published gallery is available yet.</EmptyState>
         )}
       </section>
-      <section className="contact-callout">
-        <div>
-          <p className="eyebrow">Contact and location</p>
-          <h2>Find official school contact information</h2>
-          <p>
-            Contact details will appear once approved and published by the
-            school.
-          </p>
-        </div>
-        <Link className="primary-action" to="/contact">
-          Contact SLGS
-        </Link>
-      </section>
     </>
   );
 }
