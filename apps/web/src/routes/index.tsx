@@ -9,11 +9,23 @@ export const Route = createFileRoute("/")({
       { title: "Sierra Leone Grammar School" },
       {
         name: "description",
-        content: "Official public website of Sierra Leone Grammar School.",
+        content:
+          "We offer a wonderful environment where students curiosity is awakened. Their journey is one of discovery; where talents and passions are nurtured and developed.",
       },
       { property: "og:title", content: "Sierra Leone Grammar School" },
       { property: "og:type", content: "website" },
       { property: "og:url", content: absolutePublicUrl("/") },
+      { property: "og:image", content: "/favicon.ico" },
+
+      // Twitter Card
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Sierra Leone Grammar School" },
+      {
+        name: "twitter:description",
+        content:
+          "We offer a wonderful environment where students curiosity is awakened. Their journey is one of discovery; where talents and passions are nurtured and developed.",
+      },
+      { name: "twitter:image", content: "/favicon.ico" },
     ],
     links: [
       { rel: "canonical", href: absolutePublicUrl("/") },
