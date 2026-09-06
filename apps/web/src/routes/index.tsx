@@ -15,7 +15,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Sierra Leone Grammar School" },
       { property: "og:type", content: "website" },
       { property: "og:url", content: absolutePublicUrl("/") },
-      { property: "og:image", content: "/favicon.ico" },
+      { property: "og:image", content: "/web-app-manifest-192x192.png" },
 
       // Twitter Card
       { name: "twitter:card", content: "summary_large_image" },
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/")({
         content:
           "We offer a wonderful environment where students curiosity is awakened. Their journey is one of discovery; where talents and passions are nurtured and developed.",
       },
-      { name: "twitter:image", content: "/favicon.ico" },
+      { name: "twitter:image", content: "/web-app-manifest-192x192.png" },
     ],
     links: [
       { rel: "canonical", href: absolutePublicUrl("/") },
