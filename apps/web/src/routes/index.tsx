@@ -43,9 +43,12 @@ function HomePage() {
           <p className="eyebrow">Welcome to SLGS</p>
           <h1>Learning, character and community</h1>
           <p>
-            A modern public gateway for school information, news and events.
-            Official school-specific welcome content is awaiting CMS
-            publication.
+            The Sierra Leone Grammar School is a premier secondary school which
+            seeks to promote responsible citizenship through the provision of
+            quality education and sound moral values in a structured and
+            stimulating environment thus enabling members of the school to
+            maximize their potential for education, learning and excellent
+            service.
           </p>
           <div className="hero-actions">
             <Link className="primary-action" to="/about">
@@ -131,6 +134,12 @@ function HomePage() {
           <h2>Beyond the classroom</h2>
           <p>Clubs, activities, STEM, ICT and community life.</p>
           <Link to="/life">Explore school life</Link>
+        </article>
+        <article>
+          <p className="eyebrow">Alumni</p>
+          <h2>Stay connected</h2>
+          <p>Join our network of graduates and stay in touch.</p>
+          <Link to="/alumni">Explore alumni</Link>
         </article>
       </section>
       <section className="home-section">
