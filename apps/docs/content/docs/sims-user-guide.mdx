@@ -1,0 +1,125 @@
+---
+title: S.I.M.S. & Asset Management User Guide
+description: Non-technical operational guide for school administrators, form teachers, and ICT/STEM staff using S.I.M.S.
+---
+
+# S.I.M.S. & Asset Management User Guide
+
+Welcome to the **Sierra Leone Grammar School Information Management System (S.I.M.S.)** user guide. This operational handbook provides step-by-step instructions for school administrators, academic staff, form teachers, and ICT/STEM lab managers.
+
+---
+
+## 1. User Roles & Modules
+
+Access to S.I.M.S. is strictly controlled based on your assigned school role:
+
+| School Role | Modules Accessible | Primary Tasks |
+| :--- | :--- | :--- |
+| **School Administrator** | All Modules (Students, Staff, Classes, Attendance, Assets, Audit) | • Enroll new students & assign form classes<br/>• Create staff accounts & assign roles<br/>• Manage academic sessions & terms<br/>• View global attendance & security logs |
+| **Form Teacher / Academic Staff** | My Classes, Attendance, Student Directory, Reports | • Mark daily morning & afternoon attendance<br/>• View student emergency contact details<br/>• Submit attendance corrections<br/>• Generate class rosters & attendance summaries |
+| **ICT / STEM Asset Manager** | Asset Inventory, Lab Allocations, Maintenance, Repairs | • Track computer labs, robotics, & STEM equipment<br/>• Update equipment lifecycle states (In Use, Repair, Retired)<br/>• Log maintenance & repair work orders<br/>• Manage equipment allocation to rooms & staff |
+
+---
+
+## 2. Getting Started & Dashboard Navigation
+
+1. Open your web browser and navigate to the S.I.M.S. portal (`http://sims.slgs.edu.sl` or `http://localhost:3000` during testing).
+2. Log in using your authorized school administrative credentials.
+3. The **S.I.M.S. Dashboard** presents an overview tailored to your role:
+   - **Form Teachers**: Displays today's attendance status for your assigned class (*"Form 4A — Attendance Pending"*).
+   - **ICT Staff**: Displays active equipment count, items under repair, and upcoming scheduled maintenance.
+   - **School Admins**: Displays total active student enrollment, staff counts, and recent system audit alerts.
+
+---
+
+## 3. Student & Staff Management Guide
+
+### Adding & Enrolling a Student
+1. Navigate to **Students** → **Enroll New Student**.
+2. Enter the student's personal details:
+   - **Registration / Admission Number**: Official school ID (e.g., `SLGS-2026-0142`).
+   - **Personal Info**: First name, last name, date of birth, gender.
+   - **Class Assignment**: Select Form Level (e.g., *Form 3*) and Arm/Section (e.g., *Arm B*).
+   - **Guardian Contacts**: Primary parent/guardian name, phone number, email, and home address.
+3. Click **Save & Enroll Student**.
+
+### Managing Class Rosters & Form Groups
+1. Go to **Classes & Arms**. Select a class (e.g., *Form 5 Science*).
+2. View the full student roster, assigned Form Master / Teacher, and subject list.
+3. Use **Reassign Class** at the start of a new academic year to promote students to the next form level.
+
+### Staff Directory & Account Linkage
+1. Go to **Staff Directory**.
+2. Administrators can add new staff records, assign designations (*Head of STEM*, *Form Master*, *Bursar*), and link the record to an authorized S.I.M.S. user login account.
+
+---
+
+## 4. Daily Attendance Operations
+
+*For Form Teachers and Academic Staff.*
+
+### Marking Daily Class Attendance
+1. Click **Daily Attendance** on your dashboard.
+2. Select your assigned Form Class and the active Session/Term.
+3. The class roster is loaded. For each student, select their status:
+   - 🟢 **Present**: Student is in class.
+   - 🔴 **Absent**: Unexcused absence.
+   - 🟡 **Late**: Arrived after morning assembly.
+   - 🔵 **Excused**: Absence pre-approved (e.g., medical leave).
+4. Click **Submit Attendance**. The record is locked with a timestamp and your digital signature.
+
+### Correcting an Attendance Record
+If a student was mistakenly marked absent but arrived with a medical note:
+1. Go to **Attendance History** and locate the date.
+2. Click **Request Correction**.
+3. Select the new status (e.g., change `Absent` → `Excused`).
+4. **Mandatory Note**: Type the reason (e.g., *"Medical note submitted by parent"*).
+5. Click **Submit Correction**. The system updates the status while preserving the original record in the permanent audit trail for compliance.
+
+---
+
+## 5. ICT & STEM Asset Management Guide
+
+*For ICT Coordinators, Computer Lab Technicians, and STEM Staff.*
+
+### Registering New Equipment
+1. Navigate to **Asset Inventory** → **+ Register New Asset**.
+2. Enter asset details:
+   - **Asset Tag ID**: Scan or enter the unique physical barcode/tag (e.g., `STEM-LAB-042`).
+   - **Serial Number**: Manufacturer serial number.
+   - **Category**: Select *Computers*, *Laptops*, *Tablets*, *Networking*, *Robotics*, *Arduino*, *Lab Equipment*, or *Consumables*.
+   - **Make & Model**: (e.g., *HP ProDesk 400 G6* or *Arduino Uno Rev3 Kit*).
+   - **Acquisition Info**: Purchase date, cost, supplier name, warranty expiration date.
+   - **Initial Location**: Select room (e.g., *Computer Lab 1*, *STEM Lab*, *Principal's Office*).
+3. Click **Save Asset Record**.
+
+### Managing Asset Lifecycle States
+Every piece of equipment moves through 10 recognized lifecycle states:
+
+```
+[ Available ] ──► [ Assigned ] ──► [ In Use ] ──► [ Under Maintenance ]
+                                      │
+                         ┌────────────┼────────────┐
+                         ▼            ▼            ▼
+                   [ Under Repair ] [ Missing ] [ Retired/Disposed ]
+```
+
+#### Common State Change Actions:
+- **Assign to Staff/Room**: Select asset → Click **Assign** → Select assigned teacher or room location. Status changes to `Assigned` or `In Use`.
+- **Send for Repair**: If a laptop screen breaks:
+  1. Open the asset record and click **Report Issue / Repair**.
+  2. Describe the fault (e.g., *"Cracked LCD screen, power supply failure"*).
+  3. Status automatically changes to `Under Repair`.
+  4. Enter estimated repair cost and vendor details.
+  5. Upon repair completion, click **Return to Service** to restore status to `In Use` or `Available`.
+- **Scheduled Maintenance**: For annual PC servicing or 3D printer calibration, select items → Click **Schedule Maintenance** → Status changes to `Under Maintenance`.
+- **Marking Missing Items**: If an item is missing during term-end stocktaking, mark status as `Missing`. This triggers an inventory review alert for administrators.
+- **Retirement & Disposal**: Old computers or damaged items beyond economic repair are set to `Retired` or `Disposed` with formal write-off approval notes recorded.
+
+### Generating Inventory Reports
+1. Go to **Asset Reports**.
+2. Select report type:
+   - **Equipment by Location** (e.g., all active devices in *STEM Lab*).
+   - **Maintenance & Repair Cost Summary**.
+   - **Warranty Expiration Alert List**.
+3. Click **Export PDF** or **Export Excel** for school board or department reporting.

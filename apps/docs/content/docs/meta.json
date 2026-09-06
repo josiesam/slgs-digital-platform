@@ -1,0 +1,13 @@
+{
+  "title": "Documentation",
+  "pages": [
+    "index",
+    "architecture",
+    "web",
+    "cms",
+    "cms-user-guide",
+    "sims",
+    "sims-user-guide",
+    "handover"
+  ]
+}

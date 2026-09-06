@@ -1,0 +1,103 @@
+---
+title: System Architecture
+description: Comprehensive monorepo architecture, package boundaries, security isolation, and data layer design.
+---
+
+# System Architecture
+
+The **SLGS Digital Platform** is structured as a TypeScript monorepo managed with `pnpm` and `Turborepo`.
+
+---
+
+## Logical Topology
+
+```
+                         SLGS Monorepo
+                              │
+          ┌───────────────────┼───────────────────┐
+          ▼                   ▼                   ▼
+      apps/web            apps/cms            apps/sims
+    (Public Read)      (Editorial CMS)     (Private Admin)
+          │                   │                   │
+          └───────────────────┼───────────────────┘
+                              ▼
+                       Shared Packages
+                              │
+               ┌──────────────┴──────────────┐
+               ▼                             ▼
+          PostgreSQL                   Cloudflare R2
+     (Drizzle ORM + Schemas)       (Private Media Objects)
+```
+
+---
+
+## Application Boundaries
+
+Each application in `apps/` runs as an independent deployment target with isolated runtime responsibilities:
+
+1. **`apps/web` (Public Web)**:
+   - Read-only public portal.
+   - Enforces security barriers by querying **only** PostgreSQL security-barrier views in the `public_content` schema using a restricted runtime database role (`slgs_web`).
+   - Has **no access** to CMS draft data, Better Auth sessions, or S.I.M.S. administrative records.
+
+2. **`apps/cms` (Public Content CMS)**:
+   - Authenticated editorial application.
+   - Operates on pages, articles, events, galleries, and media assets in the `cms` schema using the `slgs_cms` database role.
+   - Integrates with **Cloudflare R2** object storage for private media uploads via presigned URLs.
+
+3. **`apps/sims` (S.I.M.S. & ICT/STEM Asset Management)**:
+   - Authenticated administrative application for school leadership, staff, and ICT managers.
+   - Manages students, staff, classes, subjects, attendance, and ICT/STEM assets in the `sims` schema using the `slgs_sims` database role.
+   - Owns administrative user lifecycle and RBAC scope assignment.
+
+---
+
+## Shared Workspace Packages (`packages/`)
+
+The platform relies on modular workspace packages to prevent duplication while enforcing clean layer separation:
+
+| Package | Workspace Name | Responsibility |
+| :--- | :--- | :--- |
+| `packages/db` | `@slgs/db` | Drizzle ORM schema definitions, migration runner, database connection pools, and role-scoped query clients. |
+| `packages/auth` | `@slgs/auth` | Better Auth configuration, session validation helpers, password hashing, and bootstrap admin CLI script. |
+| `packages/permissions` | `@slgs/permissions` | Role-Based Access Control (RBAC) definitions, action capabilities, and server-side authorization checks. |
+| `packages/public-content` | `@slgs/public-content` | Read-only DTO contracts and queries for public content consumed exclusively by `apps/web`. |
+| `packages/cms-domain` | `@slgs/cms-domain` | Editorial business logic, publishing workflow state transitions, and audit logging services. |
+| `packages/sims-domain` | `@slgs/sims-domain` | Domain services for students, staff, attendance, and ICT/STEM asset lifecycle management. |
+| `packages/ui` | `@slgs/ui` | Coherent SLGS design system components built with Tailwind CSS and shadcn/ui primitives. |
+| `packages/validation` | `@slgs/validation` | Zod runtime schemas for form validation, API payloads, and environment variable parsing. |
+| `packages/config` | `@slgs/config` | Shared TypeScript, ESLint, Tailwind, and Vite configuration presets. |
+
+---
+
+## Technology Stack
+
+- **Framework**: React 19, TanStack Start (App Router boundary), Next.js (Documentation app)
+- **Language**: TypeScript (strict mode enabled across all packages)
+- **Styling & UI**: Tailwind CSS v4, shadcn/ui, Tabler Icons
+- **Database Layer**: PostgreSQL, Drizzle ORM, Drizzle Kit for migrations
+- **Authentication**: Better Auth with HTTP-only session cookies
+- **Validation**: Zod schema validation at all application boundaries
+- **Storage**: Cloudflare R2 object storage for private CMS media
+- **Monorepo Tools**: pnpm workspace, Turborepo task pipeline, Vitest for testing
+
+---
+
+## Database Architecture & Schema Isolation
+
+The database architecture employs PostgreSQL schema separation to guarantee security boundaries at the database user level:
+
+```
+PostgreSQL Database: slgs_db
+ ├── schema: auth            --> Better Auth user accounts, sessions, accounts
+ ├── schema: public_content  --> Security-barrier views for published content (slgs_web role)
+ ├── schema: cms             --> Pages, articles, events, galleries, media, audit (slgs_cms role)
+ └── schema: sims            --> Students, staff, classes, attendance, assets, audit (slgs_sims role)
+```
+
+### Security & Identity Rules
+
+- **Default Deny**: All API endpoints and server routes enforce explicit permission checks.
+- **Server-Side Authorization**: UI hiding is cosmetic only. Authorization is evaluated on the server before executing queries or mutations.
+- **Role Isolation**: CMS users cannot manage S.I.M.S. records, and public site queries have no access to private schemas.
+- **Append-Only Audit Logging**: All mutations to content publication states, S.I.M.S. records, identity roles, and asset lifecycle transitions write immutable entries to audit tables.

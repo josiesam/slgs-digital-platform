@@ -1,0 +1,71 @@
+---
+title: Public Web Application
+description: Technical specification and operational guide for the public SLGS web application (apps/web).
+---
+
+# Public Web Application (`apps/web`)
+
+`apps/web` is the public-facing, read-only website for Sierra Leone Grammar School. It provides modern, responsive, accessible, and content-led communication for prospective students, parents, alumni, and the broader community.
+
+---
+
+## Target Audience & Objectives
+
+- **Prospective Students & Parents**: Admissions requirements, scholarships, bursaries, fee structures, sixth form info.
+- **Current Students & Staff**: Life at SLGS, academic programs, house system, sports, clubs, term dates.
+- **Alumni & Community**: School history, leadership, news journal, photo galleries, contact information.
+
+---
+
+## Navigation & Information Architecture
+
+The website is structured into 10 primary navigation modules:
+
+1. **Home**: Institutional landing page featuring school highlights, news summaries, upcoming events, and headmaster welcome.
+2. **About SLGS**: History, vision, governance, leadership, school song, and facilities.
+3. **Admissions**: Entry requirements, application procedures, scholarships, uniform guidelines, and fee details.
+4. **Academics**: Curriculum overview, STEM lab, computing lab, library facilities, and examination schedules.
+5. **Life at SLGS**: House system, sports activities, school band, pastoral care, and daily routines.
+6. **Parents**: Parent-Teacher Consultations (PTC), school store information, and academic calendars.
+7. **News & Journal**: Published articles and journal posts produced by school clubs and staff.
+8. **Events**: Publicly scheduled school events, ceremonies, and athletic meets.
+9. **Gallery**: Moderated photo galleries and event photo albums.
+10. **Contact**: Location map, administrative contact info, and public inquiries.
+
+---
+
+## Data Architecture & Security Barrier
+
+To guarantee that private school data can never be exposed through the public website:
+
+- **Security-Barrier Views**: `apps/web` queries **only** PostgreSQL views in the `public_content` schema.
+- **Read-Only Database Role**: The runtime queries execute under the restricted `slgs_web` database user role.
+- **Data Transfer Objects (DTOs)**: All data access is mediated through the `@slgs/public-content` package, which enforces strict runtime Zod validation on all public payloads.
+- **No Private Access**: `apps/web` has no database connections or API routes into `cms` draft tables, `sims` administrative records, or `auth` credentials.
+
+```
+                          ┌───────────────────────────┐
+                          │   apps/web Application    │
+                          └─────────────┬─────────────┘
+                                        │
+                                        ▼ (Typed DTOs)
+                          ┌───────────────────────────┐
+                          │   @slgs/public-content    │
+                          └─────────────┬─────────────┘
+                                        │
+                                        ▼ (Read-only query)
+  PostgreSQL Schema: public_content (Security Views: slgs_web role)
+```
+
+---
+
+## Deployment & Operational Configuration
+
+- **Development Port**: `http://localhost:3001`
+- **Canonical Origin**: `http://slgs.edu.sl`
+- **Environment Variables**:
+  - `PUBLIC_SITE_URL`: Configures canonical URLs, Open Graph tags, sitemap entries, and `robots.txt`.
+  - `WEB_DATABASE_URL`: Connection string scoped strictly to the `slgs_web` PostgreSQL user.
+
+> [!NOTE]
+> Public Web SEO best practices (semantic HTML5 headings, descriptive title tags, meta descriptions, unique element IDs) are compiled into all static and server-rendered routes.
