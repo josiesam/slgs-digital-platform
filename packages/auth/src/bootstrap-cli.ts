@@ -4,9 +4,12 @@ import { stdin, stdout } from "node:process";
 
 import { createDatabase, securityAuditEvent } from "@slgs/db";
 
+import type { Application } from "@slgs/permissions";
+
 import {
   addApprovedBootstrapDomain,
   approveAdministratorBootstrap,
+  clearAdministratorBootstrap,
   initiateAdministratorBootstrap,
   listAdministratorBootstraps,
   resolveBootstrapRole,
@@ -22,6 +25,7 @@ Commands:
   pnpm admin:bootstrap domain --domain <domain> --operator <operator-reference>
   pnpm admin:bootstrap initiate --application <cms|sims> [--role <cms_administrator|cms_system_administrator|sims_system_administrator>] --name <name> --email <email> --person-reference <reference> --initiator <operator-reference>
   pnpm admin:bootstrap approve --request <request-id> --approver <different-operator-reference>
+  pnpm admin:bootstrap clear [--application <cms|sims>] [--role <role_key>] [--operator <operator-reference>]
   pnpm admin:bootstrap status
 
 The initiate command prompts for the target administrator's initial password without echoing it.
@@ -127,7 +131,7 @@ async function configurePlatformAdministratorCredential(
       END
       $database_grant$;
       GRANT USAGE ON SCHEMA identity TO slgs_platform_admin;
-      GRANT SELECT, INSERT, UPDATE ON
+      GRANT SELECT, INSERT, UPDATE, DELETE ON
         identity."user",
         identity.account,
         identity.application_membership,
@@ -135,10 +139,11 @@ async function configurePlatformAdministratorCredential(
         identity.privileged_bootstrap,
         identity.role_assignment,
         identity.role_assignment_scope,
-        identity.role_definition
+        identity.role_definition,
+        identity.session,
+        identity.two_factor
       TO slgs_platform_admin;
       GRANT SELECT, INSERT ON identity.security_audit_event TO slgs_platform_admin;
-      GRANT SELECT, DELETE ON identity.session TO slgs_platform_admin;
     `);
 
     const platformUrl = new URL(bootstrapAdminUrl);
@@ -184,10 +189,13 @@ async function main(): Promise<void> {
     return;
   }
 
-  const databaseUrl = process.env.PLATFORM_ADMIN_DATABASE_URL;
+  const databaseUrl =
+    process.env.DATABASE_BOOTSTRAP_ADMIN_URL ||
+    process.env.PLATFORM_ADMIN_DATABASE_URL ||
+    process.env.DATABASE_URL;
   if (!databaseUrl) {
     throw new Error(
-      "PLATFORM_ADMIN_DATABASE_URL is required. Apply the identity migration and configure the platform-administration database credential first.",
+      "PLATFORM_ADMIN_DATABASE_URL or DATABASE_BOOTSTRAP_ADMIN_URL is required. Apply the identity migration and configure the platform-administration database credential first.",
     );
   }
   const connection = createDatabase({ DATABASE_URL: databaseUrl });
@@ -243,6 +251,24 @@ async function main(): Promise<void> {
         return;
       }
       console.table(requests);
+      return;
+    }
+
+    if (command === "clear") {
+      const application = option("application");
+      if (application && application !== "cms" && application !== "sims") {
+        throw new Error("--application must be cms or sims if provided.");
+      }
+      const role = option("role");
+      const operatorReference = option("operator") ?? "dev_operator";
+      const result = await clearAdministratorBootstrap(connection.db, {
+        application: application as Application | undefined,
+        role,
+        operatorReference,
+      });
+      console.log(
+        `Cleared ${result.clearedCount} administrator bootstrap record(s).`,
+      );
       return;
     }
 

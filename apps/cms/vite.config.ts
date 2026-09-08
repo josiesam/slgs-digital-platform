@@ -16,6 +16,6 @@ export default defineConfig(({ mode }) => {
   return {
     envDir: workspaceRoot,
     plugins: [tanstackStart(), nitro(), tailwindcss(), react()],
-    server: { port: 3001 },
+    server: { port: 3002 },
   };
 });

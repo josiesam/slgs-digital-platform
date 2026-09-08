@@ -1,5 +1,5 @@
 import { hashPassword } from "better-auth/crypto";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray, or } from "drizzle-orm";
 
 import {
   account,
@@ -7,8 +7,11 @@ import {
   approvedContactDomain,
   privilegedBootstrap,
   roleAssignment,
+  roleAssignmentScope,
   roleDefinition,
   securityAuditEvent,
+  session,
+  twoFactor,
   user,
   type DatabaseConnection,
 } from "@slgs/db";
@@ -170,21 +173,48 @@ export async function initiateAdministratorBootstrap(
       );
     }
 
-    await transaction.insert(user).values({
-      id: userId,
-      name: input.name.trim(),
-      email,
-      personReference: input.personReference.trim(),
-      status: "pending",
-      createdAt: now,
-      updatedAt: now,
-    });
+    const [existingUser] = await transaction
+      .select({ id: user.id })
+      .from(user)
+      .where(
+        or(
+          eq(user.email, email),
+          eq(user.personReference, input.personReference.trim()),
+        ),
+      )
+      .limit(1);
+
+    const targetUserId = existingUser ? existingUser.id : userId;
+
+    if (existingUser) {
+      await transaction
+        .update(user)
+        .set({
+          name: input.name.trim(),
+          status: "pending",
+          updatedAt: now,
+        })
+        .where(eq(user.id, targetUserId));
+    } else {
+      await transaction.insert(user).values({
+        id: targetUserId,
+        name: input.name.trim(),
+        email,
+        personReference: input.personReference.trim(),
+        status: "pending",
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
+    await transaction.delete(account).where(eq(account.userId, targetUserId));
+
     await transaction.insert(account).values({
       id: crypto.randomUUID(),
       issuer: "local:credential",
-      accountId: userId,
+      accountId: targetUserId,
       providerId: "credential",
-      userId,
+      userId: targetUserId,
       password: await hashPassword(input.password),
       createdAt: now,
       updatedAt: now,
@@ -192,7 +222,7 @@ export async function initiateAdministratorBootstrap(
     await transaction.insert(privilegedBootstrap).values({
       id: requestId,
       initiatedBy: input.initiatorReference,
-      targetUserId: userId,
+      targetUserId,
       application: input.application,
       roleKey: input.role,
       status: "pending",
@@ -344,4 +374,126 @@ export async function listAdministratorBootstraps(database: Database) {
       decidedAt: privilegedBootstrap.decidedAt,
     })
     .from(privilegedBootstrap);
+}
+
+export async function clearAdministratorBootstrap(
+  database: Database,
+  input?: {
+    readonly application?: Application;
+    readonly role?: string;
+    readonly operatorReference?: string;
+  },
+): Promise<{ readonly clearedCount: number }> {
+  const now = new Date();
+  const operatorReference = input?.operatorReference?.trim() || "system";
+
+  let clearedCount = 0;
+
+  await database.transaction(async (transaction) => {
+    const conditions = [];
+    if (input?.application) {
+      conditions.push(eq(privilegedBootstrap.application, input.application));
+    }
+    if (input?.role) {
+      conditions.push(eq(privilegedBootstrap.roleKey, input.role));
+    }
+
+    const requests = await transaction
+      .select({
+        id: privilegedBootstrap.id,
+        targetUserId: privilegedBootstrap.targetUserId,
+        application: privilegedBootstrap.application,
+        roleKey: privilegedBootstrap.roleKey,
+      })
+      .from(privilegedBootstrap)
+      .where(conditions.length > 0 ? and(...conditions) : undefined);
+
+    if (requests.length === 0) {
+      return;
+    }
+
+    clearedCount = requests.length;
+
+    const requestIds = requests.map((r) => r.id);
+    const targetUserIds = [...new Set(requests.map((r) => r.targetUserId))];
+
+    const memberships = await transaction
+      .select({ id: applicationMembership.id, userId: applicationMembership.userId })
+      .from(applicationMembership)
+      .where(inArray(applicationMembership.userId, targetUserIds));
+
+    const membershipIds = memberships.map((m) => m.id);
+
+    if (membershipIds.length > 0) {
+      const assignments = await transaction
+        .select({ id: roleAssignment.id })
+        .from(roleAssignment)
+        .where(inArray(roleAssignment.membershipId, membershipIds));
+
+      const assignmentIds = assignments.map((a) => a.id);
+
+      if (assignmentIds.length > 0) {
+        await transaction
+          .delete(roleAssignmentScope)
+          .where(inArray(roleAssignmentScope.roleAssignmentId, assignmentIds));
+
+        await transaction
+          .delete(roleAssignment)
+          .where(inArray(roleAssignment.id, assignmentIds));
+      }
+
+      await transaction
+        .delete(applicationMembership)
+        .where(inArray(applicationMembership.id, membershipIds));
+    }
+
+    await transaction
+      .delete(privilegedBootstrap)
+      .where(inArray(privilegedBootstrap.id, requestIds));
+
+    for (const userId of targetUserIds) {
+      const remainingBootstraps = await transaction
+        .select({ id: privilegedBootstrap.id })
+        .from(privilegedBootstrap)
+        .where(eq(privilegedBootstrap.targetUserId, userId))
+        .limit(1);
+
+      const remainingMemberships = await transaction
+        .select({ id: applicationMembership.id })
+        .from(applicationMembership)
+        .where(eq(applicationMembership.userId, userId))
+        .limit(1);
+
+      if (remainingBootstraps.length === 0 && remainingMemberships.length === 0) {
+        await transaction.delete(twoFactor).where(eq(twoFactor.userId, userId));
+        await transaction.delete(session).where(eq(session.userId, userId));
+        await transaction.delete(account).where(eq(account.userId, userId));
+        try {
+          await transaction.transaction(async (tx) => {
+            await tx.delete(user).where(eq(user.id, userId));
+          });
+        } catch {
+          // User record is referenced by domain entities (e.g. cms.club or cms.article).
+          // Retain identity shell while permissions, memberships, accounts and bootstrap records are cleared.
+        }
+      }
+    }
+
+    await transaction.insert(securityAuditEvent).values({
+      id: crypto.randomUUID(),
+      eventType: "bootstrap.cleared",
+      actorUserId: operatorReference,
+      targetType: "bootstrap_request",
+      outcome: "success",
+      reasonCode: "dev_reset",
+      metadata: {
+        clearedCount,
+        application: input?.application ?? "all",
+        role: input?.role ?? "all",
+      },
+      occurredAt: now,
+    });
+  });
+
+  return { clearedCount };
 }

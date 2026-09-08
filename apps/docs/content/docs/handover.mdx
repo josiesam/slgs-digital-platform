@@ -31,11 +31,9 @@ SIMS_DATABASE_URL="postgresql://slgs_sims:password@localhost:5432/slgs_db?sslmod
 
 # Better Auth Configuration
 BETTER_AUTH_SECRET="your-32-byte-secure-random-secret"
-BETTER_AUTH_BASE_URL="http://localhost:3000"
-BETTER_AUTH_URL="http://localhost:3000"
 CMS_BETTER_AUTH_BASE_URL="http://localhost:3002"
-SIMS_BETTER_AUTH_BASE_URL="http://localhost:3000"
-BETTER_AUTH_TRUSTED_ORIGINS="http://localhost:3000,http://localhost:3001,http://localhost:3002"
+SIMS_BETTER_AUTH_BASE_URL="http://localhost:3003"
+BETTER_AUTH_TRUSTED_ORIGINS="http://localhost:3001,http://localhost:3002,http://localhost:3003"
 
 # Public Web URL
 PUBLIC_SITE_URL="http://slgs.edu.sl"
@@ -78,7 +76,7 @@ pnpm admin:bootstrap
 
 | Command | Purpose |
 | :--- | :--- |
-| `pnpm dev` | Start all applications concurrently via Turborepo (`apps/sims`: 3000, `apps/web`: 3001, `apps/cms`: 3002, `apps/docs`: 3003) |
+| `pnpm dev` | Start all applications concurrently via Turborepo (`apps/web`: 3001, `apps/cms`: 3002, `apps/sims`: 3003, `apps/docs`: 3004) |
 | `pnpm build` | Build production artifacts across all apps and shared packages |
 | `pnpm check` | Run complete validation suite (`format:check` + `lint` + `typecheck` + `test` + `build`) |
 | `pnpm typecheck` | Execute TypeScript compilation check across all workspace packages |

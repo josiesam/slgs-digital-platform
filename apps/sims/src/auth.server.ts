@@ -16,7 +16,7 @@ const defaultSimsUrl =
   process.env.SIMS_BETTER_AUTH_BASE_URL ??
   process.env.BETTER_AUTH_BASE_URL ??
   process.env.BETTER_AUTH_URL ??
-  "http://localhost:3002";
+  "http://localhost:3003";
 
 const authEnvironment = {
   ...process.env,

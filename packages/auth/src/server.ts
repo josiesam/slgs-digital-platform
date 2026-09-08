@@ -40,6 +40,9 @@ export function createSlgsAuth(options: CreateSlgsAuthOptions) {
     baseURL: environment.BETTER_AUTH_BASE_URL,
     secret: environment.BETTER_AUTH_SECRET,
     trustedOrigins: environment.BETTER_AUTH_TRUSTED_ORIGINS,
+    advanced: {
+      cookiePrefix: `slgs_${options.application}`,
+    },
     database: drizzleAdapter(options.database, {
       provider: "pg",
       schemaName: "identity",

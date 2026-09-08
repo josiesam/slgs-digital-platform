@@ -16,7 +16,7 @@ const defaultCmsUrl =
   process.env.CMS_BETTER_AUTH_BASE_URL ??
   process.env.BETTER_AUTH_BASE_URL ??
   process.env.BETTER_AUTH_URL ??
-  "http://localhost:3001";
+  "http://localhost:3002";
 
 const authEnvironment = {
   ...process.env,

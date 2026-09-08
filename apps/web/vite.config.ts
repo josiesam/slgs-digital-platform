@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => {
     plugins: [tanstackStart(), nitro(), tailwindcss(), react()],
 
     server: {
-      port: 3000,
+      port: 3001,
     },
   };
 });

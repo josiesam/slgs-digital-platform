@@ -41,6 +41,7 @@ export { createResendEmailSender } from "./resend-email";
 export {
   addApprovedBootstrapDomain,
   approveAdministratorBootstrap,
+  clearAdministratorBootstrap,
   initiateAdministratorBootstrap,
   listAdministratorBootstraps,
   type BootstrapRole,

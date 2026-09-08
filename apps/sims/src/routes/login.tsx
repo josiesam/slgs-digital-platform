@@ -28,24 +28,25 @@ export function LoginForm({
       password: String(data.get("password")),
     });
     if (result.error) {
+      console.log("Login Failed", result.error);
       setMessage("Sign-in was not accepted.");
       return;
     }
     await onSuccess();
   }
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-6 py-16">
+    <main className="flex flex-col justify-center gap-6 mx-auto px-6 py-16 max-w-md min-h-screen">
       <div>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           SLGS private application
         </p>
-        <h1 className="text-3xl font-semibold">Sign in to S.I.M.S.</h1>
+        <h1 className="font-semibold text-3xl">Sign in to S.I.M.S.</h1>
       </div>
       <form className="flex flex-col gap-4" onSubmit={submit}>
         <label className="flex flex-col gap-2">
           Email
           <input
-            className="rounded-md border bg-background px-3 py-2"
+            className="bg-background px-3 py-2 border rounded-md"
             name="email"
             type="email"
             autoComplete="username"
@@ -55,7 +56,7 @@ export function LoginForm({
         <label className="flex flex-col gap-2">
           Password
           <input
-            className="rounded-md border bg-background px-3 py-2"
+            className="bg-background px-3 py-2 border rounded-md"
             name="password"
             type="password"
             autoComplete="current-password"
@@ -64,7 +65,7 @@ export function LoginForm({
         </label>
         {message ? <p role="alert">{message}</p> : null}
         <button
-          className="rounded-md bg-primary px-4 py-2 text-primary-foreground"
+          className="bg-primary px-4 py-2 rounded-md text-primary-foreground"
           type="submit"
         >
           Sign in
