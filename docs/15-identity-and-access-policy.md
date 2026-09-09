@@ -34,7 +34,9 @@ Memberships and role assignments are independent. A person may hold both only th
 - **CMS Reviewer**: reviews/rejects assigned content and cannot review their own work.
 - **CMS Approver**: explicitly assigned identities approve/reject reviewed content. Approval remains separate from editing, review and publication.
 - **CMS Publisher**: publishes only approved content, preserving four-eyes control.
-- **CMS Administrator**: manages CMS membership/configuration and CMS audit access; never S.I.M.S. access by implication.
+- **CMS Administrator**: performs all CMS editorial, publishing, media,
+  membership, configuration, audit and CMS role-management tasks through an
+  explicit audited override; never receives S.I.M.S. access by implication.
 - **School Administrator**: receives minimum S.I.M.S. oversight reads and assignment management, not unrestricted CRUD/delete.
 - **S.I.M.S. Access Administrator**: assigns/revokes approved roles but cannot define roles.
 - **S.I.M.S. System Administrator**: manages S.I.M.S. identity/configuration and role definitions. This technical role is not a business-domain superuser. At most five identities may be active in it.
@@ -50,7 +52,7 @@ Memberships and role assignments are independent. A person may hold both only th
 | CMS Reviewer | CMS | `content:read:assigned`, `content:review:assigned`, `content:reject:assigned` |
 | CMS Approver | CMS | `content:read:assigned`, `content:approve:assigned`, `content:reject:assigned` |
 | CMS Publisher | CMS | `content:read:approved`, `content:publish:approved`, `content:unpublish:published` |
-| CMS Administrator | CMS | `membership:read:cms`, `membership:manage:cms`, `audit:read:cms`, `configuration:manage:cms` |
+| CMS Administrator | CMS | Complete CMS-only catalogue, including `content:override:cms`; no S.I.M.S. permissions |
 | School Administrator | SIMS | `student:read:school`, `staff:read:school`, `attendance:read:school`, `assessment:read:school`, `report:read:school`, `assignment:manage:school` |
 | Access Administrator | SIMS | `membership:read:sims`, `role:assign:approved`, `role:revoke:approved`, `audit:read:identity` |
 | System Administrator | SIMS | `identity:manage:sims`, `role:create:sims`, `role:update:sims`, `role:deactivate:sims`, `configuration:manage:sims`, `audit:read:sims` |

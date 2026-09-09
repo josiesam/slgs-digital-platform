@@ -1,4 +1,6 @@
 import type { FormEvent } from "react";
+import type { RichTextDocument } from "@slgs/cms-domain";
+import { RichTextEditor } from "./rich-text-editor";
 
 export type EditableCmsContent = {
   readonly id: string;
@@ -7,6 +9,7 @@ export type EditableCmsContent = {
   readonly slug: string;
   readonly summary: string | null;
   readonly body: string;
+  readonly bodyRichText: RichTextDocument | null;
   readonly seoTitle: string | null;
   readonly seoDescription: string | null;
   readonly canonicalPath: string | null;
@@ -62,11 +65,11 @@ export function DraftEditor({
         rows={3}
       />
       <label htmlFor={`body-${content.id}`}>Content</label>
-      <textarea
+      <RichTextEditor
         id={`body-${content.id}`}
-        name="body"
-        defaultValue={content.body}
-        rows={10}
+        body={content.body}
+        bodyRichText={content.bodyRichText}
+        disabled={pending}
       />
       <fieldset>
         <legend>Search and sharing</legend>

@@ -46,6 +46,7 @@ export const PERMISSION_CATALOGUE = [
   "content:read:approved",
   "content:publish:approved",
   "content:unpublish:published",
+  "content:override:cms",
   "membership:read:cms",
   "membership:manage:cms",
   "audit:read:cms",
@@ -278,9 +279,13 @@ export function evaluateAuthorization(
   }
   const parsed = permissionSchema.safeParse(request.permission);
   if (!parsed.success) return { allowed: false, reason: "invalid_permission" };
+  const hasCmsAdministratorOverride =
+    request.application === "cms" &&
+    request.grant.permissions.has("content:override:cms");
   if (
     (parsed.data.includes(":review:") || parsed.data.includes(":approve:")) &&
-    request.authorId === request.identityId
+    request.authorId === request.identityId &&
+    !hasCmsAdministratorOverride
   )
     return { allowed: false, reason: "self_review_denied" };
   const candidates = request.grant.entitlements.filter((item) =>
@@ -288,6 +293,7 @@ export function evaluateAuthorization(
   );
   if (candidates.length === 0)
     return { allowed: false, reason: "missing_permission" };
+  if (hasCmsAdministratorOverride) return { allowed: true, reason: "allowed" };
   if (
     !candidates.some((item) =>
       scopeMatches(parsed.data, request.identityId!, item, request.resource),

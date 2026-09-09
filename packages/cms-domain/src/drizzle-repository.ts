@@ -1,4 +1,4 @@
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 
 import {
   club,
@@ -28,6 +28,7 @@ const contentSelection = {
   slug: contentItem.slug,
   summary: contentItem.summary,
   body: contentItem.body,
+  bodyRichText: contentItem.bodyRichText,
   seoTitle: contentItem.seoTitle,
   seoDescription: contentItem.seoDescription,
   canonicalPath: contentItem.canonicalPath,
@@ -58,6 +59,7 @@ const values = (item: CmsContent) => ({
   slug: item.slug,
   summary: item.summary,
   body: item.body,
+  bodyRichText: item.bodyRichText,
   seoTitle: item.seoTitle,
   seoDescription: item.seoDescription,
   canonicalPath: item.canonicalPath,
@@ -89,6 +91,12 @@ export class DrizzleCmsRepository implements CmsRepository {
   ): Promise<T> {
     return this.database.transaction((transaction): Promise<T> =>
       work(new DrizzleCmsRepository(transaction as unknown as Database)),
+    );
+  }
+
+  async setAdministratorOverride(enabled: boolean) {
+    await this.database.execute(
+      sql`select set_config('slgs.cms_administrator_override', ${enabled ? "true" : "false"}, true)`,
     );
   }
 
@@ -146,6 +154,7 @@ export class DrizzleCmsRepository implements CmsRepository {
         slug: item.slug,
         summary: item.summary,
         body: item.body,
+        bodyRichText: item.bodyRichText,
         seoTitle: item.seoTitle,
         seoDescription: item.seoDescription,
         canonicalPath: item.canonicalPath,

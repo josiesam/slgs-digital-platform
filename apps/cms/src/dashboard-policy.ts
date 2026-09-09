@@ -23,6 +23,7 @@ export function filterVisibleContent<T extends ScopedContent>(
       permission === "content:read:assigned" ||
       permission === "content:read:approved",
   );
+  if (grant.permissions.has("content:override:cms")) return [...rows];
   return rows.filter((item) => {
     if (item.authorUserId === identityId) return true;
     return permissions.some(

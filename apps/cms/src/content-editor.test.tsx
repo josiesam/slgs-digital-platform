@@ -10,6 +10,7 @@ const article: EditableCmsContent = {
   slug: "existing-title",
   summary: "Existing summary",
   body: "Existing body",
+  bodyRichText: null,
   seoTitle: "Existing SEO title",
   seoDescription: "Existing SEO description",
   canonicalPath: "/news/existing-title",

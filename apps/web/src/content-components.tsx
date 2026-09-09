@@ -2,7 +2,27 @@ import { Link } from "@tanstack/react-router";
 import type {
   PublicContentItem,
   PublicContentKind,
+  PublicRichTextElement,
+  PublicRichTextLeaf,
 } from "@slgs/public-content";
+
+function RichTextLeaf({ leaf }: { readonly leaf: PublicRichTextLeaf }) {
+  let content = <>{leaf.text}</>;
+  if (leaf.bold) content = <strong>{content}</strong>;
+  if (leaf.italic) content = <em>{content}</em>;
+  if (leaf.underline) content = <u>{content}</u>;
+  return content;
+}
+
+function RichTextBlock({ block }: { readonly block: PublicRichTextElement }) {
+  const children = block.children.map((leaf, index) => (
+    <RichTextLeaf key={index} leaf={leaf} />
+  ));
+  if (block.type === "h2") return <h2>{children}</h2>;
+  if (block.type === "h3") return <h3>{children}</h3>;
+  if (block.type === "blockquote") return <blockquote>{children}</blockquote>;
+  return <p>{children}</p>;
+}
 
 export const formatDate = (value: string) =>
   new Intl.DateTimeFormat("en-SL", {
@@ -88,9 +108,13 @@ export function ContentDetail({ item }: { readonly item: PublicContentItem }) {
         </dl>
       ) : null}
       <div className="prose">
-        {item.body.split(/\n{2,}/).map((paragraph, index) => (
-          <p key={index}>{paragraph}</p>
-        ))}
+        {item.bodyRichText
+          ? item.bodyRichText.map((block, index) => (
+              <RichTextBlock block={block} key={index} />
+            ))
+          : item.body
+              .split(/\n{2,}/)
+              .map((paragraph, index) => <p key={index}>{paragraph}</p>)}
       </div>
       {item.kind === "gallery" && item.media.length === 0 ? (
         <EmptyState>

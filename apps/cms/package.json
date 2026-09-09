@@ -11,6 +11,7 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
+    "@platejs/basic-nodes": "^53.0.0",
     "@slgs/auth": "workspace:*",
     "@slgs/cms-domain": "workspace:*",
     "@slgs/db": "workspace:*",
@@ -21,6 +22,7 @@
     "better-auth": "catalog:",
     "drizzle-orm": "catalog:",
     "nitro": "3.0.260610-beta",
+    "platejs": "^53.3.11",
     "react": "catalog:",
     "react-dom": "catalog:",
     "zod": "catalog:"

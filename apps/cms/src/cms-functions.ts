@@ -145,6 +145,7 @@ export const getCmsDashboard = createServerFn({ method: "GET" }).handler(
         slug: contentItem.slug,
         summary: contentItem.summary,
         body: contentItem.body,
+        bodyRichText: contentItem.bodyRichText,
         seoTitle: contentItem.seoTitle,
         seoDescription: contentItem.seoDescription,
         canonicalPath: contentItem.canonicalPath,

@@ -12,7 +12,14 @@ Better Auth establishes the authenticated identity and application-specific sess
 
 Permissions use `domain:action[:scope]`. The grammar validator rejects malformed values and the closed Phase 1B catalogue rejects well-formed but unapproved values.
 
-CMS roles are Multimedia Club, News Journal Club, Editor, Reviewer, Approver, Publisher and CMS Administrator. Workflow capabilities remain separated. S.I.M.S. roles are School Administrator, Access Administrator, System Administrator and Operational Staff. Access Administrators assign/revoke approved roles but cannot define roles. Operational Staff have no delete capability. The five-active-System-Administrator ceiling remains unchanged.
+CMS roles are Multimedia Club, News Journal Club, Editor, Reviewer, Approver,
+Publisher and CMS Administrator. Workflow capabilities remain separated for
+ordinary roles. ADR-040 makes CMS Administrator an explicit CMS-only
+super-role, including an audited own-work override, for school operations.
+S.I.M.S. roles are School Administrator, Access Administrator, System
+Administrator and Operational Staff. Access Administrators assign/revoke
+approved roles but cannot define roles. Operational Staff have no delete
+capability. The five-active-System-Administrator ceiling remains unchanged.
 
 Roles belong to one application. Assignments belong to one application membership. Service and database checks reject mismatched applications.
 

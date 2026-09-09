@@ -306,3 +306,40 @@ Attendance corrections use immutable superseding evidence rather than destructiv
 Status: Accepted and implemented for Phase 2C
 
 Every attendance write is attributed to the authenticated Better Auth identity derived server-side. Where that identity has an explicit Phase 2B staff link, attendance may also preserve the staff ID. A staff record is not authentication authority, and absence of a staff link cannot be silently replaced by a browser-supplied staff or actor ID.
+
+## ADR-040 — CMS Administrator is the CMS operational super-role
+
+Status: Accepted
+
+The project owner requires CMS Administrator to perform every CMS task from a
+single account. `cms_administrator` therefore receives the complete CMS-only
+permission catalogue plus `content:override:cms`. The override permits the
+administrator to operate across CMS scopes and review or approve its own work,
+but it does not bypass the ordered draft, submission, review, approval and
+publication states. Revisions, workflow events, authenticated actor attribution
+and audit records remain mandatory.
+
+All other CMS roles retain separation of duties and self-review denial. The
+permission application check prevents the role from containing S.I.M.S.
+permissions. CMS System Administrator remains a separately bootstrapable role,
+but CMS Administrator can now perform CMS role-definition and assignment tasks.
+
+This decision accepts a reduced four-eyes control for administrator-authored
+content in exchange for single-administrator operability. Schools requiring
+independent approval should use the ordinary Editor, Reviewer, Approver and
+Publisher roles instead of the override path.
+
+## ADR-041 — Plate JSON is the canonical CMS rich-text body
+
+Status: Accepted
+
+CMS body editing uses Plate with an allow-listed baseline of paragraphs,
+second- and third-level headings, block quotes, bold, italic and underline.
+New edits persist validated Plate JSON in `body_rich_text` and derived plain
+text in `body`. Existing plain-text records remain compatible.
+
+The public read views project the validated structured body. Web renders known
+nodes directly as React elements and never injects CMS-authored HTML. Unknown
+nodes, arbitrary element attributes, scripts, links and embedded media are
+rejected at the server validation boundary. Additional Plate features require
+separate schema, rendering, accessibility and security review.

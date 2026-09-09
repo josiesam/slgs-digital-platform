@@ -103,6 +103,33 @@ describe("CMS workflow actions", () => {
     expect(markup).not.toContain("Approve");
   });
 
+  it("offers self-review actions only with the CMS Administrator override", () => {
+    const markup = renderToStaticMarkup(
+      <WorkflowActions
+        content={{
+          id: "content-1",
+          state: "in_review",
+          authorUserId: "administrator",
+          reviewedAt: "2026-09-08T12:00:00.000Z",
+        }}
+        currentUserId="administrator"
+        permissions={
+          new Set([
+            "content:review:assigned",
+            "content:reject:assigned",
+            "content:approve:assigned",
+            "content:override:cms",
+          ])
+        }
+        pending={false}
+        onAction={vi.fn()}
+      />,
+    );
+
+    expect(markup).toContain("Complete review");
+    expect(markup).toContain("Approve");
+  });
+
   it("requires a meaningful comment before review completion or rejection", () => {
     const markup = renderToStaticMarkup(
       <WorkflowActions

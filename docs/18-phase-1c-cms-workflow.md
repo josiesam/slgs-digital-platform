@@ -26,7 +26,11 @@ Allowed state changes are:
 
 `published → approved` (unpublish)
 
-Review completion is recorded while content remains `in_review`; approval requires a completed independent review. Application services and a PostgreSQL trigger reject bypasses. Authors cannot review or approve their own work.
+Review completion is recorded while content remains `in_review`; approval
+requires a completed review. Application services and a PostgreSQL trigger
+reject state bypasses. Authors cannot normally review or approve their own
+work. ADR-040 grants only CMS Administrator an explicit audited exception while
+preserving every workflow transition, timestamp and actor record.
 
 ## Clubs and scopes
 
@@ -79,6 +83,21 @@ Phase 1C exposes no public route. The Phase 1D contract projects only `published
 ## Application remediation verification
 
 The CMS application now loads authoritative draft values before editing and saves immutable revisions without silently clearing untouched content. It exposes event-specific fields, ordered gallery/content media composition, role-aware review/rejection/approval/publish controls, scoped operational queues, revision and workflow history, authorized audit visibility, safe identity labels, club lifecycle controls and confirmation for destructive operations. Application tests cover draft population, event fields, workflow action separation, self-action suppression, scoped dashboard visibility, gallery composition visibility and the generic sign-in failure state.
+
+The editorial dashboard also exposes a permission-aware public-site readiness
+workspace for About, Admissions, Academics, School life, Parents, News, Events,
+Gallery and Contact. Fixed informational pages use their canonical slugs and
+paths; editorial sections report whether at least one visible item is in the
+workflow or published. An authorized author can start a correctly typed draft
+from the workspace, while unavailable actions state which author role is
+required. The readiness display does not bypass editorial workflow or generate
+official school copy.
+
+Content bodies are edited with Plate using paragraphs, section headings,
+subheadings, block quotes, bold, italic and underline. The CMS stores a
+validated Plate JSON document alongside derived plain text for compatibility.
+The public application renders the allow-listed document nodes as React
+elements and never injects author-supplied HTML.
 
 These deterministic tests do not replace the outstanding operational browser gate. A Senior Software Engineer executes it with an isolated Neon branch, temporary synthetic identities and locally managed secrets according to `docs/21-operational-verification-runbook.md`. Missing Codex access to those secrets is not an implementation defect.
 

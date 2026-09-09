@@ -83,6 +83,17 @@ export const contentItem = cmsSchema.table(
     slug: text().notNull(),
     summary: text(),
     body: text().notNull().default(""),
+    bodyRichText: jsonb("body_rich_text").$type<
+      readonly {
+        readonly type: "p" | "h2" | "h3" | "blockquote";
+        readonly children: readonly {
+          readonly text: string;
+          readonly bold?: boolean;
+          readonly italic?: boolean;
+          readonly underline?: boolean;
+        }[];
+      }[]
+    >(),
     seoTitle: text("seo_title"),
     seoDescription: text("seo_description"),
     canonicalPath: text("canonical_path"),

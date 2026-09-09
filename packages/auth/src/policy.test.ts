@@ -107,6 +107,33 @@ describe("application-scoped roles", () => {
     );
   });
 
+  it("allows CMS Administrator to execute the complete CMS workflow only", () => {
+    const permissions = ROLE_CONTRACTS.cms_administrator.permissions;
+    expect(permissions).toEqual(
+      expect.arrayContaining([
+        "page:create:own",
+        "article:create:own",
+        "event:create:own",
+        "gallery:create:own",
+        "content:review:assigned",
+        "content:approve:assigned",
+        "content:publish:approved",
+        "content:override:cms",
+        "media:create:own",
+        "configuration:manage:cms",
+        "role:assign:cms",
+      ]),
+    );
+    expect(
+      permissions.some(
+        (permission) =>
+          permission.startsWith("student:") ||
+          permission.startsWith("staff:") ||
+          permission.startsWith("attendance:"),
+      ),
+    ).toBe(false);
+  });
+
   it("prevents authors from reviewing their own content", () => {
     expect(mayAuthorReviewOwnContent("user-1", "user-1")).toBe(false);
     expect(mayAuthorReviewOwnContent("user-1", "user-2")).toBe(true);

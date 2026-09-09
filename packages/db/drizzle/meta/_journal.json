@@ -92,6 +92,13 @@
       "when": 1788152525303,
       "tag": "0012_phase-2c-attendance",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1788861600000,
+      "tag": "0013_cms-administrator-and-rich-text",
+      "breakpoints": true
     }
   ]
 }
