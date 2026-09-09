@@ -16,7 +16,6 @@ const publicProjection = {
   title: contentItem.title,
   summary: contentItem.summary,
   body: contentItem.body,
-  bodyRichText: contentItem.bodyRichText,
   seoTitle: contentItem.seoTitle,
   seoDescription: contentItem.seoDescription,
   canonicalPath: contentItem.canonicalPath,

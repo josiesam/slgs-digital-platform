@@ -5,11 +5,6 @@ import { PageShell } from "@slgs/ui";
 import { getCurrentCmsIdentity } from "../access";
 import { DraftEditor } from "../content-editor";
 import { GalleryMediaEditor } from "../gallery-media-editor";
-import {
-  PublicSiteReadiness,
-  type PublicSiteSection,
-} from "../public-site-readiness";
-import { RichTextEditor } from "../rich-text-editor";
 import { WorkflowActions, type CmsWorkflowAction } from "../workflow-actions";
 import {
   assignCmsRole,
@@ -42,13 +37,6 @@ export const Route = createFileRoute("/")({
 });
 
 type ContentType = "page" | "article" | "event" | "announcement" | "gallery";
-type DraftTemplate = {
-  readonly key: string;
-  readonly type: ContentType;
-  readonly title: string;
-  readonly slug: string;
-  readonly canonicalPath: string;
-};
 const labels: Record<ContentType, string> = {
   page: "Page",
   article: "News / article",
@@ -68,26 +56,6 @@ function CmsDashboard() {
   const [selectedType, setSelectedType] = useState<ContentType>(
     types[0] ?? "page",
   );
-  const [draftTemplate, setDraftTemplate] = useState<DraftTemplate | null>(
-    null,
-  );
-
-  const configureSection = (section: PublicSiteSection) => {
-    setSelectedType(section.type);
-    setDraftTemplate({
-      key: `${section.key}-${Date.now()}`,
-      type: section.type,
-      title: section.draftTitle ?? "",
-      slug: section.fixedSlug ?? "",
-      canonicalPath: section.fixedSlug ? section.path : `${section.path}/`,
-    });
-    window.requestAnimationFrame(() =>
-      document.getElementById("new-draft")?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      }),
-    );
-  };
 
   async function refresh(task: () => Promise<unknown>, success: string) {
     setPending(true);
@@ -122,7 +90,6 @@ function CmsDashboard() {
           slug: String(data.get("slug")),
           summary: String(data.get("summary") || "") || undefined,
           body: String(data.get("body") || ""),
-          bodyRichText: JSON.parse(String(data.get("bodyRichText"))),
           seoTitle: String(data.get("seoTitle") || "") || undefined,
           seoDescription: String(data.get("seoDescription") || "") || undefined,
           canonicalPath: String(data.get("canonicalPath") || "") || undefined,
@@ -149,7 +116,6 @@ function CmsDashboard() {
               slug: String(data.get("slug")),
               summary: String(data.get("summary") || "") || null,
               body: String(data.get("body") || ""),
-              bodyRichText: JSON.parse(String(data.get("bodyRichText"))),
               seoTitle: String(data.get("seoTitle") || "") || null,
               seoDescription: String(data.get("seoDescription") || "") || null,
               canonicalPath: String(data.get("canonicalPath") || "") || null,
@@ -471,11 +437,6 @@ function CmsDashboard() {
             ) : null}
           </div>
         </section>
-        <PublicSiteReadiness
-          content={dashboard.content}
-          creatableTypes={new Set(types)}
-          onConfigure={configureSection}
-        />
         <section aria-labelledby="media-library">
           <div className="cms-section-heading">
             <div>
@@ -576,11 +537,7 @@ function CmsDashboard() {
             ) : (
               <div className="cms-content-list">
                 {dashboard.content.map((item) => (
-                  <article
-                    className="cms-content-card"
-                    id={`content-${item.id}`}
-                    key={item.id}
-                  >
+                  <article className="cms-content-card" key={item.id}>
                     <div className="cms-content-meta">
                       <span>{labels[item.type]}</span>
                       <span className="cms-status">
@@ -653,21 +610,16 @@ function CmsDashboard() {
                 Your role does not include content creation.
               </p>
             ) : (
-              <form
-                className="cms-form"
-                key={draftTemplate?.key ?? "blank-draft"}
-                onSubmit={create}
-              >
+              <form className="cms-form" onSubmit={create}>
                 <label htmlFor="content-type">Content type</label>
                 <select
                   id="content-type"
                   name="type"
                   required
                   value={selectedType}
-                  onChange={(event) => {
-                    setSelectedType(event.currentTarget.value as ContentType);
-                    setDraftTemplate(null);
-                  }}
+                  onChange={(event) =>
+                    setSelectedType(event.currentTarget.value as ContentType)
+                  }
                 >
                   {types.map((type) => (
                     <option key={type} value={type}>
@@ -679,7 +631,6 @@ function CmsDashboard() {
                 <input
                   id="content-title"
                   name="title"
-                  defaultValue={draftTemplate?.title ?? ""}
                   maxLength={240}
                   required
                 />
@@ -687,7 +638,6 @@ function CmsDashboard() {
                 <input
                   id="content-slug"
                   name="slug"
-                  defaultValue={draftTemplate?.slug ?? ""}
                   pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
                   aria-describedby="slug-help"
                   required
@@ -721,12 +671,7 @@ function CmsDashboard() {
                   rows={3}
                 />
                 <label htmlFor="content-body">Content</label>
-                <RichTextEditor
-                  id="content-body"
-                  body=""
-                  bodyRichText={null}
-                  disabled={pending}
-                />
+                <textarea id="content-body" name="body" rows={10} />
                 <fieldset>
                   <legend>Search and sharing</legend>
                   <label htmlFor="content-seo-title">SEO title</label>
@@ -748,7 +693,6 @@ function CmsDashboard() {
                   <input
                     id="content-canonical-path"
                     name="canonicalPath"
-                    defaultValue={draftTemplate?.canonicalPath ?? ""}
                     placeholder={`/${selectedType === "article" ? "news" : selectedType}/example`}
                   />
                 </fieldset>

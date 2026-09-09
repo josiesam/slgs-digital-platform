@@ -20,7 +20,6 @@ describe("public content boundary", () => {
       "title",
       "summary",
       "body",
-      "bodyRichText",
       "seoTitle",
       "seoDescription",
       "canonicalPath",

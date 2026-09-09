@@ -27,41 +27,6 @@ export const workflowStateSchema = z.enum([
 ]);
 export type WorkflowState = z.infer<typeof workflowStateSchema>;
 
-export type RichTextLeaf = {
-  readonly text: string;
-  readonly bold?: boolean;
-  readonly italic?: boolean;
-  readonly underline?: boolean;
-};
-export type RichTextElement = {
-  readonly type: "p" | "h2" | "h3" | "blockquote";
-  readonly children: readonly RichTextLeaf[];
-};
-export type RichTextDocument = readonly RichTextElement[];
-
-const richTextLeafSchema = z
-  .object({
-    text: z.string().max(200_000),
-    bold: z.boolean().optional(),
-    italic: z.boolean().optional(),
-    underline: z.boolean().optional(),
-  })
-  .strict();
-export const richTextDocumentSchema = z
-  .array(
-    z
-      .object({
-        type: z.enum(["p", "h2", "h3", "blockquote"]),
-        children: z.array(richTextLeafSchema).min(1).max(2_000),
-      })
-      .strict(),
-  )
-  .min(1)
-  .max(2_000)
-  .refine((value) => JSON.stringify(value).length <= 200_000, {
-    message: "Rich text content is too large.",
-  });
-
 const slugSchema = z
   .string()
   .trim()
@@ -75,7 +40,6 @@ export const createContentSchema = z
     slug: slugSchema,
     summary: z.string().trim().max(600).optional(),
     body: z.string().max(200_000).default(""),
-    bodyRichText: richTextDocumentSchema.nullable().optional(),
     owningClubId: z.string().trim().min(1).max(200).nullable().optional(),
     seoTitle: z.string().trim().max(70).optional(),
     seoDescription: z.string().trim().max(170).optional(),
@@ -112,7 +76,6 @@ export const updateContentSchema = z.object({
   slug: slugSchema.optional(),
   summary: z.string().trim().max(600).nullable().optional(),
   body: z.string().max(200_000).optional(),
-  bodyRichText: richTextDocumentSchema.nullable().optional(),
   seoTitle: z.string().trim().max(70).nullable().optional(),
   seoDescription: z.string().trim().max(170).nullable().optional(),
   canonicalPath: z
@@ -142,7 +105,6 @@ export interface CmsContent {
   readonly slug: string;
   readonly summary: string | null;
   readonly body: string;
-  readonly bodyRichText: RichTextDocument | null;
   readonly seoTitle: string | null;
   readonly seoDescription: string | null;
   readonly canonicalPath: string | null;
@@ -181,7 +143,6 @@ export interface CmsAuditEvent {
 
 export interface CmsRepository {
   transaction<T>(work: (repository: CmsRepository) => Promise<T>): Promise<T>;
-  setAdministratorOverride(enabled: boolean): Promise<void>;
   clubExists(id: string): Promise<boolean>;
   slugExists(slug: string, excludingId?: string): Promise<boolean>;
   findContent(id: string): Promise<CmsContent | null>;
@@ -347,7 +308,6 @@ export class CmsService {
       slug: value.slug,
       summary: value.summary ?? null,
       body: value.body,
-      bodyRichText: value.bodyRichText ?? null,
       seoTitle: value.seoTitle ?? null,
       seoDescription: value.seoDescription ?? null,
       canonicalPath: value.canonicalPath ?? null,
@@ -435,9 +395,6 @@ export class CmsService {
       updatedAt: new Date(),
     };
     await this.repository.transaction(async (repository) => {
-      await repository.setAdministratorOverride(
-        actor.grant.permissions.has("content:override:cms"),
-      );
       await repository.saveContent(updated);
       await repository.createRevision(updated, actor.userId);
       await this.audit(
@@ -582,9 +539,6 @@ export class CmsService {
       updatedAt: now,
     };
     await this.repository.transaction(async (repository) => {
-      await repository.setAdministratorOverride(
-        actor.grant.permissions.has("content:override:cms"),
-      );
       await repository.saveContent(updated);
       await repository.appendWorkflowEvent({
         contentId: id,
@@ -682,7 +636,6 @@ export class InMemoryCmsRepository implements CmsRepository {
   ): Promise<T> {
     return work(this);
   }
-  async setAdministratorOverride(_enabled: boolean) {}
   addClub(id: string) {
     this.clubs.add(id);
   }

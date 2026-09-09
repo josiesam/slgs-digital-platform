@@ -10,7 +10,6 @@ import {
   MediaService,
   validateImageUpload,
   type CmsActor,
-  richTextDocumentSchema,
 } from "./index";
 
 const actor = (
@@ -47,32 +46,6 @@ const createArticle = async (service: CmsService) =>
   });
 
 describe("CMS workflow service", () => {
-  it("accepts only the approved Plate rich-text node catalogue", () => {
-    expect(
-      richTextDocumentSchema.parse([
-        {
-          type: "h2",
-          children: [{ text: "Approved heading", bold: true }],
-        },
-      ]),
-    ).toHaveLength(1);
-    expect(() =>
-      richTextDocumentSchema.parse([
-        {
-          type: "script",
-          children: [{ text: "unsafe" }],
-        },
-      ]),
-    ).toThrow();
-    expect(() =>
-      richTextDocumentSchema.parse([
-        {
-          type: "p",
-          children: [{ text: "unsafe", href: "javascript:alert(1)" }],
-        },
-      ]),
-    ).toThrow();
-  });
   it("preserves authorship and club ownership through revisions", async () => {
     const repository = new InMemoryCmsRepository();
     repository.addClub("club-news");
@@ -230,37 +203,6 @@ describe("CMS workflow service", () => {
     });
     expect(JSON.stringify(repository.audit)).not.toMatch(
       /password|token|secret|recovery/i,
-    );
-  });
-
-  it("allows the explicit CMS Administrator override to complete its own workflow", async () => {
-    const repository = new InMemoryCmsRepository();
-    const service = new CmsService(repository);
-    const administrator = actor("cms-administrator", [
-      "page:create:own",
-      "page:submit:own",
-      "content:review:assigned",
-      "content:approve:assigned",
-      "content:publish:approved",
-      "content:override:cms",
-    ]);
-    const item = await service.createContent(administrator, {
-      type: "page",
-      title: "Synthetic administrator page",
-      slug: "synthetic-administrator-page",
-      body: "Synthetic content",
-    });
-
-    await service.submit(administrator, item.id);
-    await service.startReview(administrator, item.id);
-    await service.completeReview(
-      administrator,
-      item.id,
-      "Administrator override for synthetic verification",
-    );
-    await service.approve(administrator, item.id);
-    expect((await service.publish(administrator, item.id)).state).toBe(
-      "published",
     );
   });
 

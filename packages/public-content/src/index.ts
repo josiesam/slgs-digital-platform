@@ -27,7 +27,6 @@ export interface PublicContentItem {
   readonly title: string;
   readonly summary: string | null;
   readonly body: string;
-  readonly bodyRichText: readonly PublicRichTextElement[] | null;
   readonly seoTitle: string | null;
   readonly seoDescription: string | null;
   readonly canonicalPath: string | null;
@@ -40,18 +39,6 @@ export interface PublicContentItem {
     readonly organiser: string | null;
   };
   readonly media: readonly PublicMedia[];
-}
-
-export interface PublicRichTextLeaf {
-  readonly text: string;
-  readonly bold?: boolean;
-  readonly italic?: boolean;
-  readonly underline?: boolean;
-}
-
-export interface PublicRichTextElement {
-  readonly type: "p" | "h2" | "h3" | "blockquote";
-  readonly children: readonly PublicRichTextLeaf[];
 }
 
 export interface PublicMedia {
@@ -102,7 +89,6 @@ function serialize(
     title: row.title,
     summary: row.summary,
     body: row.body,
-    bodyRichText: row.bodyRichText,
     seoTitle: row.seoTitle,
     seoDescription: row.seoDescription,
     canonicalPath: row.canonicalPath,

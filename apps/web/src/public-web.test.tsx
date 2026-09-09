@@ -11,7 +11,6 @@ const article: PublicContentItem = {
   title: "Synthetic story",
   summary: "Synthetic summary",
   body: "Synthetic body",
-  bodyRichText: null,
   seoTitle: null,
   seoDescription: null,
   canonicalPath: "/news/synthetic-story",

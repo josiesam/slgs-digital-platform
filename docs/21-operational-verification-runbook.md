@@ -145,12 +145,7 @@ Test CMS System Administrator, CMS Administrator, Multimedia Club Member/Supervi
 
 Exercise page, article, event, announcement and gallery creation; draft edit and revision; submit; independent review; rejection/resubmission; approval; publish/unpublish; media upload/finalization/download/archive; gallery composition; club scope; role management; and authorized audit visibility.
 
-Negative cases: self-review and self-approval by every non-administrator role,
-administrator workflow bypass, approval before a recorded review, cross-club
-access, unauthorized server calls, archived-media download, unpublished
-content on Web and Web access to private CMS data must all be denied. Verify
-separately that CMS Administrator can complete each ordered CMS task and that
-the override is attributed in workflow and audit history.
+Negative cases: self-review, self-approval, approval before review, cross-club access, unauthorized server calls, archived-media download, unpublished content on Web and Web access to private CMS data must all be denied.
 
 ### Phase 1D propagation
 

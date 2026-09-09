@@ -64,12 +64,7 @@ Allowed:
 - content:unpublish:published
 
 ### CMS Administrator
-Has explicit CMS-wide authority for content creation and editing, review,
-approval, publication/unpublication, media, clubs, membership, configuration,
-CMS audit and CMS role administration. It may complete its own ordered workflow
-through the audited `content:override:cms` permission. The workflow states,
-revision history and actor attribution remain mandatory. This exception does
-not apply to any other CMS role and grants no S.I.M.S. permission.
+Manages CMS membership, configuration and audit access. This role does not implicitly receive editorial or custom-role authority.
 
 ### Club Supervisor / Leadership
 Explicitly assigned to one or more `club` scopes. May supervise authorized content and club lifecycle for those scopes, but cannot approve or publish.

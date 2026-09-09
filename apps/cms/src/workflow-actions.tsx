@@ -31,9 +31,7 @@ export function WorkflowActions({
   readonly onAction: (action: CmsWorkflowAction, comment?: string) => void;
 }) {
   const [comment, setComment] = useState("");
-  const independentActor =
-    content.authorUserId !== currentUserId ||
-    permissions.has("content:override:cms");
+  const independentActor = content.authorUserId !== currentUserId;
   const submitComment = (
     event: FormEvent<HTMLFormElement>,
     action: "complete_review" | "reject",
