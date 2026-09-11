@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const applicationSchema = z.enum(["cms", "sims"]);
+export const applicationSchema = z.literal("cms");
 export type Application = z.infer<typeof applicationSchema>;
 
 export const permissionGrammarSchema = z
@@ -13,14 +13,18 @@ export const permissionGrammarSchema = z
 export const PERMISSION_CATALOGUE = [
   "media:create:own",
   "media:read:club",
+  "media:read:cms",
   "media:update:own",
   "media:update:club",
+  "media:update:cms",
   "media:archive:own",
   "media:archive:club",
+  "media:archive:cms",
   "content:create:own",
   "content:read:club",
   "content:update:own",
   "content:submit:own",
+  "content:submit:cms",
   "page:create:own",
   "page:update:own",
   "page:submit:own",
@@ -41,113 +45,46 @@ export const PERMISSION_CATALOGUE = [
   "content:update:assigned",
   "content:submit:assigned",
   "content:review:assigned",
+  "content:review:cms",
   "content:reject:assigned",
+  "content:reject:cms",
   "content:approve:assigned",
+  "content:approve:cms",
   "content:read:approved",
+  "content:read:cms",
+  "content:update:cms",
   "content:publish:approved",
+  "content:publish:cms",
   "content:unpublish:published",
+  "content:unpublish:cms",
   "membership:read:cms",
   "membership:manage:cms",
   "audit:read:cms",
   "configuration:manage:cms",
   "club:read:cms",
   "club:manage:assigned",
+  "club:manage:cms",
   "role:create:cms",
   "role:update:cms",
   "role:deactivate:cms",
   "role:assign:cms",
   "role:revoke:cms",
-  "student:read:school",
-  "student:create:school",
-  "student:update:school",
-  "staff:read:school",
-  "staff:create:school",
-  "staff:update:school",
-  "class:read:school",
-  "class:create:school",
-  "class:update:school",
-  "subject:read:school",
-  "subject:create:school",
-  "subject:update:school",
-  "academic_session:read:school",
-  "academic_session:create:school",
-  "academic_session:update:school",
-  "attendance:read:school",
-  "attendance:create:school",
-  "attendance:correct:school",
-  "assessment:read:school",
-  "report:read:school",
-  "assignment:manage:school",
-  "membership:read:sims",
-  "role:assign:approved",
-  "role:revoke:approved",
-  "audit:read:identity",
-  "identity:manage:sims",
-  "role:create:sims",
-  "role:update:sims",
-  "role:deactivate:sims",
-  "configuration:manage:sims",
-  "audit:read:sims",
-  "student:read:assigned",
-  "student:update:assigned",
-  "attendance:read:assigned",
-  "attendance:create:assigned",
-  "attendance:correct:assigned",
-  "attendance:update:assigned",
+  "user:read:cms",
+  "user:create:cms",
+  "user:update:cms",
+  "user:deactivate:cms",
+  "session:revoke:cms",
 ] as const;
 
 export const permissionSchema = z.enum(PERMISSION_CATALOGUE);
 export type Permission = z.infer<typeof permissionSchema>;
 
 export function permissionApplication(permission: Permission): Application {
-  if (permission.endsWith(":cms")) return "cms";
-  if (permission.endsWith(":sims")) return "sims";
-  const domain = permission.split(":")[0];
-  if (!domain) throw new Error("Permission domain is missing.");
-  if (
-    [
-      "media",
-      "content",
-      "article",
-      "event",
-      "announcement",
-      "gallery",
-      "page",
-      "club",
-    ].includes(domain)
-  ) {
-    return "cms";
-  }
-  if (
-    [
-      "student",
-      "staff",
-      "class",
-      "subject",
-      "academic_session",
-      "attendance",
-      "assessment",
-      "report",
-      "assignment",
-      "role",
-      "identity",
-    ].includes(domain)
-  ) {
-    return "sims";
-  }
-  return "sims";
+  permissionSchema.parse(permission);
+  return "cms";
 }
 
-export const scopeDimensionSchema = z.enum([
-  "club",
-  "class",
-  "subject",
-  "department",
-  "academic_session",
-  "term",
-  "organisation",
-  "location",
-]);
+export const scopeDimensionSchema = z.enum(["club", "organisation"]);
 export type ScopeDimension = z.infer<typeof scopeDimensionSchema>;
 export const scopeBindingSchema = z.object({
   dimension: scopeDimensionSchema,
@@ -240,8 +177,7 @@ function scopeMatches(
   resource?: ResourceAuthorizationContext,
 ): boolean {
   const scope = permission.split(":")[2];
-  if (!scope || ["cms", "sims", "identity", "school"].includes(scope))
-    return true;
+  if (!scope || scope === "cms") return true;
   if (scope === "own") {
     if (resource?.ownerId !== identityId) return false;
     const resourceScopes = resource.scopes ?? [];

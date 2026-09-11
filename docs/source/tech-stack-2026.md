@@ -1,5 +1,7 @@
 # Source: Tech Stack for SaaS in 2026 Transcript
 
+Status: **HISTORICAL SOURCE**
+
 The supplied transcript recommends a pragmatic SaaS stack including:
 
 - React + TypeScript

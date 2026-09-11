@@ -1,5 +1,7 @@
 # Phase 2C — Attendance Readiness Assessment
 
+Status: **DEPRECATED — superseded by ADR-040; retained for architectural history only**
+
 Status: **READY AFTER DESIGN DECISIONS — NOT APPROVED TO IMPLEMENT**
 
 Phase 2C is limited to attendance. This document is an architecture/readiness assessment, not an implementation record.

@@ -30,4 +30,30 @@ describe("CMS dashboard scope policy", () => {
       filterVisibleContent(rows, "supervisor", grant).map((row) => row.id),
     ).toEqual(["own-club"]);
   });
+
+  it("shows a CMS-wide administrator all content through an explicit grant", () => {
+    const administrator = createScopedGrant("cms", [
+      { permissions: ["content:read:cms"], scopes: [] },
+    ]);
+    const rows = [
+      {
+        id: "page",
+        authorUserId: "editor",
+        owningClubId: null,
+        state: "draft" as const,
+      },
+      {
+        id: "club-story",
+        authorUserId: "club-member",
+        owningClubId: "news",
+        state: "submitted" as const,
+      },
+    ];
+
+    expect(
+      filterVisibleContent(rows, "administrator", administrator).map(
+        (item) => item.id,
+      ),
+    ).toEqual(["page", "club-story"]);
+  });
 });

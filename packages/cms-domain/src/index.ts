@@ -207,10 +207,12 @@ const creationPermission = (type: ContentType): Permission =>
 const updatePermissions = (type: ContentType): Permission[] => [
   permissionSchema.parse(`${type}:update:own`),
   permissionSchema.parse("content:update:assigned"),
+  permissionSchema.parse("content:update:cms"),
 ];
 const submitPermissions = (type: ContentType): Permission[] => [
   permissionSchema.parse(`${type}:submit:own`),
   permissionSchema.parse("content:submit:assigned"),
+  permissionSchema.parse("content:submit:cms"),
 ];
 
 export class CmsService {
@@ -363,7 +365,12 @@ export class CmsService {
         : permissionSchema.parse("content:read:club");
     await this.authorize(
       actor,
-      [typePermission, "content:read:assigned", "content:read:approved"],
+      [
+        typePermission,
+        "content:read:assigned",
+        "content:read:approved",
+        "content:read:cms",
+      ],
       item,
     );
     return item;
@@ -441,6 +448,7 @@ export class CmsService {
       const permissions: Permission[] = [
         "media:update:own",
         "media:update:club",
+        "media:update:cms",
       ];
       const allowed = permissions.some(
         (permission) =>
@@ -574,7 +582,7 @@ export class CmsService {
     return this.transition(actor, id, {
       from: ["submitted"],
       to: "in_review",
-      permissions: ["content:review:assigned"],
+      permissions: ["content:review:assigned", "content:review:cms"],
       eventType: "content.review.started",
     });
   }
@@ -582,7 +590,7 @@ export class CmsService {
     return this.transition(actor, id, {
       from: ["in_review"],
       to: "in_review",
-      permissions: ["content:review:assigned"],
+      permissions: ["content:review:assigned", "content:review:cms"],
       eventType: "content.review.completed",
       comment: z.string().trim().min(1).max(2_000).parse(comment),
     });
@@ -591,7 +599,7 @@ export class CmsService {
     return this.transition(actor, id, {
       from: ["in_review"],
       to: "rejected",
-      permissions: ["content:reject:assigned"],
+      permissions: ["content:reject:assigned", "content:reject:cms"],
       eventType: "content.rejected",
       comment: z.string().trim().min(1).max(2_000).parse(comment),
     });
@@ -600,7 +608,7 @@ export class CmsService {
     return this.transition(actor, id, {
       from: ["in_review"],
       to: "approved",
-      permissions: ["content:approve:assigned"],
+      permissions: ["content:approve:assigned", "content:approve:cms"],
       eventType: "content.approved",
       requireReviewed: true,
     });
@@ -609,7 +617,7 @@ export class CmsService {
     return this.transition(actor, id, {
       from: ["approved"],
       to: "published",
-      permissions: ["content:publish:approved"],
+      permissions: ["content:publish:approved", "content:publish:cms"],
       eventType: "content.published",
     });
   }
@@ -617,7 +625,7 @@ export class CmsService {
     return this.transition(actor, id, {
       from: ["published"],
       to: "approved",
-      permissions: ["content:unpublish:published"],
+      permissions: ["content:unpublish:published", "content:unpublish:cms"],
       eventType: "content.unpublished",
     });
   }
@@ -811,22 +819,25 @@ export class MediaService {
 
   private async authorize(
     actor: CmsActor,
-    permission: Permission,
+    permission: Permission | readonly Permission[],
     asset: CmsMediaAsset,
   ) {
-    const decision = evaluateAuthorization({
-      identityId: actor.userId,
-      application: "cms",
-      permission,
-      grant: actor.grant,
-      resource: {
-        ownerId: asset.ownerUserId,
-        scopes: asset.owningClubId
-          ? [{ dimension: "club", value: asset.owningClubId }]
-          : [],
-      },
-    });
-    if (decision.allowed) return;
+    const permissions = Array.isArray(permission) ? permission : [permission];
+    const decisions = permissions.map((candidate) =>
+      evaluateAuthorization({
+        identityId: actor.userId,
+        application: "cms",
+        permission: candidate,
+        grant: actor.grant,
+        resource: {
+          ownerId: asset.ownerUserId,
+          scopes: asset.owningClubId
+            ? [{ dimension: "club", value: asset.owningClubId }]
+            : [],
+        },
+      }),
+    );
+    if (decisions.some((decision) => decision.allowed)) return;
     await this.repository.appendAudit({
       id: crypto.randomUUID(),
       eventType: "authorization.denied",
@@ -835,8 +846,8 @@ export class MediaService {
       resourceType: "media",
       resourceId: asset.id,
       outcome: "denied",
-      reasonCode: decision.reason,
-      metadata: { permission },
+      reasonCode: decisions.at(-1)?.reason ?? "missing_permission",
+      metadata: { permission: permissions.join("|") },
       occurredAt: new Date(),
     });
     throw new CmsDomainError(
@@ -983,7 +994,7 @@ export class MediaService {
     const asset = await this.repository.findMedia(id);
     if (!asset)
       throw new CmsDomainError("CONTENT_NOT_FOUND", "Media was not found.");
-    await this.authorize(actor, "media:read:club", asset);
+    await this.authorize(actor, ["media:read:club", "media:read:cms"], asset);
     if (asset.status !== "available") {
       throw new CmsDomainError(
         "INVALID_TRANSITION",
@@ -1000,6 +1011,7 @@ export class MediaService {
     const permissions: Permission[] = [
       "media:archive:own",
       "media:archive:club",
+      "media:archive:cms",
     ];
     let permitted = false;
     for (const permission of permissions) {

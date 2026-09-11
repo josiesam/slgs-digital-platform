@@ -1,6 +1,6 @@
 # Phase 1C — CMS Workflow
 
-Status: **IMPLEMENTATION COMPLETE — OPERATIONAL VERIFICATION PENDING**
+Status: **ACTIVE — IMPLEMENTATION COMPLETE, OPERATIONAL VERIFICATION PENDING**
 
 The database, domain, authorization and private R2 infrastructure gates pass. The latest functional assessment supersedes earlier closure wording: Phase 1C is not closed until representative role workflows, CMS-to-Web publication/unpublication and the real browser R2 flow pass through the applications.
 
@@ -8,7 +8,7 @@ The database, domain, authorization and private R2 infrastructure gates pass. Th
 
 The CMS remains a private TanStack Start application. Server functions obtain the authoritative Better Auth session and Phase 1B assignment-scoped grant, validate input and call `@slgs/cms-domain`. Domain services own workflow and media rules; Drizzle repositories own PostgreSQL persistence. Role-aware UI improves clarity but is never the authorization boundary.
 
-The public Web and S.I.M.S. applications receive no CMS schema privileges. Phase 1D provides a separate published read model; the public application does not read CMS tables.
+The public Web receives no CMS schema privileges. Phase 1D provides a separate published read model; the public application does not read CMS tables.
 
 ## Content model
 
@@ -32,11 +32,11 @@ Review completion is recorded while content remains `in_review`; approval requir
 
 Clubs are rows in `cms.club`, not constants. Stable keys, lifecycle state and creator are auditable. Initial clubs are created by authorized CMS configuration administration; subsequent club lifecycle supervision belongs to explicitly assigned Member / Club Leadership through assignment-bound `club` scopes. Ordinary club membership grants no supervision.
 
-Multimedia and News Journal roles remain distinct. News Journal members may create and submit articles, events and announcements. Multimedia members may create authorized media and multimedia content. Neither role reviews, approves, publishes, reaches another club, or receives S.I.M.S. permissions by implication.
+Multimedia and News Journal roles remain distinct. News Journal members may create and submit articles, events and announcements. Multimedia members may create authorized media and multimedia content. Neither role reviews, approves, publishes, or reaches another club.
 
 ## Roles and permissions
 
-Phase 1C adds Multimedia Club Supervisor, News Journal Club Supervisor and CMS System Administrator contracts. Editor, Reviewer, Approver and Publisher remain separate. CMS System Administrator alone may create/activate/deactivate custom CMS roles and assign them. Custom permissions are parsed through the closed catalogue and rejected if they belong to S.I.M.S. Normal assignment is immediate and audited; only privileged bootstrap retains two-person approval.
+Phase 1C adds Multimedia Club Supervisor, News Journal Club Supervisor and CMS System Administrator contracts. Editor, Reviewer, Approver and Publisher remain separate. CMS System Administrator alone may create/activate/deactivate custom CMS roles and assign them. Custom permissions are parsed through the closed CMS catalogue. Normal assignment is immediate and audited; only privileged bootstrap retains two-person approval.
 
 The CMS catalogue covers page/article/event/announcement/gallery creation and submission; content read/update/review/reject/approve/publish/unpublish; media create/read/update/archive; club management; membership/configuration/audit; and CMS-only role definition/assignment actions.
 
@@ -86,7 +86,7 @@ ADR-025 resolves first CMS System Administrator provisioning by allowing the exi
 
 ## Existing infrastructure verification
 
-The domain suite exercises creation, revision ownership, ordered transitions, rejection/resubmission, self-review, cross-club isolation, approval/publication guards, image signature validation, media ownership/archive and denial auditing. `verification/phase-1c.sql` verifies live schema/roles, CMS/S.I.M.S. permission isolation, transition bypass rejection, self-review/approval rejection, audit immutability and runtime grants inside a rolled-back transaction.
+The domain suite exercises creation, revision ownership, ordered transitions, rejection/resubmission, self-review, cross-club isolation, approval/publication guards, image signature validation, media ownership/archive and denial auditing. `verification/phase-1c.sql` verifies transition bypass rejection, self-review/approval rejection, audit immutability and runtime grants inside a rolled-back transaction.
 
 On 2026-08-28, the configured private Cloudflare R2 infrastructure passed a live synthetic integration test. The test authenticated the application token to the configured bucket, verified an effective presigned-URL CORS preflight for the configured CMS origin with no wildcard origin, uploaded a synthetic PNG signature through presigned PUT, confirmed anonymous direct access was denied, finalized through server HEAD/GET validation, verified size, MIME, signature and SHA-256, observed `available` state and audit events, downloaded through an authorized presigned GET and archived the record. Missing and malformed objects were rejected. Database fixtures ran inside a rolled-back transaction and all synthetic R2 objects were physically removed after verification.
 
@@ -94,4 +94,4 @@ The application credential intentionally does not have bucket-administration per
 
 ## Remaining operational decisions
 
-Cloudflare R2 is the verified production CMS object-store provider. Remaining retention, recovery, monitoring, incident-response and future public-media delivery decisions are operational governance items. Phase 1C nevertheless remains conditional until the browser functional gate above passes. S.I.M.S. scope policy remains outside this phase.
+Cloudflare R2 is the verified production CMS object-store provider. Remaining retention, recovery, monitoring, incident-response and future public-media delivery decisions are operational governance items. Phase 1C nevertheless remains conditional until the browser functional gate above passes.

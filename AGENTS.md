@@ -2,11 +2,10 @@
 
 ## Mission
 
-Build the Sierra Leone Grammar School (SLGS) Digital Platform as a production-quality monorepo containing three intentionally separated applications:
+Build the Sierra Leone Grammar School (SLGS) Digital Platform as a production-quality monorepo containing two intentionally separated applications:
 
 1. `apps/web` — public SLGS website.
 2. `apps/cms` — private CMS for the public website.
-3. `apps/sims` — private S.I.M.S. administration portal, including ICT/STEM inventory and asset management.
 
 The current `http://slgs.edu.sl` website is a legacy reference only. Do not preserve its implementation, information architecture, visual design, or technical debt merely for compatibility.
 
@@ -40,9 +39,7 @@ If project code conflicts with these documents, stop and identify the conflict r
 
 ## Core architecture rules
 
-- Keep Web, CMS, and S.I.M.S. as separate applications even though they share a monorepo.
-- Never expose S.I.M.S. data through public website routes.
-- Never give CMS users S.I.M.S. permissions by implication.
+- Keep Web and CMS as separate applications even though they share a monorepo.
 - Share packages, types, validation schemas, UI primitives, database access utilities, and auth infrastructure only where appropriate.
 - Use PostgreSQL + Drizzle as the planned relational data layer.
 - Use TypeScript throughout.
@@ -54,7 +51,7 @@ If project code conflicts with these documents, stop and identify the conflict r
 - Keep authorization server-side. UI hiding is not security.
 - Use least privilege for all roles.
 - Treat student-created content as moderated content.
-- Preserve auditability for publishing, identity/permission changes, student records, and asset lifecycle events.
+- Preserve auditability for publishing, identity/permission changes, and media lifecycle events.
 
 ## Coding standards
 
@@ -68,11 +65,11 @@ If project code conflicts with these documents, stop and identify the conflict r
 - Do not use `any` unless there is a documented, unavoidable reason.
 - Do not commit secrets.
 - Never place credentials in source, fixtures, seed data, screenshots, or documentation.
-- Do not use real student/personally identifiable data in development fixtures.
+- Do not use real personally identifiable data in development fixtures.
 
 ## Security requirements
 
-S.I.M.S. contains sensitive school information. Assume student, staff, attendance, academic, financial, and administrative records are confidential.
+CMS identity, editorial and private-media information is confidential.
 
 Required principles:
 
@@ -106,7 +103,7 @@ Read-only public content:
 
 ### CMS
 
-Content operations only:
+Content and CMS administration:
 
 - pages
 - articles
@@ -117,29 +114,9 @@ Content operations only:
 - review/approval
 - publishing
 - content audit trail
-
-### S.I.M.S.
-
-Administrative operations:
-
-- students
-- staff
-- classes
-- subjects
-- academic sessions
-- attendance
-- examinations/results
-- fees (future phase)
-- reports
-- users/roles
-- ICT/STEM assets
-- locations
-- allocations
-- maintenance
-- repairs
-- procurement
-- disposal
-- audit logs
+- CMS users and memberships
+- clubs, roles and permissions
+- identity and authorization audit
 
 ## Implementation discipline
 

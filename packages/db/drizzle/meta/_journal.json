@@ -92,6 +92,20 @@
       "when": 1788152525303,
       "tag": "0012_phase-2c-attendance",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1788902400000,
+      "tag": "0013_product-scope-reset",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1788912000000,
+      "tag": "0014_cms-administrator-full-access",
+      "breakpoints": true
     }
   ]
 }

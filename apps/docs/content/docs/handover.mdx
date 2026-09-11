@@ -1,106 +1,32 @@
 ---
 title: Handover & Operations Runbook
-description: Comprehensive operational runbook, environment setup, database CLI, and handover verification checklist.
+description: Public Web and CMS environment, verification, and production handover guidance.
 ---
 
-# Developer & Operations Handover Runbook
+# Developer & Operations Handover
 
-This runbook contains step-by-step technical instructions for developers, DevOps engineers, and IT administrators inheriting the **SLGS Digital Platform**.
+The active SLGS platform consists of the anonymous Public Web, authenticated CMS, and technical documentation application.
 
----
+## Prerequisites
 
-## Technical Prerequisites
+- Node.js `>= 24 < 25`
+- pnpm `>= 10 < 11`
+- PostgreSQL 16+ or compatible managed PostgreSQL
+- A private Cloudflare R2 bucket
 
-- **Node.js**: `>= 24 < 25` (specified in root `package.json`)
-- **Package Manager**: `pnpm >= 10 < 11`
-- **Database**: PostgreSQL 16+ instance (or Neon PostgreSQL)
-- **Object Storage**: Cloudflare R2 bucket (or S3-compatible object storage)
+## Runtime separation
 
----
+The Web runtime receives only `WEB_DATABASE_URL` and `PUBLIC_SITE_URL`. It has read-only access to `public_content` projections and receives no Better Auth or R2 credentials. The CMS runtime receives `CMS_DATABASE_URL`, the Better Auth configuration, email configuration, and bucket-scoped R2 credentials.
 
-## Environment Variables Configuration
+CMS authorization is identity → active CMS membership → club/organisation scope → active CMS role → permission. Every sensitive mutation is authorized on the server and audited.
 
-Copy `.env.example` to `.env` in the root workspace directory and populate all required variables:
+## Local checks
 
 ```bash
-# Database Connections
-DATABASE_URL="postgresql://postgres:password@localhost:5432/slgs_db?sslmode=disable"
-WEB_DATABASE_URL="postgresql://slgs_web:password@localhost:5432/slgs_db?sslmode=disable"
-CMS_DATABASE_URL="postgresql://slgs_cms:password@localhost:5432/slgs_db?sslmode=disable"
-SIMS_DATABASE_URL="postgresql://slgs_sims:password@localhost:5432/slgs_db?sslmode=disable"
-
-# Better Auth Configuration
-BETTER_AUTH_SECRET="your-32-byte-secure-random-secret"
-CMS_BETTER_AUTH_BASE_URL="http://localhost:3002"
-SIMS_BETTER_AUTH_BASE_URL="http://localhost:3003"
-BETTER_AUTH_TRUSTED_ORIGINS="http://localhost:3001,http://localhost:3002,http://localhost:3003"
-
-# Public Web URL
-PUBLIC_SITE_URL="http://slgs.edu.sl"
-
-# Cloudflare R2 Media Storage
-CLOUDFLARE_R2_ACCOUNT_ID="your-r2-account-id"
-CLOUDFLARE_R2_ENDPOINT="https://<account-id>.r2.cloudflarestorage.com"
-CLOUDFLARE_R2_BUCKET="slgs-media-private"
-CLOUDFLARE_R2_ACCESS_KEY_ID="your-access-key-id"
-CLOUDFLARE_R2_SECRET_ACCESS_KEY="your-secret-access-key"
-CLOUDFLARE_R2_PRESIGNED_URL_TTL_SECONDS=300
+pnpm check
+git diff --check
 ```
 
----
+Do not run production migrations from an application runtime credential. The Senior Software Engineer must approve backups, retention, migration execution, post-migration SQL verification, authenticated browser verification, R2 checks, deployment, DNS, and TLS.
 
-## Database Provisioning & Admin CLI
-
-### 1. Database Schema Migrations
-
-Run database migrations to initialize the `auth`, `public_content`, `cms`, and `sims` schemas:
-
-```bash
-pnpm --filter @slgs/db db:migrate
-```
-
-### 2. Administrative User Bootstrapping
-
-Initialize the super-administrative identity and assign initial S.I.M.S. and CMS permissions using the CLI script:
-
-```bash
-pnpm admin:bootstrap
-```
-
-> [!CAUTION]
-> Never commit generated passwords or administrative credentials to source control or fixtures.
-
----
-
-## Local Development Commands
-
-| Command | Purpose |
-| :--- | :--- |
-| `pnpm dev` | Start all applications concurrently via Turborepo (`apps/web`: 3001, `apps/cms`: 3002, `apps/sims`: 3003, `apps/docs`: 3004) |
-| `pnpm build` | Build production artifacts across all apps and shared packages |
-| `pnpm check` | Run complete validation suite (`format:check` + `lint` + `typecheck` + `test` + `build`) |
-| `pnpm typecheck` | Execute TypeScript compilation check across all workspace packages |
-| `pnpm test` | Run Vitest suite for domain services and permission boundaries |
-| `pnpm format` | Auto-format source code using Prettier |
-
----
-
-## Operational Verification Checklist
-
-Before declaring any deployment ready for production, verify the following 5 critical operational checks:
-
-- [ ] **Web Security Barrier**: Verify that `apps/web` connects exclusively using `WEB_DATABASE_URL` (`slgs_web` role) and cannot query private tables.
-- [ ] **CMS 5-Stage Workflow**: Verify that draft articles cannot be retrieved by `apps/web` until reaching the `published` state.
-- [ ] **R2 Private Storage**: Verify that media uploads generate presigned URLs and binary files remain unreadable directly over public HTTP without authentication.
-- [ ] **S.I.M.S. RBAC**: Verify that identity roles (School Admin, Teacher, ICT Manager) enforce server-side authorization on all API routes and database queries.
-- [ ] **Attendance Immutable Audit**: Verify that updating an attendance entry retains superseded records in the audit trail.
-
----
-
-## Infrastructure Handover & Domain Control
-
-> [!IMPORTANT]
-> **Pending Domain Handover**:
-> The approved production domain for the public website is `http://slgs.edu.sl`.
-> Domain name, DNS control, and hosting dashboard access are **PENDING INFRASTRUCTURE HANDOVER** from the previous IT management team.
-> Application code, canonical links, Open Graph tags, and sitemap drivers derive dynamically from `PUBLIC_SITE_URL` and have been verified against `http://slgs.edu.sl`. HTTPS hardening will be completed upon handover of DNS control.
+See the repository runbooks `docs/21-operational-verification-runbook.md` and `docs/26-cms-operational-verification-checklist.md` for the controlled procedure and sign-off evidence.

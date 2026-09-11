@@ -1,102 +1,17 @@
-# Data Model — Initial Domain Blueprint
+# Data Model
 
-This is a domain blueprint, not a final migration. Codex must validate relationships against implemented requirements before generating production migrations.
+Status: **ACTIVE**
 
 ## Identity
 
-- users
-- roles
-- permissions
-- user_roles
-- role_permissions
-- sessions
-- accounts
-- audit_logs
+Better Auth identity tables support users, accounts, sessions, verification and two-factor state. CMS access is modeled by `application_membership`, `role_definition`, `role_assignment` and `role_assignment_scope`. Approved contact domains and privileged bootstrap remain controlled infrastructure. Security audit events are append-only.
 
-## Public Content
+Only the CMS application value is used by active code. Historical migrations retain the earlier enum value so migration history is not rewritten; migration `0013_product-scope-reset.sql` removes discontinued memberships, roles, bootstrap requests, schema objects, policies and runtime access.
 
-- pages
-- page_revisions
-- articles
-- article_revisions
-- events
-- galleries
-- gallery_items
-- media
-- content_categories
-- publication_events
+## CMS
 
-Suggested common content fields:
-- id
-- slug
-- title
-- status
-- author_id
-- created_at
-- updated_at
-- published_at
-- metadata
+`cms.club` is data-driven. Content items own immutable revisions and workflow events. Media assets retain private object metadata and lifecycle state; content-media links preserve ordered composition. Editorial audit events are append-only and retention policy starts disabled until school policy is approved.
 
-## School
+## Public content
 
-- academic_years
-- terms
-- students
-- guardians
-- student_guardians
-- staff
-- departments
-- classes
-- class_memberships
-- subjects
-- class_subjects
-
-## Academic
-
-- assessments
-- assessment_components
-- assessment_results
-- grading_scales
-
-## Attendance
-
-- attendance_sessions
-- attendance_records
-
-## Assets
-
-- asset_categories
-- assets
-- asset_identifiers
-- locations
-- asset_assignments
-- maintenance_plans
-- maintenance_records
-- repair_records
-- suppliers
-- procurement_records
-- disposal_records
-- asset_documents
-- asset_photos
-
-## Important relationships
-
-- A student may have multiple guardians.
-- A student may belong to different classes over time.
-- A class may offer multiple subjects.
-- Assessment results belong to a student and assessment context.
-- An asset has a stable internal ID and may have a human-readable asset tag.
-- Asset allocation is historical, not just a current `assigned_to` field.
-- Maintenance and repair events should remain historically traceable.
-- Media is reusable across public content.
-- Content revisions should preserve editorial history.
-- Published content is a state transition, not merely a boolean.
-
-## Data safety
-
-Do not use real student/staff data in development fixtures.
-
-Prefer synthetic examples such as:
-- Student A
-- Student B
-- ICT Asset 0001
+Security-barrier projections expose only published pages, articles, events, announcements and galleries where `state = 'published'` and `published_at IS NOT NULL`. DTOs exclude identities, workflow internals, audit data and private storage metadata.

@@ -8,7 +8,6 @@ import {
 } from "@slgs/permissions";
 
 export const EIGHT_HOURS_IN_SECONDS = 8 * 60 * 60;
-export const MAX_ACTIVE_SIMS_SYSTEM_ADMINISTRATORS = 5;
 
 export const identityStatusSchema = z.enum([
   "pending",
@@ -36,10 +35,6 @@ export const roleKeySchema = z.enum([
   "cms_publisher",
   "cms_administrator",
   "cms_system_administrator",
-  "sims_school_administrator",
-  "sims_access_administrator",
-  "sims_system_administrator",
-  "sims_operational_staff",
 ]);
 export type RoleKey = z.infer<typeof roleKeySchema>;
 
@@ -167,10 +162,51 @@ export const ROLE_CONTRACTS = {
   cms_administrator: {
     application: "cms",
     permissions: permissions([
+      "media:create:own",
+      "media:read:cms",
+      "media:update:cms",
+      "media:archive:cms",
+      "content:create:own",
+      "content:read:cms",
+      "content:update:cms",
+      "content:submit:cms",
+      "page:create:own",
+      "page:update:own",
+      "page:submit:own",
+      "article:create:own",
+      "article:update:own",
+      "article:submit:own",
+      "event:create:own",
+      "event:update:own",
+      "event:submit:own",
+      "announcement:create:own",
+      "announcement:update:own",
+      "announcement:submit:own",
+      "gallery:create:own",
+      "gallery:update:own",
+      "gallery:submit:own",
+      "content:review:cms",
+      "content:reject:cms",
+      "content:approve:cms",
+      "content:read:approved",
+      "content:publish:cms",
+      "content:unpublish:cms",
       "membership:read:cms",
       "membership:manage:cms",
       "audit:read:cms",
       "configuration:manage:cms",
+      "club:read:cms",
+      "club:manage:cms",
+      "role:create:cms",
+      "role:update:cms",
+      "role:deactivate:cms",
+      "role:assign:cms",
+      "role:revoke:cms",
+      "user:read:cms",
+      "user:create:cms",
+      "user:update:cms",
+      "user:deactivate:cms",
+      "session:revoke:cms",
     ]),
   },
   cms_system_administrator: {
@@ -186,89 +222,11 @@ export const ROLE_CONTRACTS = {
       "role:deactivate:cms",
       "role:assign:cms",
       "role:revoke:cms",
-    ]),
-  },
-  sims_school_administrator: {
-    application: "sims",
-    permissions: permissions([
-      "student:read:school",
-      "student:create:school",
-      "student:update:school",
-      "staff:read:school",
-      "staff:create:school",
-      "staff:update:school",
-      "class:read:school",
-      "class:create:school",
-      "class:update:school",
-      "subject:read:school",
-      "subject:create:school",
-      "subject:update:school",
-      "academic_session:read:school",
-      "academic_session:create:school",
-      "academic_session:update:school",
-      "attendance:read:school",
-      "attendance:create:school",
-      "attendance:correct:school",
-      "assessment:read:school",
-      "report:read:school",
-      "assignment:manage:school",
-    ]),
-  },
-  sims_access_administrator: {
-    application: "sims",
-    permissions: permissions([
-      "membership:read:sims",
-      "role:assign:approved",
-      "role:revoke:approved",
-      "audit:read:identity",
-    ]),
-  },
-  sims_system_administrator: {
-    application: "sims",
-    permissions: permissions([
-      "identity:manage:sims",
-      "student:read:school",
-      "student:create:school",
-      "student:update:school",
-      "staff:read:school",
-      "staff:create:school",
-      "staff:update:school",
-      "class:read:school",
-      "class:create:school",
-      "class:update:school",
-      "subject:read:school",
-      "subject:create:school",
-      "subject:update:school",
-      "academic_session:read:school",
-      "academic_session:create:school",
-      "academic_session:update:school",
-      "attendance:read:school",
-      "attendance:create:school",
-      "attendance:correct:school",
-      "role:create:sims",
-      "role:update:sims",
-      "role:deactivate:sims",
-      "configuration:manage:sims",
-      "audit:read:sims",
-    ]),
-  },
-  sims_operational_staff: {
-    application: "sims",
-    scopeDimensions: [
-      "class",
-      "subject",
-      "department",
-      "academic_session",
-      "term",
-      "location",
-    ],
-    permissions: permissions([
-      "student:read:assigned",
-      "student:update:assigned",
-      "attendance:read:assigned",
-      "attendance:create:assigned",
-      "attendance:correct:assigned",
-      "attendance:update:assigned",
+      "user:read:cms",
+      "user:create:cms",
+      "user:update:cms",
+      "user:deactivate:cms",
+      "session:revoke:cms",
     ]),
   },
 } as const satisfies Readonly<Record<RoleKey, RoleContract>>;
@@ -306,16 +264,6 @@ export function assertDistinctBootstrapApprovers(
 ): void {
   if (initiatorReference === approverReference) {
     throw new Error("Privileged bootstrap requires two distinct approvers.");
-  }
-}
-
-export function assertSimsSystemAdministratorCapacity(
-  activeCount: number,
-): void {
-  if (activeCount >= MAX_ACTIVE_SIMS_SYSTEM_ADMINISTRATORS) {
-    throw new Error(
-      "At most five active S.I.M.S. System Administrators are allowed.",
-    );
   }
 }
 

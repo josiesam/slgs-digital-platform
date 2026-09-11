@@ -19,7 +19,7 @@ The platform modernizes the public web presence of Sierra Leone Grammar School w
 
 1. **Decoupled Public Communication**: Routine website content updates do not require developer intervention or code changes.
 2. **Student Content Moderation**: Controlled publishing capabilities are provided to student clubs (e.g. Multimedia Club, News Journal Club) with mandatory review and approval steps.
-3. **Private Administrative Operations**: Sensitive administrative records (student profiles, staff records, attendance, academic sessions) are isolated from public website infrastructure.
+3. **Private CMS Operations**: Identities, drafts, workflow history, audit data and private media metadata are isolated from the public website.
 4. **ICT/STEM Asset Tracking**: End-to-end lifecycle tracking for computers, laboratory equipment, networking devices, and STEM kits across school locations.
 
 ---
@@ -40,7 +40,6 @@ The platform modernizes the public web presence of Sierra Leone Grammar School w
 | :--- | :--- | :--- | :--- |
 | **Public Website** | `apps/web` | Prospective students, parents, alumni, public | Read-only public portal (news, admissions, academics, school life) |
 | **Content CMS** | `apps/cms` | Multimedia Club, News Journal, Content Editors, CMS Admins | Private editorial application for publishing public site content |
-| **S.I.M.S. Portal** | `apps/sims` | School Administrators, Academic Staff, ICT/STEM Staff | Private administration, student/staff records, attendance, asset management |
 
 ---
 
@@ -49,5 +48,4 @@ The platform modernizes the public web presence of Sierra Leone Grammar School w
 - 🏛️ **[System Architecture](/docs/architecture)** — Monorepo layout, shared packages, database isolation, security boundaries.
 - 🌐 **[Public Web (`apps/web`)](/docs/web)** — Public site structure, read-only data architecture, domain deployment.
 - ✍️ **[Content CMS (`apps/cms`)](/docs/cms)** — Editorial workflows, Cloudflare R2 media storage, approval states.
-- 🎒 **[S.I.M.S. & Assets (`apps/sims`)](/docs/sims)** — School records, attendance, ICT/STEM asset inventory & lifecycle management.
 - 🛠️ **[Handover & Operations](/docs/handover)** — Environment variables, local setup, DB CLI scripts, verification checklists.

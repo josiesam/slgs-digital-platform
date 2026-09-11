@@ -23,14 +23,14 @@ Platform System Administration is an external two-person authority, not a global
 Commands:
   pnpm admin:bootstrap setup --operator <operator-reference>
   pnpm admin:bootstrap domain --domain <domain> --operator <operator-reference>
-  pnpm admin:bootstrap initiate --application <cms|sims> [--role <cms_administrator|cms_system_administrator|sims_system_administrator>] --name <name> --email <email> --person-reference <reference> --initiator <operator-reference>
+  pnpm admin:bootstrap initiate --application cms [--role <cms_administrator|cms_system_administrator>] --name <name> --email <email> --person-reference <reference> --initiator <operator-reference>
   pnpm admin:bootstrap approve --request <request-id> --approver <different-operator-reference>
-  pnpm admin:bootstrap clear [--application <cms|sims>] [--role <role_key>] [--operator <operator-reference>]
+  pnpm admin:bootstrap clear [--application cms] [--role <role_key>] [--operator <operator-reference>]
   pnpm admin:bootstrap status
 
 The initiate command prompts for the target administrator's initial password without echoing it.
 CMS defaults to cms_administrator and may explicitly bootstrap the first
-cms_system_administrator; S.I.M.S. receives sims_system_administrator.
+cms_system_administrator.
 The one-time setup command uses DATABASE_MIGRATION_URL to create/rotate a scoped
 slgs_platform_admin database role and writes its URL to the ignored .env file.
 All other commands require PLATFORM_ADMIN_DATABASE_URL.`;
@@ -212,8 +212,8 @@ async function main(): Promise<void> {
 
     if (command === "initiate") {
       const application = requireOption("application");
-      if (application !== "cms" && application !== "sims") {
-        throw new Error("--application must be cms or sims.");
+      if (application !== "cms") {
+        throw new Error("--application must be cms.");
       }
       const role: BootstrapRole = resolveBootstrapRole(
         application,
@@ -256,8 +256,8 @@ async function main(): Promise<void> {
 
     if (command === "clear") {
       const application = option("application");
-      if (application && application !== "cms" && application !== "sims") {
-        throw new Error("--application must be cms or sims if provided.");
+      if (application && application !== "cms") {
+        throw new Error("--application must be cms if provided.");
       }
       const role = option("role");
       const operatorReference = option("operator") ?? "dev_operator";

@@ -32,6 +32,15 @@ export function WorkflowActions({
 }) {
   const [comment, setComment] = useState("");
   const independentActor = content.authorUserId !== currentUserId;
+  const canReview =
+    permissions.has("content:review:assigned") ||
+    permissions.has("content:review:cms");
+  const canReject =
+    permissions.has("content:reject:assigned") ||
+    permissions.has("content:reject:cms");
+  const canApprove =
+    permissions.has("content:approve:assigned") ||
+    permissions.has("content:approve:cms");
   const submitComment = (
     event: FormEvent<HTMLFormElement>,
     action: "complete_review" | "reject",
@@ -42,7 +51,8 @@ export function WorkflowActions({
 
   return (
     <div className="cms-actions" aria-label="Workflow actions">
-      {content.authorUserId === currentUserId &&
+      {(content.authorUserId === currentUserId ||
+        permissions.has("content:submit:cms")) &&
       ["draft", "rejected"].includes(content.state) ? (
         <button
           disabled={pending}
@@ -52,9 +62,7 @@ export function WorkflowActions({
           Submit
         </button>
       ) : null}
-      {content.state === "submitted" &&
-      permissions.has("content:review:assigned") &&
-      independentActor ? (
+      {content.state === "submitted" && canReview && independentActor ? (
         <button
           disabled={pending}
           onClick={() => onAction("start_review")}
@@ -65,8 +73,7 @@ export function WorkflowActions({
       ) : null}
       {content.state === "in_review" && independentActor ? (
         <>
-          {(permissions.has("content:review:assigned") ||
-            permissions.has("content:reject:assigned")) && (
+          {(canReview || canReject) && (
             <label className="cms-workflow-comment">
               Review or rejection comment
               <textarea
@@ -78,14 +85,14 @@ export function WorkflowActions({
               />
             </label>
           )}
-          {permissions.has("content:review:assigned") ? (
+          {canReview ? (
             <form onSubmit={(event) => submitComment(event, "complete_review")}>
               <button disabled={pending || !comment.trim()} type="submit">
                 Complete review
               </button>
             </form>
           ) : null}
-          {permissions.has("content:reject:assigned") ? (
+          {canReject ? (
             <form onSubmit={(event) => submitComment(event, "reject")}>
               <button
                 className="secondary"
@@ -96,7 +103,7 @@ export function WorkflowActions({
               </button>
             </form>
           ) : null}
-          {permissions.has("content:approve:assigned") && content.reviewedAt ? (
+          {canApprove && content.reviewedAt ? (
             <button
               disabled={pending}
               onClick={() => onAction("approve")}
@@ -108,7 +115,8 @@ export function WorkflowActions({
         </>
       ) : null}
       {content.state === "approved" &&
-      permissions.has("content:publish:approved") ? (
+      (permissions.has("content:publish:approved") ||
+        permissions.has("content:publish:cms")) ? (
         <button
           disabled={pending}
           onClick={() => onAction("publish")}
@@ -118,7 +126,8 @@ export function WorkflowActions({
         </button>
       ) : null}
       {content.state === "published" &&
-      permissions.has("content:unpublish:published") ? (
+      (permissions.has("content:unpublish:published") ||
+        permissions.has("content:unpublish:cms")) ? (
         <button
           className="secondary"
           disabled={pending}

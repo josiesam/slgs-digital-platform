@@ -21,7 +21,8 @@ export function filterVisibleContent<T extends ScopedContent>(
       permission === "article:read:club" ||
       permission === "content:read:club" ||
       permission === "content:read:assigned" ||
-      permission === "content:read:approved",
+      permission === "content:read:approved" ||
+      permission === "content:read:cms",
   );
   return rows.filter((item) => {
     if (item.authorUserId === identityId) return true;

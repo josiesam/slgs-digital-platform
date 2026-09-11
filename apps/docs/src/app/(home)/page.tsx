@@ -10,7 +10,7 @@ export default function HomePage() {
         Sierra Leone Grammar School Technical Documentation
       </h1>
       <p className="text-lg text-neutral-600 dark:text-neutral-400 mb-8 max-w-2xl">
-        Comprehensive guide to the monorepo architecture, public website (<code className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 font-mono text-sm">apps/web</code>), private CMS (<code className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 font-mono text-sm">apps/cms</code>), and S.I.M.S. administrative portal with ICT/STEM asset management (<code className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 font-mono text-sm">apps/sims</code>).
+        Comprehensive guide to the monorepo architecture, public website (<code className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 font-mono text-sm">apps/web</code>) and authenticated CMS (<code className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 font-mono text-sm">apps/cms</code>).
       </p>
 
       <div className="flex flex-wrap gap-4 justify-center mb-12">
@@ -28,7 +28,7 @@ export default function HomePage() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left max-w-4xl w-full mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left max-w-4xl w-full mt-4">
         <div className="p-6 border border-neutral-200 dark:border-neutral-800 rounded-xl bg-white/50 dark:bg-neutral-900/50 shadow-sm">
           <h2 className="font-bold text-lg mb-2 text-neutral-900 dark:text-neutral-100">Public Web</h2>
           <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-3">
@@ -49,15 +49,6 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className="p-6 border border-neutral-200 dark:border-neutral-800 rounded-xl bg-white/50 dark:bg-neutral-900/50 shadow-sm">
-          <h2 className="font-bold text-lg mb-2 text-neutral-900 dark:text-neutral-100">S.I.M.S. & Assets</h2>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-3">
-            Student & staff administration, attendance tracking, and 10-state ICT/STEM inventory.
-          </p>
-          <Link href="/docs/sims" className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:underline">
-            Read S.I.M.S. Specs →
-          </Link>
-        </div>
       </div>
     </div>
   );

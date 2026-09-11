@@ -1,5 +1,7 @@
 # Codex Agent Routing
 
+Status: **HISTORICAL — original three-application routing**
+
 | Task | Specialist |
 |---|---|
 | architecture/ADR | slgs-architect |

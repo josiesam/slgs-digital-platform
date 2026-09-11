@@ -1,5 +1,7 @@
 # Phase 0 Foundation
 
+Status: **HISTORICAL — completed foundation record**
+
 ## Scope
 
 Phase 0 establishes an executable monorepo and security-aware infrastructure seams. It does not implement public editorial content, CMS workflows, school records, attendance, assessments, results, fees or asset lifecycle features.

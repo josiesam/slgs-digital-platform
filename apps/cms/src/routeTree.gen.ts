@@ -11,6 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminContentRouteImport } from './routes/admin.content'
+import { Route as AdminPublicWebRouteImport } from './routes/admin.public-web'
+import { Route as AdminSystemStatusRouteImport } from './routes/admin.system-status'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +28,31 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminContentRoute = AdminContentRouteImport.update({
+  id: '/admin/content',
+  path: '/admin/content',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminPublicWebRoute = AdminPublicWebRouteImport.update({
+  id: '/admin/public-web',
+  path: '/admin/public-web',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSystemStatusRoute = AdminSystemStatusRouteImport.update({
+  id: '/admin/system-status',
+  path: '/admin/system-status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -32,30 +62,75 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/admin/content': typeof AdminContentRoute
+  '/admin/public-web': typeof AdminPublicWebRoute
+  '/admin/system-status': typeof AdminSystemStatusRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin/': typeof AdminIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/admin/content': typeof AdminContentRoute
+  '/admin/public-web': typeof AdminPublicWebRoute
+  '/admin/system-status': typeof AdminSystemStatusRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin': typeof AdminIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/admin/content': typeof AdminContentRoute
+  '/admin/public-web': typeof AdminPublicWebRoute
+  '/admin/system-status': typeof AdminSystemStatusRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin/': typeof AdminIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/api/auth/$'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/admin/content'
+    | '/admin/public-web'
+    | '/admin/system-status'
+    | '/admin/users'
+    | '/admin/'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/api/auth/$'
-  id: '__root__' | '/' | '/login' | '/api/auth/$'
+  to:
+    | '/'
+    | '/login'
+    | '/admin/content'
+    | '/admin/public-web'
+    | '/admin/system-status'
+    | '/admin/users'
+    | '/admin'
+    | '/api/auth/$'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/admin/content'
+    | '/admin/public-web'
+    | '/admin/system-status'
+    | '/admin/users'
+    | '/admin/'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  AdminContentRoute: typeof AdminContentRoute
+  AdminPublicWebRoute: typeof AdminPublicWebRoute
+  AdminSystemStatusRoute: typeof AdminSystemStatusRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -75,6 +150,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/content': {
+      id: '/admin/content'
+      path: '/admin/content'
+      fullPath: '/admin/content'
+      preLoaderRoute: typeof AdminContentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/public-web': {
+      id: '/admin/public-web'
+      path: '/admin/public-web'
+      fullPath: '/admin/public-web'
+      preLoaderRoute: typeof AdminPublicWebRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/system-status': {
+      id: '/admin/system-status'
+      path: '/admin/system-status'
+      fullPath: '/admin/system-status'
+      preLoaderRoute: typeof AdminSystemStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -88,6 +198,11 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  AdminContentRoute: AdminContentRoute,
+  AdminPublicWebRoute: AdminPublicWebRoute,
+  AdminSystemStatusRoute: AdminSystemStatusRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminIndexRoute: AdminIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

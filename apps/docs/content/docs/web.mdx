@@ -41,7 +41,7 @@ To guarantee that private school data can never be exposed through the public we
 - **Security-Barrier Views**: `apps/web` queries **only** PostgreSQL views in the `public_content` schema.
 - **Read-Only Database Role**: The runtime queries execute under the restricted `slgs_web` database user role.
 - **Data Transfer Objects (DTOs)**: All data access is mediated through the `@slgs/public-content` package, which enforces strict runtime Zod validation on all public payloads.
-- **No Private Access**: `apps/web` has no database connections or API routes into `cms` draft tables, `sims` administrative records, or `auth` credentials.
+- **No Private Access**: `apps/web` has no database connections or API routes into CMS draft, identity, audit, or credential tables.
 
 ```
                           ┌───────────────────────────┐

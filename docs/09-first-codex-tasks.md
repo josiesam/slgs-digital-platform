@@ -1,5 +1,7 @@
 # First Codex Tasks
 
+Status: **HISTORICAL — completed initial task sequence**
+
 Run these in order.
 
 ## Task 1 — Repository reconnaissance

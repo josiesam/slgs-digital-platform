@@ -1,5 +1,7 @@
 # Recommended Agent Skills
 
+Status: **HISTORICAL — original capability map; use current active scope documents**
+
 Install a small, intentional set. Do not install dozens of overlapping skills.
 
 ## Core

@@ -1,5 +1,7 @@
 # First Agent Prompts
 
+Status: **HISTORICAL — retained as initial delivery context**
+
 ## Architect
 Read all project context. Do not modify files. Produce a repository reconnaissance report, contradictions, missing decisions, risks, and Phase 0 plan.
 

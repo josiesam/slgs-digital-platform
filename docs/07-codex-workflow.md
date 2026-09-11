@@ -1,5 +1,7 @@
 # Codex Workflow
 
+Status: **HISTORICAL — original three-application workflow; use current active scope documents**
+
 ## Golden rule
 
 Codex should inspect before editing.

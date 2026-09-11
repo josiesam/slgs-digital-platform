@@ -47,22 +47,17 @@ export {
   type BootstrapRole,
 } from "./bootstrap";
 export {
-  activateIdentity,
-  authorizeSimsIdentityAdministration,
-  createSimsMembership,
-  deactivateIdentity,
-  provisionPasswordIdentity,
-  revokeIdentitySessions,
-  setSimsMembershipStatus,
-  suspendIdentity,
+  assertCmsUserStatusChangeAllowed,
+  provisionCmsUser,
+  revokeCmsUserSessions,
+  setCmsUserStatus,
 } from "./lifecycle";
 export * from "./policy";
 export {
   assignRole,
   createCmsRoleDefinition,
-  createSimsRoleDefinition,
   revokeRole,
   setCmsRoleDefinitionActive,
-  setSimsRoleDefinitionActive,
+  validateCmsAssignmentScopeValues,
   validateRoleAssignmentScopes,
 } from "./authorization";

@@ -18,7 +18,7 @@ Primary roles:
 - Club users can create/edit only content allowed by their permissions.
 - Publishing should normally require an approval step.
 - Track author, editor, reviewer, timestamps, and publication state.
-- Never allow CMS users to access S.I.M.S. student/staff/finance records.
+- Never expose CMS identity, draft, audit, or private-media data to the public application.
 - Validate uploaded files by type, size, extension, and content where practical.
 - Store media metadata separately from domain records.
 - Preserve an audit trail for content creation, edits, approval, rejection, publication, and deletion.

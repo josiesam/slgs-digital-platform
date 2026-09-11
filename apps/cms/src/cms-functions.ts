@@ -256,6 +256,7 @@ export const getCmsDashboard = createServerFn({ method: "GET" }).handler(
       .orderBy(desc(mediaAsset.createdAt))
       .limit(100);
     const visibleMedia = mediaRows.filter((item) => {
+      if (permissions.includes("media:read:cms")) return true;
       if (item.ownerUserId === identity.userId) return true;
       return evaluateAuthorization({
         identityId: identity.userId,
@@ -459,6 +460,7 @@ export const updateCmsClub = createServerFn({ method: "POST" })
     const { identity, actor } = await requestIdentity();
     const permissions: Permission[] = [
       "club:manage:assigned",
+      "club:manage:cms",
       "configuration:manage:cms",
     ];
     let reason = "missing_permission";

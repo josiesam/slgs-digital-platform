@@ -1,5 +1,7 @@
 # Phase 2C — Attendance Design Gate
 
+Status: **DEPRECATED — superseded by ADR-040; implementation removed from the active product**
+
 Status: **IMPLEMENTATION COMPLETE — CONDITIONALLY CLOSED**
 
 Phase 2C is limited to attendance. This document fixes the safe technical boundary and records the school-policy decisions that must be approved before implementation. It does not create attendance code, tables, permissions or routes.

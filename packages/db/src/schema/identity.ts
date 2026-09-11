@@ -21,7 +21,7 @@ export const identityStatus = pgEnum("identity_status", [
   "suspended",
   "deactivated",
 ]);
-export const applicationName = pgEnum("application_name", ["cms", "sims"]);
+export const applicationName = pgEnum("application_name", ["cms"]);
 export const membershipStatus = pgEnum("membership_status", [
   "active",
   "suspended",
@@ -41,16 +41,7 @@ export const auditOutcome = pgEnum("audit_outcome", [
 ]);
 export const authorizationScopeDimension = pgEnum(
   "authorization_scope_dimension",
-  [
-    "club",
-    "class",
-    "subject",
-    "department",
-    "academic_session",
-    "term",
-    "organisation",
-    "location",
-  ],
+  ["club", "organisation"],
 );
 
 export const user = identitySchema.table(

@@ -1,3 +1,9 @@
+# Superseded implementation roadmap
+
+Status: **HISTORICAL — superseded by ADR-040 and `docs/06-implementation-phases.md`**
+
+The following proposal is retained only as project history. It does not describe or authorize the active product.
+
 Yes. I would keep this as the **official high-level implementation roadmap**. It is coherent with the Phase 0 that Codex has already completed, and I would make only one important adjustment in how we instruct Codex to execute it:
 
 > **Do not let Codex interpret “Phase” as permission to implement every item immediately. Each phase should have internal gates and a written contract before implementation.**

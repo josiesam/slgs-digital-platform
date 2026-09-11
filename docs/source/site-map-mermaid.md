@@ -1,5 +1,7 @@
 # Source: Existing SLGS Sitemap
 
+Status: **HISTORICAL SOURCE**
+
 This file records the sitemap supplied as project context. It is a reference, not a mandate to preserve the legacy site's structure.
 
 Home

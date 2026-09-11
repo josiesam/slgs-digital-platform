@@ -1,5 +1,7 @@
 # Phase 2A — S.I.M.S. Identity and Administration Foundation
 
+Status: **DEPRECATED — superseded by ADR-040; implementation removed from the active product**
+
 Status: **IMPLEMENTATION COMPLETE — OPERATIONAL VERIFICATION PENDING**
 
 Phase 0, 1A and 1B remain closed. Phase 1C and 1D remain conditionally closed. This phase does not implement attendance, students, classes, assessments, assets or any other operational S.I.M.S. domain.

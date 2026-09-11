@@ -1,64 +1,30 @@
 # Applications and Modules
 
-## apps/web — Public Website
+Status: **ACTIVE**
 
-| Module | Responsibility |
-|---|---|
-| Home | public landing page |
-| About | institutional information |
-| Admissions | application information |
-| Academics | academic information |
-| Life | school-life information |
-| Parents | parent-facing public information |
-| News | published journal/news content |
-| Events | public events |
-| Gallery | public galleries |
-| Contact | public contact/location |
+## `apps/web` — Public Website
 
-## apps/cms — Public Content CMS
+Anonymous, read-only presentation of published school content. It consumes the `public_content` security-barrier projections and never reads CMS operational tables or identity data.
 
-| Module | Responsibility |
-|---|---|
-| Dashboard | editorial overview |
-| Pages | managed institutional pages |
-| Articles | news/journal |
-| Events | event publishing |
-| Galleries | photo collections |
-| Media | uploads and metadata |
-| Review | moderation workflow |
-| Publishing | scheduling and publication |
-| Revisions | content history |
-| Audit | editorial activity |
+## `apps/cms` — Content Management System
 
-## apps/sims — S.I.M.S.
+Authenticated editorial administration containing:
 
-| Module | Responsibility |
-|---|---|
-| Dashboard | operational overview |
-| Students | student records |
-| Staff | staff records |
-| Classes | class/group management |
-| Subjects | subject management |
-| Academic Sessions | school years/terms |
-| Attendance | attendance |
-| Assessments | exams/results |
-| Reports | operational reporting |
-| Administration | users/roles/settings |
-| Audit | security/activity records |
+- CMS user provisioning, activation, suspension/deactivation and session revocation;
+- CMS membership, club membership/scope, role assignment and permission enforcement;
+- data-driven club lifecycle management;
+- pages, articles, events, announcements and galleries;
+- draft, review, approval, publication and unpublication workflows;
+- private media upload/download/archive lifecycle;
+- editorial and identity/authorization audit history.
 
-## apps/sims — ICT/STEM Asset Management
+The administration information architecture is organised as Dashboard; Content (Pages, News, Events, Announcements, Gallery and Media Library); Editorial queues; Public Web; Access (Users, Clubs, Roles & Permissions); and System (Audit Log and System Status). `/admin` is a summary command centre; detailed forms remain in their dedicated areas.
 
-| Module | Responsibility |
-|---|---|
-| Asset Dashboard | inventory overview |
-| Assets | master asset records |
-| Categories | asset classification |
-| Locations | rooms/storage locations |
-| Allocations | assignment history |
-| Maintenance | planned maintenance |
-| Repairs | repair workflow |
-| Procurement | acquisition records |
-| Suppliers | supplier records |
-| Consumables | stock-like consumables |
-| Disposal | retirement/disposal |
-| Reports | inventory and lifecycle reports |
+## Shared packages
+
+- `@slgs/auth`: CMS authentication, session reading, bootstrap and identity lifecycle.
+- `@slgs/db`: CMS/Web schemas and database connections.
+- `@slgs/permissions`: closed CMS permission catalogue and default-deny evaluator.
+- `@slgs/cms-domain`: editorial and media domain rules.
+- `@slgs/public-content`: published-only public DTO boundary.
+- UI, configuration and validation packages remain shared where appropriate.

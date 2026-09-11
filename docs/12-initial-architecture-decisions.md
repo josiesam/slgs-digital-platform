@@ -1,5 +1,7 @@
 # Initial Decisions to Confirm
 
+Status: **HISTORICAL — retained as initial decision context**
+
 This list records both resolved foundation choices and product or production decisions that remain open. Accepted choices are documented in `docs/10-decision-log.md`.
 
 1. Package manager/workspace tooling — resolved for Phase 0: pnpm workspaces + Turborepo (ADR-007).

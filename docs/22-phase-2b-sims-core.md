@@ -1,5 +1,7 @@
 # Phase 2B — S.I.M.S. Core
 
+Status: **DEPRECATED — superseded by ADR-040; implementation removed from the active product**
+
 Status: **CONDITIONALLY CLOSED — OPERATIONAL VERIFICATION PENDING**
 
 ## Scope delivered

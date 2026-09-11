@@ -26,17 +26,11 @@ import {
 } from "./policy";
 
 type Database = DatabaseConnection["db"];
-export type BootstrapRole =
-  | "cms_administrator"
-  | "cms_system_administrator"
-  | "sims_access_administrator"
-  | "sims_system_administrator";
+export type BootstrapRole = "cms_administrator" | "cms_system_administrator";
 
 const bootstrapRoleNames: Readonly<Record<BootstrapRole, string>> = {
   cms_administrator: "CMS Administrator",
   cms_system_administrator: "CMS System Administrator",
-  sims_access_administrator: "S.I.M.S. Access Administrator",
-  sims_system_administrator: "S.I.M.S. System Administrator",
 };
 
 export function assertSupportedBootstrapRequest(
@@ -55,28 +49,16 @@ export function resolveBootstrapRole(
   application: Application,
   requestedRole?: string,
 ): BootstrapRole {
-  if (application === "cms") {
-    const role = requestedRole ?? "cms_administrator";
-    if (role !== "cms_administrator" && role !== "cms_system_administrator") {
-      throw new Error(
-        "CMS bootstrap role must be cms_administrator or cms_system_administrator.",
-      );
-    }
-    return role;
+  const role = requestedRole ?? "cms_administrator";
+  if (
+    application !== "cms" ||
+    (role !== "cms_administrator" && role !== "cms_system_administrator")
+  ) {
+    throw new Error(
+      "CMS bootstrap role must be cms_administrator or cms_system_administrator.",
+    );
   }
-  if (application === "sims") {
-    const role = requestedRole ?? "sims_system_administrator";
-    if (
-      role !== "sims_access_administrator" &&
-      role !== "sims_system_administrator"
-    ) {
-      throw new Error(
-        "S.I.M.S. bootstrap role must be sims_access_administrator or sims_system_administrator.",
-      );
-    }
-    return role;
-  }
-  throw new Error("Bootstrap application must be cms or sims.");
+  return role;
 }
 
 export async function addApprovedBootstrapDomain(
@@ -266,12 +248,7 @@ export async function approveAdministratorBootstrap(
     );
 
     const role = request.roleKey as RoleKey;
-    if (
-      role !== "cms_administrator" &&
-      role !== "cms_system_administrator" &&
-      role !== "sims_access_administrator" &&
-      role !== "sims_system_administrator"
-    ) {
+    if (role !== "cms_administrator" && role !== "cms_system_administrator") {
       throw new Error("Bootstrap request contains an unsupported role.");
     }
     assertSupportedBootstrapRequest(request.application, role);
@@ -418,7 +395,10 @@ export async function clearAdministratorBootstrap(
     const targetUserIds = [...new Set(requests.map((r) => r.targetUserId))];
 
     const memberships = await transaction
-      .select({ id: applicationMembership.id, userId: applicationMembership.userId })
+      .select({
+        id: applicationMembership.id,
+        userId: applicationMembership.userId,
+      })
       .from(applicationMembership)
       .where(inArray(applicationMembership.userId, targetUserIds));
 
@@ -464,7 +444,10 @@ export async function clearAdministratorBootstrap(
         .where(eq(applicationMembership.userId, userId))
         .limit(1);
 
-      if (remainingBootstraps.length === 0 && remainingMemberships.length === 0) {
+      if (
+        remainingBootstraps.length === 0 &&
+        remainingMemberships.length === 0
+      ) {
         await transaction.delete(twoFactor).where(eq(twoFactor.userId, userId));
         await transaction.delete(session).where(eq(session.userId, userId));
         await transaction.delete(account).where(eq(account.userId, userId));

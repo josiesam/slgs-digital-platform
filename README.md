@@ -1,29 +1,11 @@
-# SLGS Digital Platform
+# SLGS Public Web + CMS
 
-The Sierra Leone Grammar School Digital Platform is a pnpm/Turborepo monorepo with three intentionally separate applications:
+Production-oriented TypeScript monorepo for the Sierra Leone Grammar School public website and authenticated content management system.
 
-- `apps/web` — public, read-only website;
-- `apps/cms` — private editorial CMS;
-- `apps/sims` — private school administration system.
+- `apps/web` — anonymous published-content website.
+- `apps/cms` — authenticated editorial and CMS administration.
+- `apps/docs` — project documentation site.
 
-Read `AGENTS.md`, `SLGS-TECHNICAL-CONSTITUTION.md`, and the relevant documents under `docs/` before changing behavior.
+Shared packages provide Better Auth integration, PostgreSQL/Drizzle persistence, CMS domain rules, a published-only public read boundary, authorization, validation and UI primitives.
 
-## Requirements
-
-- Node.js 24
-- pnpm 10
-- PostgreSQL for database-backed development (not required for the Phase 0 app shells)
-
-## Commands
-
-```bash
-pnpm install
-pnpm dev
-pnpm check
-```
-
-The development ports are Web `3000`, CMS `3001`, and S.I.M.S. `3002`.
-
-## Environment
-
-Copy the relevant `.env.example` file only when working on server-backed infrastructure. Never commit `.env` files or real school data.
+Run `pnpm check` for formatting, lint, type checks, tests and builds. Current architecture and phased work are documented in `docs/`.

@@ -1,0 +1,296 @@
+/* Script to create roles for SLGS */
+CREATE ROLE slgs_migrator
+    LOGIN
+    PASSWORD 'DataSam@2026.';
+
+CREATE ROLE slgs_web
+    LOGIN
+    PASSWORD 'DataSam@2026.';
+
+CREATE ROLE slgs_cms
+    LOGIN
+    PASSWORD 'DataSam@2026.';
+
+CREATE ROLE slgs_sims
+    LOGIN
+    PASSWORD 'DataSam@2026.';
+
+/* Grant connect to database */
+GRANT CONNECT ON DATABASE slgs TO slgs_migrator, slgs_web, slgs_cms, slgs_sims;
+
+/* Grant usage on schema */
+GRANT USAGE ON SCHEMA public TO slgs_web, slgs_cms, slgs_sims;
+
+/* Grant usage and create on schema to migrator */
+GRANT USAGE, CREATE ON SCHEMA public
+TO slgs_migrator;
+
+/* Grant all privileges on all tables in schema to migrator */
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public
+TO slgs_migrator;
+
+/* Grant all privileges on all sequences in schema to migrator */
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public
+TO slgs_migrator;
+
+/* Grant connect and create on database to migrator */
+GRANT CONNECT ON DATABASE slgs TO slgs_migrator;
+GRANT CREATE ON DATABASE slgs TO slgs_migrator;
+
+/* Grant usage and create on schema to migrator */
+GRANT USAGE, CREATE ON SCHEMA public TO slgs_migrator;
+
+/* Create identity schema */
+CREATE SCHEMA "identity";
+
+/* Drop identity schema */
+DROP SCHEMA "identity" CASCADE;
+
+/* Create platform admin role */
+CREATE ROLE slgs_platform_admin
+    LOGIN
+    PASSWORD 'DataSam@206.';
+
+/* Grant connect to database */
+GRANT CONNECT ON DATABASE slgs
+TO slgs_platform_admin;
+
+/* Grant usage on identity schema */
+GRANT USAGE ON SCHEMA identity
+TO slgs_platform_admin;
+
+/* Grant connect to database */
+GRANT CONNECT ON DATABASE slgs
+TO slgs_platform_admin;
+
+/* Grant usage on identity schema */
+GRANT USAGE ON SCHEMA identity
+TO slgs_platform_admin;
+
+/* Grant all privileges on all tables in identity schema */
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON ALL TABLES IN SCHEMA identity
+TO slgs_platform_admin;
+
+/* Grant usage on identity schema */
+GRANT USAGE ON SCHEMA identity
+TO slgs_platform_admin;
+
+/* Grant all privileges on all tables in identity schema */
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON ALL TABLES IN SCHEMA identity
+TO slgs_platform_admin;
+
+
+/* List all schemas */
+SELECT schema_name FROM information_schema.schemata ORDER BY schema_name;
+/* Output:
+  [{
+    "schema_name": "cms"
+  }, {
+    "schema_name": "drizzle"
+  }, {
+    "schema_name": "identity"
+  }, {
+    "schema_name": "information_schema"
+  }, {
+    "schema_name": "pg_catalog"
+  }, {
+    "schema_name": "pg_toast"
+  }, {
+    "schema_name": "public"
+  }, {
+    "schema_name": "public_content"
+  }]
+
+*/
+
+/* List all roles */
+SELECT
+    rolname,
+    rolsuper,
+    rolinherit,
+    rolcreaterole,
+    rolcreatedb,
+    rolcanlogin
+FROM pg_roles
+ORDER BY rolname;
+
+/* Output:
+  [{
+    "rolname": "cloud_admin",
+    "rolsuper": true,
+    "rolinherit": true,
+    "rolcreaterole": true,
+    "rolcreatedb": true,
+    "rolcanlogin": true
+  }, {
+    "rolname": "neon_service",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": true,
+    "rolcreatedb": true,
+    "rolcanlogin": true
+  }, {
+    "rolname": "neon_superuser",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": true,
+    "rolcreatedb": true,
+    "rolcanlogin": false
+  }, {
+    "rolname": "neondb_owner",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": true,
+    "rolcreatedb": true,
+    "rolcanlogin": true
+  }, {
+    "rolname": "pg_checkpoint",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": false
+  }, {
+    "rolname": "pg_create_subscription",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": false
+  }, {
+    "rolname": "pg_database_owner",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": false
+  }, {
+    "rolname": "pg_execute_server_program",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": false
+  }, {
+    "rolname": "pg_maintain",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": false
+  }, {
+    "rolname": "pg_monitor",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": false
+  }, {
+    "rolname": "pg_read_all_data",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": false
+  }, {
+    "rolname": "pg_read_all_settings",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": false
+  }, {
+    "rolname": "pg_read_all_stats",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": false
+  }, {
+    "rolname": "pg_read_server_files",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": false
+  }, {
+    "rolname": "pg_signal_autovacuum_worker",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": false
+  }, {
+    "rolname": "pg_signal_backend",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": false
+  }, {
+    "rolname": "pg_stat_scan_tables",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": false
+  }, {
+    "rolname": "pg_use_reserved_connections",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": false
+  }, {
+    "rolname": "pg_write_all_data",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": false
+  }, {
+    "rolname": "pg_write_server_files",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": false
+  }, {
+    "rolname": "slgs_cms",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": true
+  }, {
+    "rolname": "slgs_migrator",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": true
+  }, {
+    "rolname": "slgs_platform_admin",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": true
+  }, {
+    "rolname": "slgs_sims",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": true
+  }, {
+    "rolname": "slgs_web",
+    "rolsuper": false,
+    "rolinherit": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolcanlogin": true
+  }]
+*/

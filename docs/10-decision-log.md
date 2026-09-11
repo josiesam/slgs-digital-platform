@@ -1,5 +1,7 @@
 # Architecture Decision Log
 
+Status: **HISTORICAL RECORD WITH ADR-040 AS THE CURRENT PRODUCT-SCOPE DECISION**
+
 ## ADR-001 — One monorepo, three applications
 
 Status: Accepted
@@ -306,3 +308,11 @@ Attendance corrections use immutable superseding evidence rather than destructiv
 Status: Accepted and implemented for Phase 2C
 
 Every attendance write is attributed to the authenticated Better Auth identity derived server-side. Where that identity has an explicit Phase 2B staff link, attendance may also preserve the staff ID. A staff record is not authentication authority, and absence of a staff link cannot be silently replaced by a browser-supplied staff or actor ID.
+
+## ADR-040 — Product scope is Public Web + CMS
+
+Status: Accepted; supersedes ADR-001 where it established a third active application and supersedes ADR-026, ADR-029 and ADR-031 through ADR-039
+
+The school authority and IT staff confirmed that the proposed administrative system is not required. The accepted product scope is the anonymous Public Web and authenticated CMS. Implementation of the former administrative application is discontinued and removed from active code. Its phase documents and migration history remain labelled historical or deprecated.
+
+The CMS is the sole authenticated administrative application. Better Auth is retained for CMS users. Active authorization follows identity → CMS membership → club/organisation scope → CMS role → explicit permission. CMS administrators may manage approved CMS users, clubs and roles according to least privilege and audit requirements. No student identity, staff administrative identity, attendance or academic administration system will be implemented.

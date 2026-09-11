@@ -1,7 +1,8 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 
 import {
   applicationMembership,
+  club,
   roleAssignment,
   roleAssignmentScope,
   roleDefinition,
@@ -36,6 +37,20 @@ export function validateRoleAssignmentScopes(
   }
   if (scopes.some(({ dimension }) => !allowed.has(dimension))) {
     throw new Error("Role assignment scope is not valid for this role.");
+  }
+}
+
+export function validateCmsAssignmentScopeValues(
+  scopes: readonly ScopeBinding[],
+  activeClubIds: ReadonlySet<string>,
+): void {
+  for (const scope of scopes) {
+    if (scope.dimension === "organisation" && scope.value !== "slgs") {
+      throw new Error("CMS organisation scope must be the SLGS organisation.");
+    }
+    if (scope.dimension === "club" && !activeClubIds.has(scope.value)) {
+      throw new Error("CMS club scope must reference an active club.");
+    }
   }
 }
 
@@ -88,64 +103,6 @@ async function requireActorPermissionAudited(
     metadata: { permission },
   });
   requireActorPermission(actor, application, permission);
-}
-
-export async function createSimsRoleDefinition(
-  database: Database,
-  input: {
-    readonly actor: SessionIdentity;
-    readonly key: string;
-    readonly name: string;
-    readonly description: string;
-    readonly permissions: readonly string[];
-    readonly scopeDimensions: readonly string[];
-  },
-): Promise<string> {
-  await requireActorPermissionAudited(
-    database,
-    input.actor,
-    "sims",
-    permissionSchema.parse("role:create:sims"),
-  );
-  const permissions = input.permissions.map((value) =>
-    permissionSchema.parse(value),
-  );
-  if (permissions.some((value) => permissionApplication(value) !== "sims")) {
-    throw new Error("Role permission does not belong to S.I.M.S.");
-  }
-  const scopeDimensions = input.scopeDimensions.map((value) =>
-    scopeDimensionSchema.parse(value),
-  );
-  if (!input.key.match(/^[a-z][a-z0-9_]*$/)) {
-    throw new Error("Role key is invalid.");
-  }
-  const roleId = crypto.randomUUID();
-  await database.transaction(async (transaction) => {
-    await transaction.insert(roleDefinition).values({
-      id: roleId,
-      application: "sims",
-      key: input.key,
-      name: input.name.trim(),
-      description: input.description.trim(),
-      permissions,
-      scopeDimensions,
-      systemManaged: false,
-      active: true,
-    });
-    await transaction.insert(securityAuditEvent).values({
-      id: crypto.randomUUID(),
-      eventType: "authorization.role.created",
-      application: "sims",
-      actorUserId: input.actor.userId,
-      sessionId: input.actor.sessionId,
-      targetType: "role_definition",
-      targetId: roleId,
-      outcome: "success",
-      reasonCode: "role_create_authorized",
-      metadata: { key: input.key },
-    });
-  });
-  return roleId;
 }
 
 export async function createCmsRoleDefinition(
@@ -258,60 +215,6 @@ export async function setCmsRoleDefinitionActive(
   });
 }
 
-export async function setSimsRoleDefinitionActive(
-  database: Database,
-  input: {
-    readonly actor: SessionIdentity;
-    readonly roleId: string;
-    readonly active: boolean;
-  },
-): Promise<void> {
-  await requireActorPermissionAudited(
-    database,
-    input.actor,
-    "sims",
-    permissionSchema.parse(
-      input.active ? "role:update:sims" : "role:deactivate:sims",
-    ),
-  );
-  await database.transaction(async (transaction) => {
-    const [role] = await transaction
-      .select({
-        id: roleDefinition.id,
-        systemManaged: roleDefinition.systemManaged,
-      })
-      .from(roleDefinition)
-      .where(
-        and(
-          eq(roleDefinition.id, input.roleId),
-          eq(roleDefinition.application, "sims"),
-        ),
-      )
-      .limit(1);
-    if (!role || role.systemManaged) {
-      throw new Error("Custom S.I.M.S. role was not found.");
-    }
-    await transaction
-      .update(roleDefinition)
-      .set({ active: input.active, updatedAt: new Date() })
-      .where(eq(roleDefinition.id, role.id));
-    await transaction.insert(securityAuditEvent).values({
-      id: crypto.randomUUID(),
-      eventType: input.active
-        ? "authorization.role.activated"
-        : "authorization.role.deactivated",
-      application: "sims",
-      actorUserId: input.actor.userId,
-      sessionId: input.actor.sessionId,
-      targetType: "role_definition",
-      targetId: role.id,
-      outcome: "success",
-      reasonCode: "role_state_change_authorized",
-      metadata: {},
-    });
-  });
-}
-
 export async function assignRole(
   database: Database,
   input: {
@@ -324,8 +227,7 @@ export async function assignRole(
   },
 ): Promise<string> {
   const application = applicationSchema.parse(input.application);
-  const required =
-    application === "cms" ? "role:assign:cms" : "role:assign:approved";
+  const required = "role:assign:cms";
   await requireActorPermissionAudited(
     database,
     input.actor,
@@ -371,6 +273,21 @@ export async function assignRole(
       throw new Error("Approved role for this application is required.");
     }
     validateRoleAssignmentScopes(role.scopeDimensions, scopes);
+    const requestedClubIds = scopes
+      .filter((scope) => scope.dimension === "club")
+      .map((scope) => scope.value);
+    const activeClubs = requestedClubIds.length
+      ? await transaction
+          .select({ id: club.id })
+          .from(club)
+          .where(
+            and(inArray(club.id, requestedClubIds), eq(club.status, "active")),
+          )
+      : [];
+    validateCmsAssignmentScopeValues(
+      scopes,
+      new Set(activeClubs.map(({ id }) => id)),
+    );
     await transaction.insert(roleAssignment).values({
       id: assignmentId,
       membershipId: membership.id,
@@ -413,8 +330,7 @@ export async function revokeRole(
     readonly reason: string;
   },
 ): Promise<void> {
-  const required =
-    input.application === "cms" ? "role:revoke:cms" : "role:revoke:approved";
+  const required = "role:revoke:cms";
   await requireActorPermissionAudited(
     database,
     input.actor,
