@@ -1,6 +1,6 @@
-import { randomBytes } from "node:crypto";
-import { chmod, readFile, writeFile } from "node:fs/promises";
-import { stdin, stdout } from "node:process";
+import { randomBytes, randomUUID } from "crypto";
+import { chmod, readFile, writeFile } from "fs/promises";
+import { stdin, stdout } from "process";
 
 import { createDatabase, securityAuditEvent } from "@slgs/db";
 
@@ -159,7 +159,7 @@ async function configurePlatformAdministratorCredential(
     await chmod(envPath, 0o600);
 
     await connection.db.insert(securityAuditEvent).values({
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       eventType: "platform_admin_database_role.configured",
       actorUserId: operatorReference,
       targetType: "database_role",

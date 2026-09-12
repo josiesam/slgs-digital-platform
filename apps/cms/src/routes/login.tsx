@@ -1,5 +1,6 @@
 import { createAuthClient } from "better-auth/react";
-import { useState, type FormEvent } from "react";
+import type { SubmitEvent } from "react";
+import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 const authClient = createAuthClient();
@@ -10,7 +11,7 @@ function LoginPage() {
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage("");
     const data = new FormData(event.currentTarget);
@@ -22,7 +23,7 @@ function LoginPage() {
       setMessage("Sign-in was not accepted.");
       return;
     }
-    await navigate({ to: "/" });
+    await navigate({ to: "/dashboard" });
   }
 
   return <LoginForm application="CMS" message={message} onSubmit={submit} />;
@@ -31,47 +32,47 @@ function LoginPage() {
 export function LoginForm(props: {
   application: string;
   message: string;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
 }) {
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-6 py-16">
-      <div>
-        <p className="text-sm text-muted-foreground">
-          SLGS private application
-        </p>
-        <h1 className="text-3xl font-semibold">
-          Sign in to {props.application}
-        </h1>
-      </div>
-      <form className="flex flex-col gap-4" onSubmit={props.onSubmit}>
-        <label className="flex flex-col gap-2">
-          Email
-          <input
-            className="rounded-md border bg-background px-3 py-2"
-            name="email"
-            type="email"
-            autoComplete="username"
-            required
-          />
-        </label>
-        <label className="flex flex-col gap-2">
-          Password
-          <input
-            className="rounded-md border bg-background px-3 py-2"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-          />
-        </label>
-        {props.message ? <p role="alert">{props.message}</p> : null}
-        <button
-          className="rounded-md bg-primary px-4 py-2 text-primary-foreground"
-          type="submit"
-        >
-          Sign in
-        </button>
-      </form>
-    </main>
+    <section className="home-hero">
+      <main className="auth-card">
+        <div className="mb-4 flex justify-center flex-col items-center">
+          <img src="/favicon-96x96.png" alt="logo" width="64px" />
+          <h1 className="text-3xl font-semibold">
+            Sign in to {props.application}
+          </h1>
+        </div>
+        <form className="flex flex-col gap-4" onSubmit={props.onSubmit}>
+          <label className="flex flex-col gap-2">
+            Email
+            <input
+              className="rounded-md border bg-background px-3 py-2"
+              name="email"
+              type="email"
+              autoComplete="username"
+              required
+            />
+          </label>
+          <label className="flex flex-col gap-2">
+            Password
+            <input
+              className="rounded-md border bg-background px-3 py-2"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+            />
+          </label>
+          {props.message ? <p role="alert">{props.message}</p> : null}
+          <button
+            className="rounded-md bg-primary px-4 py-2 text-primary-foreground"
+            type="submit"
+          >
+            Sign in
+          </button>
+        </form>
+      </main>
+    </section>
   );
 }

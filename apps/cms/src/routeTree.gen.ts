@@ -10,23 +10,70 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedTestRouteImport } from './routes/_authenticated/test'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
 import { Route as AdminPublicWebRouteImport } from './routes/admin.public-web'
 import { Route as AdminSystemStatusRouteImport } from './routes/admin.system-status'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
+import { Route as AuthenticatedDashboardAccessRouteImport } from './routes/_authenticated/dashboard/_access'
+import { Route as AuthenticatedDashboardContentRouteImport } from './routes/_authenticated/dashboard/_content'
+import { Route as AuthenticatedDashboardEditorialRouteImport } from './routes/_authenticated/dashboard/_editorial'
+import { Route as AuthenticatedDashboardPublicRouteImport } from './routes/_authenticated/dashboard/_public'
+import { Route as AuthenticatedDashboardSystemRouteImport } from './routes/_authenticated/dashboard/_system'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AuthenticatedDashboardAccessAccessIndexRouteImport } from './routes/_authenticated/dashboard/_access/access.index'
+import { Route as AuthenticatedDashboardAccessAccessClubsRouteImport } from './routes/_authenticated/dashboard/_access/access.clubs'
+import { Route as AuthenticatedDashboardAccessAccessRolesRouteImport } from './routes/_authenticated/dashboard/_access/access.roles'
+import { Route as AuthenticatedDashboardAccessAccessUsersRouteImport } from './routes/_authenticated/dashboard/_access/access.users'
+import { Route as AuthenticatedDashboardContentContentIndexRouteImport } from './routes/_authenticated/dashboard/_content/content.index'
+import { Route as AuthenticatedDashboardContentContentAnnouncementRouteImport } from './routes/_authenticated/dashboard/_content/content.announcement'
+import { Route as AuthenticatedDashboardContentContentEventsRouteImport } from './routes/_authenticated/dashboard/_content/content.events'
+import { Route as AuthenticatedDashboardContentContentGalleryRouteImport } from './routes/_authenticated/dashboard/_content/content.gallery'
+import { Route as AuthenticatedDashboardContentContentMediaRouteImport } from './routes/_authenticated/dashboard/_content/content.media'
+import { Route as AuthenticatedDashboardContentContentNewsRouteImport } from './routes/_authenticated/dashboard/_content/content.news'
+import { Route as AuthenticatedDashboardContentContentPagesRouteImport } from './routes/_authenticated/dashboard/_content/content.pages'
+import { Route as AuthenticatedDashboardEditorialEditorialIndexRouteImport } from './routes/_authenticated/dashboard/_editorial/editorial.index'
+import { Route as AuthenticatedDashboardEditorialEditorialApprovalRouteImport } from './routes/_authenticated/dashboard/_editorial/editorial.approval'
+import { Route as AuthenticatedDashboardEditorialEditorialDraftsRouteImport } from './routes/_authenticated/dashboard/_editorial/editorial.drafts'
+import { Route as AuthenticatedDashboardEditorialEditorialPublishedRouteImport } from './routes/_authenticated/dashboard/_editorial/editorial.published'
+import { Route as AuthenticatedDashboardEditorialEditorialReviewRouteImport } from './routes/_authenticated/dashboard/_editorial/editorial.review'
+import { Route as AuthenticatedDashboardPublicPublicIndexRouteImport } from './routes/_authenticated/dashboard/_public/public.index'
+import { Route as AuthenticatedDashboardPublicPublicNavigationRouteImport } from './routes/_authenticated/dashboard/_public/public.navigation'
+import { Route as AuthenticatedDashboardPublicPublicPagesRouteImport } from './routes/_authenticated/dashboard/_public/public.pages'
+import { Route as AuthenticatedDashboardPublicPublicPreviewRouteImport } from './routes/_authenticated/dashboard/_public/public.preview'
+import { Route as AuthenticatedDashboardPublicPublicPublishedRouteImport } from './routes/_authenticated/dashboard/_public/public.published'
+import { Route as AuthenticatedDashboardSystemSystemIndexRouteImport } from './routes/_authenticated/dashboard/_system/system.index'
+import { Route as AuthenticatedDashboardSystemSystemLogRouteImport } from './routes/_authenticated/dashboard/_system/system.log'
+import { Route as AuthenticatedDashboardSystemSystemStatusRouteImport } from './routes/_authenticated/dashboard/_system/system.status'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedTestRoute = AuthenticatedTestRouteImport.update({
+  id: '/test',
+  path: '/test',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
@@ -53,78 +100,426 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
   path: '/admin/users',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedDashboardIndexRoute =
+  AuthenticatedDashboardIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardAccessRoute =
+  AuthenticatedDashboardAccessRouteImport.update({
+    id: '/_access',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardContentRoute =
+  AuthenticatedDashboardContentRouteImport.update({
+    id: '/_content',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardEditorialRoute =
+  AuthenticatedDashboardEditorialRouteImport.update({
+    id: '/_editorial',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardPublicRoute =
+  AuthenticatedDashboardPublicRouteImport.update({
+    id: '/_public',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardSystemRoute =
+  AuthenticatedDashboardSystemRouteImport.update({
+    id: '/_system',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedDashboardAccessAccessIndexRoute =
+  AuthenticatedDashboardAccessAccessIndexRouteImport.update({
+    id: '/access/',
+    path: '/access/',
+    getParentRoute: () => AuthenticatedDashboardAccessRoute,
+  } as any)
+const AuthenticatedDashboardAccessAccessClubsRoute =
+  AuthenticatedDashboardAccessAccessClubsRouteImport.update({
+    id: '/access/clubs',
+    path: '/access/clubs',
+    getParentRoute: () => AuthenticatedDashboardAccessRoute,
+  } as any)
+const AuthenticatedDashboardAccessAccessRolesRoute =
+  AuthenticatedDashboardAccessAccessRolesRouteImport.update({
+    id: '/access/roles',
+    path: '/access/roles',
+    getParentRoute: () => AuthenticatedDashboardAccessRoute,
+  } as any)
+const AuthenticatedDashboardAccessAccessUsersRoute =
+  AuthenticatedDashboardAccessAccessUsersRouteImport.update({
+    id: '/access/users',
+    path: '/access/users',
+    getParentRoute: () => AuthenticatedDashboardAccessRoute,
+  } as any)
+const AuthenticatedDashboardContentContentIndexRoute =
+  AuthenticatedDashboardContentContentIndexRouteImport.update({
+    id: '/content/',
+    path: '/content/',
+    getParentRoute: () => AuthenticatedDashboardContentRoute,
+  } as any)
+const AuthenticatedDashboardContentContentAnnouncementRoute =
+  AuthenticatedDashboardContentContentAnnouncementRouteImport.update({
+    id: '/content/announcement',
+    path: '/content/announcement',
+    getParentRoute: () => AuthenticatedDashboardContentRoute,
+  } as any)
+const AuthenticatedDashboardContentContentEventsRoute =
+  AuthenticatedDashboardContentContentEventsRouteImport.update({
+    id: '/content/events',
+    path: '/content/events',
+    getParentRoute: () => AuthenticatedDashboardContentRoute,
+  } as any)
+const AuthenticatedDashboardContentContentGalleryRoute =
+  AuthenticatedDashboardContentContentGalleryRouteImport.update({
+    id: '/content/gallery',
+    path: '/content/gallery',
+    getParentRoute: () => AuthenticatedDashboardContentRoute,
+  } as any)
+const AuthenticatedDashboardContentContentMediaRoute =
+  AuthenticatedDashboardContentContentMediaRouteImport.update({
+    id: '/content/media',
+    path: '/content/media',
+    getParentRoute: () => AuthenticatedDashboardContentRoute,
+  } as any)
+const AuthenticatedDashboardContentContentNewsRoute =
+  AuthenticatedDashboardContentContentNewsRouteImport.update({
+    id: '/content/news',
+    path: '/content/news',
+    getParentRoute: () => AuthenticatedDashboardContentRoute,
+  } as any)
+const AuthenticatedDashboardContentContentPagesRoute =
+  AuthenticatedDashboardContentContentPagesRouteImport.update({
+    id: '/content/pages',
+    path: '/content/pages',
+    getParentRoute: () => AuthenticatedDashboardContentRoute,
+  } as any)
+const AuthenticatedDashboardEditorialEditorialIndexRoute =
+  AuthenticatedDashboardEditorialEditorialIndexRouteImport.update({
+    id: '/editorial/',
+    path: '/editorial/',
+    getParentRoute: () => AuthenticatedDashboardEditorialRoute,
+  } as any)
+const AuthenticatedDashboardEditorialEditorialApprovalRoute =
+  AuthenticatedDashboardEditorialEditorialApprovalRouteImport.update({
+    id: '/editorial/approval',
+    path: '/editorial/approval',
+    getParentRoute: () => AuthenticatedDashboardEditorialRoute,
+  } as any)
+const AuthenticatedDashboardEditorialEditorialDraftsRoute =
+  AuthenticatedDashboardEditorialEditorialDraftsRouteImport.update({
+    id: '/editorial/drafts',
+    path: '/editorial/drafts',
+    getParentRoute: () => AuthenticatedDashboardEditorialRoute,
+  } as any)
+const AuthenticatedDashboardEditorialEditorialPublishedRoute =
+  AuthenticatedDashboardEditorialEditorialPublishedRouteImport.update({
+    id: '/editorial/published',
+    path: '/editorial/published',
+    getParentRoute: () => AuthenticatedDashboardEditorialRoute,
+  } as any)
+const AuthenticatedDashboardEditorialEditorialReviewRoute =
+  AuthenticatedDashboardEditorialEditorialReviewRouteImport.update({
+    id: '/editorial/review',
+    path: '/editorial/review',
+    getParentRoute: () => AuthenticatedDashboardEditorialRoute,
+  } as any)
+const AuthenticatedDashboardPublicPublicIndexRoute =
+  AuthenticatedDashboardPublicPublicIndexRouteImport.update({
+    id: '/public/',
+    path: '/public/',
+    getParentRoute: () => AuthenticatedDashboardPublicRoute,
+  } as any)
+const AuthenticatedDashboardPublicPublicNavigationRoute =
+  AuthenticatedDashboardPublicPublicNavigationRouteImport.update({
+    id: '/public/navigation',
+    path: '/public/navigation',
+    getParentRoute: () => AuthenticatedDashboardPublicRoute,
+  } as any)
+const AuthenticatedDashboardPublicPublicPagesRoute =
+  AuthenticatedDashboardPublicPublicPagesRouteImport.update({
+    id: '/public/pages',
+    path: '/public/pages',
+    getParentRoute: () => AuthenticatedDashboardPublicRoute,
+  } as any)
+const AuthenticatedDashboardPublicPublicPreviewRoute =
+  AuthenticatedDashboardPublicPublicPreviewRouteImport.update({
+    id: '/public/preview',
+    path: '/public/preview',
+    getParentRoute: () => AuthenticatedDashboardPublicRoute,
+  } as any)
+const AuthenticatedDashboardPublicPublicPublishedRoute =
+  AuthenticatedDashboardPublicPublicPublishedRouteImport.update({
+    id: '/public/published',
+    path: '/public/published',
+    getParentRoute: () => AuthenticatedDashboardPublicRoute,
+  } as any)
+const AuthenticatedDashboardSystemSystemIndexRoute =
+  AuthenticatedDashboardSystemSystemIndexRouteImport.update({
+    id: '/system/',
+    path: '/system/',
+    getParentRoute: () => AuthenticatedDashboardSystemRoute,
+  } as any)
+const AuthenticatedDashboardSystemSystemLogRoute =
+  AuthenticatedDashboardSystemSystemLogRouteImport.update({
+    id: '/system/log',
+    path: '/system/log',
+    getParentRoute: () => AuthenticatedDashboardSystemRoute,
+  } as any)
+const AuthenticatedDashboardSystemSystemStatusRoute =
+  AuthenticatedDashboardSystemSystemStatusRouteImport.update({
+    id: '/system/status',
+    path: '/system/status',
+    getParentRoute: () => AuthenticatedDashboardSystemRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/test': typeof AuthenticatedTestRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/public-web': typeof AdminPublicWebRoute
   '/admin/system-status': typeof AdminSystemStatusRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/dashboard/access/clubs': typeof AuthenticatedDashboardAccessAccessClubsRoute
+  '/dashboard/access/roles': typeof AuthenticatedDashboardAccessAccessRolesRoute
+  '/dashboard/access/users': typeof AuthenticatedDashboardAccessAccessUsersRoute
+  '/dashboard/content/announcement': typeof AuthenticatedDashboardContentContentAnnouncementRoute
+  '/dashboard/content/events': typeof AuthenticatedDashboardContentContentEventsRoute
+  '/dashboard/content/gallery': typeof AuthenticatedDashboardContentContentGalleryRoute
+  '/dashboard/content/media': typeof AuthenticatedDashboardContentContentMediaRoute
+  '/dashboard/content/news': typeof AuthenticatedDashboardContentContentNewsRoute
+  '/dashboard/content/pages': typeof AuthenticatedDashboardContentContentPagesRoute
+  '/dashboard/editorial/approval': typeof AuthenticatedDashboardEditorialEditorialApprovalRoute
+  '/dashboard/editorial/drafts': typeof AuthenticatedDashboardEditorialEditorialDraftsRoute
+  '/dashboard/editorial/published': typeof AuthenticatedDashboardEditorialEditorialPublishedRoute
+  '/dashboard/editorial/review': typeof AuthenticatedDashboardEditorialEditorialReviewRoute
+  '/dashboard/public/navigation': typeof AuthenticatedDashboardPublicPublicNavigationRoute
+  '/dashboard/public/pages': typeof AuthenticatedDashboardPublicPublicPagesRoute
+  '/dashboard/public/preview': typeof AuthenticatedDashboardPublicPublicPreviewRoute
+  '/dashboard/public/published': typeof AuthenticatedDashboardPublicPublicPublishedRoute
+  '/dashboard/system/log': typeof AuthenticatedDashboardSystemSystemLogRoute
+  '/dashboard/system/status': typeof AuthenticatedDashboardSystemSystemStatusRoute
+  '/dashboard/access/': typeof AuthenticatedDashboardAccessAccessIndexRoute
+  '/dashboard/content/': typeof AuthenticatedDashboardContentContentIndexRoute
+  '/dashboard/editorial/': typeof AuthenticatedDashboardEditorialEditorialIndexRoute
+  '/dashboard/public/': typeof AuthenticatedDashboardPublicPublicIndexRoute
+  '/dashboard/system/': typeof AuthenticatedDashboardSystemSystemIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/test': typeof AuthenticatedTestRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/public-web': typeof AdminPublicWebRoute
   '/admin/system-status': typeof AdminSystemStatusRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin': typeof AdminIndexRoute
+  '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/dashboard/access/clubs': typeof AuthenticatedDashboardAccessAccessClubsRoute
+  '/dashboard/access/roles': typeof AuthenticatedDashboardAccessAccessRolesRoute
+  '/dashboard/access/users': typeof AuthenticatedDashboardAccessAccessUsersRoute
+  '/dashboard/content/announcement': typeof AuthenticatedDashboardContentContentAnnouncementRoute
+  '/dashboard/content/events': typeof AuthenticatedDashboardContentContentEventsRoute
+  '/dashboard/content/gallery': typeof AuthenticatedDashboardContentContentGalleryRoute
+  '/dashboard/content/media': typeof AuthenticatedDashboardContentContentMediaRoute
+  '/dashboard/content/news': typeof AuthenticatedDashboardContentContentNewsRoute
+  '/dashboard/content/pages': typeof AuthenticatedDashboardContentContentPagesRoute
+  '/dashboard/editorial/approval': typeof AuthenticatedDashboardEditorialEditorialApprovalRoute
+  '/dashboard/editorial/drafts': typeof AuthenticatedDashboardEditorialEditorialDraftsRoute
+  '/dashboard/editorial/published': typeof AuthenticatedDashboardEditorialEditorialPublishedRoute
+  '/dashboard/editorial/review': typeof AuthenticatedDashboardEditorialEditorialReviewRoute
+  '/dashboard/public/navigation': typeof AuthenticatedDashboardPublicPublicNavigationRoute
+  '/dashboard/public/pages': typeof AuthenticatedDashboardPublicPublicPagesRoute
+  '/dashboard/public/preview': typeof AuthenticatedDashboardPublicPublicPreviewRoute
+  '/dashboard/public/published': typeof AuthenticatedDashboardPublicPublicPublishedRoute
+  '/dashboard/system/log': typeof AuthenticatedDashboardSystemSystemLogRoute
+  '/dashboard/system/status': typeof AuthenticatedDashboardSystemSystemStatusRoute
+  '/dashboard/access': typeof AuthenticatedDashboardAccessAccessIndexRoute
+  '/dashboard/content': typeof AuthenticatedDashboardContentContentIndexRoute
+  '/dashboard/editorial': typeof AuthenticatedDashboardEditorialEditorialIndexRoute
+  '/dashboard/public': typeof AuthenticatedDashboardPublicPublicIndexRoute
+  '/dashboard/system': typeof AuthenticatedDashboardSystemSystemIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/_authenticated/test': typeof AuthenticatedTestRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/public-web': typeof AdminPublicWebRoute
   '/admin/system-status': typeof AdminSystemStatusRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
+  '/_authenticated/dashboard/_access': typeof AuthenticatedDashboardAccessRouteWithChildren
+  '/_authenticated/dashboard/_content': typeof AuthenticatedDashboardContentRouteWithChildren
+  '/_authenticated/dashboard/_editorial': typeof AuthenticatedDashboardEditorialRouteWithChildren
+  '/_authenticated/dashboard/_public': typeof AuthenticatedDashboardPublicRouteWithChildren
+  '/_authenticated/dashboard/_system': typeof AuthenticatedDashboardSystemRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/_authenticated/dashboard/_access/access/clubs': typeof AuthenticatedDashboardAccessAccessClubsRoute
+  '/_authenticated/dashboard/_access/access/roles': typeof AuthenticatedDashboardAccessAccessRolesRoute
+  '/_authenticated/dashboard/_access/access/users': typeof AuthenticatedDashboardAccessAccessUsersRoute
+  '/_authenticated/dashboard/_content/content/announcement': typeof AuthenticatedDashboardContentContentAnnouncementRoute
+  '/_authenticated/dashboard/_content/content/events': typeof AuthenticatedDashboardContentContentEventsRoute
+  '/_authenticated/dashboard/_content/content/gallery': typeof AuthenticatedDashboardContentContentGalleryRoute
+  '/_authenticated/dashboard/_content/content/media': typeof AuthenticatedDashboardContentContentMediaRoute
+  '/_authenticated/dashboard/_content/content/news': typeof AuthenticatedDashboardContentContentNewsRoute
+  '/_authenticated/dashboard/_content/content/pages': typeof AuthenticatedDashboardContentContentPagesRoute
+  '/_authenticated/dashboard/_editorial/editorial/approval': typeof AuthenticatedDashboardEditorialEditorialApprovalRoute
+  '/_authenticated/dashboard/_editorial/editorial/drafts': typeof AuthenticatedDashboardEditorialEditorialDraftsRoute
+  '/_authenticated/dashboard/_editorial/editorial/published': typeof AuthenticatedDashboardEditorialEditorialPublishedRoute
+  '/_authenticated/dashboard/_editorial/editorial/review': typeof AuthenticatedDashboardEditorialEditorialReviewRoute
+  '/_authenticated/dashboard/_public/public/navigation': typeof AuthenticatedDashboardPublicPublicNavigationRoute
+  '/_authenticated/dashboard/_public/public/pages': typeof AuthenticatedDashboardPublicPublicPagesRoute
+  '/_authenticated/dashboard/_public/public/preview': typeof AuthenticatedDashboardPublicPublicPreviewRoute
+  '/_authenticated/dashboard/_public/public/published': typeof AuthenticatedDashboardPublicPublicPublishedRoute
+  '/_authenticated/dashboard/_system/system/log': typeof AuthenticatedDashboardSystemSystemLogRoute
+  '/_authenticated/dashboard/_system/system/status': typeof AuthenticatedDashboardSystemSystemStatusRoute
+  '/_authenticated/dashboard/_access/access/': typeof AuthenticatedDashboardAccessAccessIndexRoute
+  '/_authenticated/dashboard/_content/content/': typeof AuthenticatedDashboardContentContentIndexRoute
+  '/_authenticated/dashboard/_editorial/editorial/': typeof AuthenticatedDashboardEditorialEditorialIndexRoute
+  '/_authenticated/dashboard/_public/public/': typeof AuthenticatedDashboardPublicPublicIndexRoute
+  '/_authenticated/dashboard/_system/system/': typeof AuthenticatedDashboardSystemSystemIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/login'
+    | '/dashboard'
+    | '/test'
     | '/admin/content'
     | '/admin/public-web'
     | '/admin/system-status'
     | '/admin/users'
     | '/admin/'
     | '/api/auth/$'
+    | '/dashboard/'
+    | '/dashboard/access/clubs'
+    | '/dashboard/access/roles'
+    | '/dashboard/access/users'
+    | '/dashboard/content/announcement'
+    | '/dashboard/content/events'
+    | '/dashboard/content/gallery'
+    | '/dashboard/content/media'
+    | '/dashboard/content/news'
+    | '/dashboard/content/pages'
+    | '/dashboard/editorial/approval'
+    | '/dashboard/editorial/drafts'
+    | '/dashboard/editorial/published'
+    | '/dashboard/editorial/review'
+    | '/dashboard/public/navigation'
+    | '/dashboard/public/pages'
+    | '/dashboard/public/preview'
+    | '/dashboard/public/published'
+    | '/dashboard/system/log'
+    | '/dashboard/system/status'
+    | '/dashboard/access/'
+    | '/dashboard/content/'
+    | '/dashboard/editorial/'
+    | '/dashboard/public/'
+    | '/dashboard/system/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
+    | '/test'
     | '/admin/content'
     | '/admin/public-web'
     | '/admin/system-status'
     | '/admin/users'
     | '/admin'
+    | '/dashboard'
     | '/api/auth/$'
+    | '/dashboard/access/clubs'
+    | '/dashboard/access/roles'
+    | '/dashboard/access/users'
+    | '/dashboard/content/announcement'
+    | '/dashboard/content/events'
+    | '/dashboard/content/gallery'
+    | '/dashboard/content/media'
+    | '/dashboard/content/news'
+    | '/dashboard/content/pages'
+    | '/dashboard/editorial/approval'
+    | '/dashboard/editorial/drafts'
+    | '/dashboard/editorial/published'
+    | '/dashboard/editorial/review'
+    | '/dashboard/public/navigation'
+    | '/dashboard/public/pages'
+    | '/dashboard/public/preview'
+    | '/dashboard/public/published'
+    | '/dashboard/system/log'
+    | '/dashboard/system/status'
+    | '/dashboard/access'
+    | '/dashboard/content'
+    | '/dashboard/editorial'
+    | '/dashboard/public'
+    | '/dashboard/system'
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/login'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/test'
     | '/admin/content'
     | '/admin/public-web'
     | '/admin/system-status'
     | '/admin/users'
     | '/admin/'
+    | '/_authenticated/dashboard/_access'
+    | '/_authenticated/dashboard/_content'
+    | '/_authenticated/dashboard/_editorial'
+    | '/_authenticated/dashboard/_public'
+    | '/_authenticated/dashboard/_system'
     | '/api/auth/$'
+    | '/_authenticated/dashboard/'
+    | '/_authenticated/dashboard/_access/access/clubs'
+    | '/_authenticated/dashboard/_access/access/roles'
+    | '/_authenticated/dashboard/_access/access/users'
+    | '/_authenticated/dashboard/_content/content/announcement'
+    | '/_authenticated/dashboard/_content/content/events'
+    | '/_authenticated/dashboard/_content/content/gallery'
+    | '/_authenticated/dashboard/_content/content/media'
+    | '/_authenticated/dashboard/_content/content/news'
+    | '/_authenticated/dashboard/_content/content/pages'
+    | '/_authenticated/dashboard/_editorial/editorial/approval'
+    | '/_authenticated/dashboard/_editorial/editorial/drafts'
+    | '/_authenticated/dashboard/_editorial/editorial/published'
+    | '/_authenticated/dashboard/_editorial/editorial/review'
+    | '/_authenticated/dashboard/_public/public/navigation'
+    | '/_authenticated/dashboard/_public/public/pages'
+    | '/_authenticated/dashboard/_public/public/preview'
+    | '/_authenticated/dashboard/_public/public/published'
+    | '/_authenticated/dashboard/_system/system/log'
+    | '/_authenticated/dashboard/_system/system/status'
+    | '/_authenticated/dashboard/_access/access/'
+    | '/_authenticated/dashboard/_content/content/'
+    | '/_authenticated/dashboard/_editorial/editorial/'
+    | '/_authenticated/dashboard/_public/public/'
+    | '/_authenticated/dashboard/_system/system/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
   AdminContentRoute: typeof AdminContentRoute
   AdminPublicWebRoute: typeof AdminPublicWebRoute
@@ -143,12 +538,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/test': {
+      id: '/_authenticated/test'
+      path: '/test'
+      fullPath: '/test'
+      preLoaderRoute: typeof AuthenticatedTestRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/admin/': {
       id: '/admin/'
@@ -185,6 +601,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/dashboard/': {
+      id: '/_authenticated/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/_access': {
+      id: '/_authenticated/dashboard/_access'
+      path: ''
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardAccessRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/_content': {
+      id: '/_authenticated/dashboard/_content'
+      path: ''
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardContentRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/_editorial': {
+      id: '/_authenticated/dashboard/_editorial'
+      path: ''
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardEditorialRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/_public': {
+      id: '/_authenticated/dashboard/_public'
+      path: ''
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardPublicRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/_system': {
+      id: '/_authenticated/dashboard/_system'
+      path: ''
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardSystemRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -192,11 +650,355 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/dashboard/_access/access/': {
+      id: '/_authenticated/dashboard/_access/access/'
+      path: '/access'
+      fullPath: '/dashboard/access/'
+      preLoaderRoute: typeof AuthenticatedDashboardAccessAccessIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardAccessRoute
+    }
+    '/_authenticated/dashboard/_access/access/clubs': {
+      id: '/_authenticated/dashboard/_access/access/clubs'
+      path: '/access/clubs'
+      fullPath: '/dashboard/access/clubs'
+      preLoaderRoute: typeof AuthenticatedDashboardAccessAccessClubsRouteImport
+      parentRoute: typeof AuthenticatedDashboardAccessRoute
+    }
+    '/_authenticated/dashboard/_access/access/roles': {
+      id: '/_authenticated/dashboard/_access/access/roles'
+      path: '/access/roles'
+      fullPath: '/dashboard/access/roles'
+      preLoaderRoute: typeof AuthenticatedDashboardAccessAccessRolesRouteImport
+      parentRoute: typeof AuthenticatedDashboardAccessRoute
+    }
+    '/_authenticated/dashboard/_access/access/users': {
+      id: '/_authenticated/dashboard/_access/access/users'
+      path: '/access/users'
+      fullPath: '/dashboard/access/users'
+      preLoaderRoute: typeof AuthenticatedDashboardAccessAccessUsersRouteImport
+      parentRoute: typeof AuthenticatedDashboardAccessRoute
+    }
+    '/_authenticated/dashboard/_content/content/': {
+      id: '/_authenticated/dashboard/_content/content/'
+      path: '/content'
+      fullPath: '/dashboard/content/'
+      preLoaderRoute: typeof AuthenticatedDashboardContentContentIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardContentRoute
+    }
+    '/_authenticated/dashboard/_content/content/announcement': {
+      id: '/_authenticated/dashboard/_content/content/announcement'
+      path: '/content/announcement'
+      fullPath: '/dashboard/content/announcement'
+      preLoaderRoute: typeof AuthenticatedDashboardContentContentAnnouncementRouteImport
+      parentRoute: typeof AuthenticatedDashboardContentRoute
+    }
+    '/_authenticated/dashboard/_content/content/events': {
+      id: '/_authenticated/dashboard/_content/content/events'
+      path: '/content/events'
+      fullPath: '/dashboard/content/events'
+      preLoaderRoute: typeof AuthenticatedDashboardContentContentEventsRouteImport
+      parentRoute: typeof AuthenticatedDashboardContentRoute
+    }
+    '/_authenticated/dashboard/_content/content/gallery': {
+      id: '/_authenticated/dashboard/_content/content/gallery'
+      path: '/content/gallery'
+      fullPath: '/dashboard/content/gallery'
+      preLoaderRoute: typeof AuthenticatedDashboardContentContentGalleryRouteImport
+      parentRoute: typeof AuthenticatedDashboardContentRoute
+    }
+    '/_authenticated/dashboard/_content/content/media': {
+      id: '/_authenticated/dashboard/_content/content/media'
+      path: '/content/media'
+      fullPath: '/dashboard/content/media'
+      preLoaderRoute: typeof AuthenticatedDashboardContentContentMediaRouteImport
+      parentRoute: typeof AuthenticatedDashboardContentRoute
+    }
+    '/_authenticated/dashboard/_content/content/news': {
+      id: '/_authenticated/dashboard/_content/content/news'
+      path: '/content/news'
+      fullPath: '/dashboard/content/news'
+      preLoaderRoute: typeof AuthenticatedDashboardContentContentNewsRouteImport
+      parentRoute: typeof AuthenticatedDashboardContentRoute
+    }
+    '/_authenticated/dashboard/_content/content/pages': {
+      id: '/_authenticated/dashboard/_content/content/pages'
+      path: '/content/pages'
+      fullPath: '/dashboard/content/pages'
+      preLoaderRoute: typeof AuthenticatedDashboardContentContentPagesRouteImport
+      parentRoute: typeof AuthenticatedDashboardContentRoute
+    }
+    '/_authenticated/dashboard/_editorial/editorial/': {
+      id: '/_authenticated/dashboard/_editorial/editorial/'
+      path: '/editorial'
+      fullPath: '/dashboard/editorial/'
+      preLoaderRoute: typeof AuthenticatedDashboardEditorialEditorialIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardEditorialRoute
+    }
+    '/_authenticated/dashboard/_editorial/editorial/approval': {
+      id: '/_authenticated/dashboard/_editorial/editorial/approval'
+      path: '/editorial/approval'
+      fullPath: '/dashboard/editorial/approval'
+      preLoaderRoute: typeof AuthenticatedDashboardEditorialEditorialApprovalRouteImport
+      parentRoute: typeof AuthenticatedDashboardEditorialRoute
+    }
+    '/_authenticated/dashboard/_editorial/editorial/drafts': {
+      id: '/_authenticated/dashboard/_editorial/editorial/drafts'
+      path: '/editorial/drafts'
+      fullPath: '/dashboard/editorial/drafts'
+      preLoaderRoute: typeof AuthenticatedDashboardEditorialEditorialDraftsRouteImport
+      parentRoute: typeof AuthenticatedDashboardEditorialRoute
+    }
+    '/_authenticated/dashboard/_editorial/editorial/published': {
+      id: '/_authenticated/dashboard/_editorial/editorial/published'
+      path: '/editorial/published'
+      fullPath: '/dashboard/editorial/published'
+      preLoaderRoute: typeof AuthenticatedDashboardEditorialEditorialPublishedRouteImport
+      parentRoute: typeof AuthenticatedDashboardEditorialRoute
+    }
+    '/_authenticated/dashboard/_editorial/editorial/review': {
+      id: '/_authenticated/dashboard/_editorial/editorial/review'
+      path: '/editorial/review'
+      fullPath: '/dashboard/editorial/review'
+      preLoaderRoute: typeof AuthenticatedDashboardEditorialEditorialReviewRouteImport
+      parentRoute: typeof AuthenticatedDashboardEditorialRoute
+    }
+    '/_authenticated/dashboard/_public/public/': {
+      id: '/_authenticated/dashboard/_public/public/'
+      path: '/public'
+      fullPath: '/dashboard/public/'
+      preLoaderRoute: typeof AuthenticatedDashboardPublicPublicIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardPublicRoute
+    }
+    '/_authenticated/dashboard/_public/public/navigation': {
+      id: '/_authenticated/dashboard/_public/public/navigation'
+      path: '/public/navigation'
+      fullPath: '/dashboard/public/navigation'
+      preLoaderRoute: typeof AuthenticatedDashboardPublicPublicNavigationRouteImport
+      parentRoute: typeof AuthenticatedDashboardPublicRoute
+    }
+    '/_authenticated/dashboard/_public/public/pages': {
+      id: '/_authenticated/dashboard/_public/public/pages'
+      path: '/public/pages'
+      fullPath: '/dashboard/public/pages'
+      preLoaderRoute: typeof AuthenticatedDashboardPublicPublicPagesRouteImport
+      parentRoute: typeof AuthenticatedDashboardPublicRoute
+    }
+    '/_authenticated/dashboard/_public/public/preview': {
+      id: '/_authenticated/dashboard/_public/public/preview'
+      path: '/public/preview'
+      fullPath: '/dashboard/public/preview'
+      preLoaderRoute: typeof AuthenticatedDashboardPublicPublicPreviewRouteImport
+      parentRoute: typeof AuthenticatedDashboardPublicRoute
+    }
+    '/_authenticated/dashboard/_public/public/published': {
+      id: '/_authenticated/dashboard/_public/public/published'
+      path: '/public/published'
+      fullPath: '/dashboard/public/published'
+      preLoaderRoute: typeof AuthenticatedDashboardPublicPublicPublishedRouteImport
+      parentRoute: typeof AuthenticatedDashboardPublicRoute
+    }
+    '/_authenticated/dashboard/_system/system/': {
+      id: '/_authenticated/dashboard/_system/system/'
+      path: '/system'
+      fullPath: '/dashboard/system/'
+      preLoaderRoute: typeof AuthenticatedDashboardSystemSystemIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardSystemRoute
+    }
+    '/_authenticated/dashboard/_system/system/log': {
+      id: '/_authenticated/dashboard/_system/system/log'
+      path: '/system/log'
+      fullPath: '/dashboard/system/log'
+      preLoaderRoute: typeof AuthenticatedDashboardSystemSystemLogRouteImport
+      parentRoute: typeof AuthenticatedDashboardSystemRoute
+    }
+    '/_authenticated/dashboard/_system/system/status': {
+      id: '/_authenticated/dashboard/_system/system/status'
+      path: '/system/status'
+      fullPath: '/dashboard/system/status'
+      preLoaderRoute: typeof AuthenticatedDashboardSystemSystemStatusRouteImport
+      parentRoute: typeof AuthenticatedDashboardSystemRoute
+    }
   }
 }
 
+interface AuthenticatedDashboardAccessRouteChildren {
+  AuthenticatedDashboardAccessAccessClubsRoute: typeof AuthenticatedDashboardAccessAccessClubsRoute
+  AuthenticatedDashboardAccessAccessRolesRoute: typeof AuthenticatedDashboardAccessAccessRolesRoute
+  AuthenticatedDashboardAccessAccessUsersRoute: typeof AuthenticatedDashboardAccessAccessUsersRoute
+  AuthenticatedDashboardAccessAccessIndexRoute: typeof AuthenticatedDashboardAccessAccessIndexRoute
+}
+
+const AuthenticatedDashboardAccessRouteChildren: AuthenticatedDashboardAccessRouteChildren =
+  {
+    AuthenticatedDashboardAccessAccessClubsRoute:
+      AuthenticatedDashboardAccessAccessClubsRoute,
+    AuthenticatedDashboardAccessAccessRolesRoute:
+      AuthenticatedDashboardAccessAccessRolesRoute,
+    AuthenticatedDashboardAccessAccessUsersRoute:
+      AuthenticatedDashboardAccessAccessUsersRoute,
+    AuthenticatedDashboardAccessAccessIndexRoute:
+      AuthenticatedDashboardAccessAccessIndexRoute,
+  }
+
+const AuthenticatedDashboardAccessRouteWithChildren =
+  AuthenticatedDashboardAccessRoute._addFileChildren(
+    AuthenticatedDashboardAccessRouteChildren,
+  )
+
+interface AuthenticatedDashboardContentRouteChildren {
+  AuthenticatedDashboardContentContentAnnouncementRoute: typeof AuthenticatedDashboardContentContentAnnouncementRoute
+  AuthenticatedDashboardContentContentEventsRoute: typeof AuthenticatedDashboardContentContentEventsRoute
+  AuthenticatedDashboardContentContentGalleryRoute: typeof AuthenticatedDashboardContentContentGalleryRoute
+  AuthenticatedDashboardContentContentMediaRoute: typeof AuthenticatedDashboardContentContentMediaRoute
+  AuthenticatedDashboardContentContentNewsRoute: typeof AuthenticatedDashboardContentContentNewsRoute
+  AuthenticatedDashboardContentContentPagesRoute: typeof AuthenticatedDashboardContentContentPagesRoute
+  AuthenticatedDashboardContentContentIndexRoute: typeof AuthenticatedDashboardContentContentIndexRoute
+}
+
+const AuthenticatedDashboardContentRouteChildren: AuthenticatedDashboardContentRouteChildren =
+  {
+    AuthenticatedDashboardContentContentAnnouncementRoute:
+      AuthenticatedDashboardContentContentAnnouncementRoute,
+    AuthenticatedDashboardContentContentEventsRoute:
+      AuthenticatedDashboardContentContentEventsRoute,
+    AuthenticatedDashboardContentContentGalleryRoute:
+      AuthenticatedDashboardContentContentGalleryRoute,
+    AuthenticatedDashboardContentContentMediaRoute:
+      AuthenticatedDashboardContentContentMediaRoute,
+    AuthenticatedDashboardContentContentNewsRoute:
+      AuthenticatedDashboardContentContentNewsRoute,
+    AuthenticatedDashboardContentContentPagesRoute:
+      AuthenticatedDashboardContentContentPagesRoute,
+    AuthenticatedDashboardContentContentIndexRoute:
+      AuthenticatedDashboardContentContentIndexRoute,
+  }
+
+const AuthenticatedDashboardContentRouteWithChildren =
+  AuthenticatedDashboardContentRoute._addFileChildren(
+    AuthenticatedDashboardContentRouteChildren,
+  )
+
+interface AuthenticatedDashboardEditorialRouteChildren {
+  AuthenticatedDashboardEditorialEditorialApprovalRoute: typeof AuthenticatedDashboardEditorialEditorialApprovalRoute
+  AuthenticatedDashboardEditorialEditorialDraftsRoute: typeof AuthenticatedDashboardEditorialEditorialDraftsRoute
+  AuthenticatedDashboardEditorialEditorialPublishedRoute: typeof AuthenticatedDashboardEditorialEditorialPublishedRoute
+  AuthenticatedDashboardEditorialEditorialReviewRoute: typeof AuthenticatedDashboardEditorialEditorialReviewRoute
+  AuthenticatedDashboardEditorialEditorialIndexRoute: typeof AuthenticatedDashboardEditorialEditorialIndexRoute
+}
+
+const AuthenticatedDashboardEditorialRouteChildren: AuthenticatedDashboardEditorialRouteChildren =
+  {
+    AuthenticatedDashboardEditorialEditorialApprovalRoute:
+      AuthenticatedDashboardEditorialEditorialApprovalRoute,
+    AuthenticatedDashboardEditorialEditorialDraftsRoute:
+      AuthenticatedDashboardEditorialEditorialDraftsRoute,
+    AuthenticatedDashboardEditorialEditorialPublishedRoute:
+      AuthenticatedDashboardEditorialEditorialPublishedRoute,
+    AuthenticatedDashboardEditorialEditorialReviewRoute:
+      AuthenticatedDashboardEditorialEditorialReviewRoute,
+    AuthenticatedDashboardEditorialEditorialIndexRoute:
+      AuthenticatedDashboardEditorialEditorialIndexRoute,
+  }
+
+const AuthenticatedDashboardEditorialRouteWithChildren =
+  AuthenticatedDashboardEditorialRoute._addFileChildren(
+    AuthenticatedDashboardEditorialRouteChildren,
+  )
+
+interface AuthenticatedDashboardPublicRouteChildren {
+  AuthenticatedDashboardPublicPublicNavigationRoute: typeof AuthenticatedDashboardPublicPublicNavigationRoute
+  AuthenticatedDashboardPublicPublicPagesRoute: typeof AuthenticatedDashboardPublicPublicPagesRoute
+  AuthenticatedDashboardPublicPublicPreviewRoute: typeof AuthenticatedDashboardPublicPublicPreviewRoute
+  AuthenticatedDashboardPublicPublicPublishedRoute: typeof AuthenticatedDashboardPublicPublicPublishedRoute
+  AuthenticatedDashboardPublicPublicIndexRoute: typeof AuthenticatedDashboardPublicPublicIndexRoute
+}
+
+const AuthenticatedDashboardPublicRouteChildren: AuthenticatedDashboardPublicRouteChildren =
+  {
+    AuthenticatedDashboardPublicPublicNavigationRoute:
+      AuthenticatedDashboardPublicPublicNavigationRoute,
+    AuthenticatedDashboardPublicPublicPagesRoute:
+      AuthenticatedDashboardPublicPublicPagesRoute,
+    AuthenticatedDashboardPublicPublicPreviewRoute:
+      AuthenticatedDashboardPublicPublicPreviewRoute,
+    AuthenticatedDashboardPublicPublicPublishedRoute:
+      AuthenticatedDashboardPublicPublicPublishedRoute,
+    AuthenticatedDashboardPublicPublicIndexRoute:
+      AuthenticatedDashboardPublicPublicIndexRoute,
+  }
+
+const AuthenticatedDashboardPublicRouteWithChildren =
+  AuthenticatedDashboardPublicRoute._addFileChildren(
+    AuthenticatedDashboardPublicRouteChildren,
+  )
+
+interface AuthenticatedDashboardSystemRouteChildren {
+  AuthenticatedDashboardSystemSystemLogRoute: typeof AuthenticatedDashboardSystemSystemLogRoute
+  AuthenticatedDashboardSystemSystemStatusRoute: typeof AuthenticatedDashboardSystemSystemStatusRoute
+  AuthenticatedDashboardSystemSystemIndexRoute: typeof AuthenticatedDashboardSystemSystemIndexRoute
+}
+
+const AuthenticatedDashboardSystemRouteChildren: AuthenticatedDashboardSystemRouteChildren =
+  {
+    AuthenticatedDashboardSystemSystemLogRoute:
+      AuthenticatedDashboardSystemSystemLogRoute,
+    AuthenticatedDashboardSystemSystemStatusRoute:
+      AuthenticatedDashboardSystemSystemStatusRoute,
+    AuthenticatedDashboardSystemSystemIndexRoute:
+      AuthenticatedDashboardSystemSystemIndexRoute,
+  }
+
+const AuthenticatedDashboardSystemRouteWithChildren =
+  AuthenticatedDashboardSystemRoute._addFileChildren(
+    AuthenticatedDashboardSystemRouteChildren,
+  )
+
+interface AuthenticatedDashboardRouteChildren {
+  AuthenticatedDashboardAccessRoute: typeof AuthenticatedDashboardAccessRouteWithChildren
+  AuthenticatedDashboardContentRoute: typeof AuthenticatedDashboardContentRouteWithChildren
+  AuthenticatedDashboardEditorialRoute: typeof AuthenticatedDashboardEditorialRouteWithChildren
+  AuthenticatedDashboardPublicRoute: typeof AuthenticatedDashboardPublicRouteWithChildren
+  AuthenticatedDashboardSystemRoute: typeof AuthenticatedDashboardSystemRouteWithChildren
+  AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
+}
+
+const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
+  {
+    AuthenticatedDashboardAccessRoute:
+      AuthenticatedDashboardAccessRouteWithChildren,
+    AuthenticatedDashboardContentRoute:
+      AuthenticatedDashboardContentRouteWithChildren,
+    AuthenticatedDashboardEditorialRoute:
+      AuthenticatedDashboardEditorialRouteWithChildren,
+    AuthenticatedDashboardPublicRoute:
+      AuthenticatedDashboardPublicRouteWithChildren,
+    AuthenticatedDashboardSystemRoute:
+      AuthenticatedDashboardSystemRouteWithChildren,
+    AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
+  }
+
+const AuthenticatedDashboardRouteWithChildren =
+  AuthenticatedDashboardRoute._addFileChildren(
+    AuthenticatedDashboardRouteChildren,
+  )
+
+interface AuthenticatedRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
+  AuthenticatedTestRoute: typeof AuthenticatedTestRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
+  AuthenticatedTestRoute: AuthenticatedTestRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
   AdminContentRoute: AdminContentRoute,
   AdminPublicWebRoute: AdminPublicWebRoute,
