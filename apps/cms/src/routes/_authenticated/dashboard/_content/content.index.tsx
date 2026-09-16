@@ -167,20 +167,14 @@ export function ContentIndexView({
         ? true
         : selectedStateFilter === "drafts"
           ? ["draft", "rejected"].includes(item.state)
-          : selectedStateFilter === "review"
-            ? ["submitted", "in_review"].includes(item.state)
-            : selectedStateFilter === "approval"
-              ? item.state === "in_review" && Boolean(item.reviewedAt)
-              : item.state === selectedStateFilter;
+          : item.state === selectedStateFilter;
 
     return matchesType && matchesSearch && matchesState;
   });
 
   const titleHeader = filterType
-    ? `${labels[filterType]} Management`
-    : filterState
-      ? `${filterState.replace("_", " ").toUpperCase()} Queue`
-      : "Content Management";
+    ? `${labels[filterType]} Repository`
+    : "Content Repository & Drafts";
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-[1600px] mx-auto">
@@ -188,15 +182,15 @@ export function ContentIndexView({
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
         <div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-wider mb-1">
-            <span>Content</span>
+            <span>Content CRUD</span>
             <span>/</span>
             <span className="text-foreground font-semibold">
-              {filterType ? labels[filterType] : filterState ? filterState : "All Items"}
+              {filterType ? labels[filterType] : "Draft Repository"}
             </span>
           </div>
           <h1 className="text-2xl font-serif font-bold text-foreground">{titleHeader}</h1>
           <p className="text-sm text-muted-foreground">
-            View, edit, and transition scoped pages, news, events, announcements, and galleries.
+            Create, edit, and manage draft content items. All edits here are saved as draft revisions.
           </p>
         </div>
 
@@ -206,13 +200,31 @@ export function ContentIndexView({
             className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-md text-xs font-semibold text-white bg-[#42245f] hover:bg-[#542f7f] transition-colors shadow-sm"
           >
             <IconPlus className="size-4" />
-            <span>Create {filterType ? labels[filterType] : "Draft"}</span>
+            <span>+ New Draft {filterType ? labels[filterType] : ""}</span>
           </button>
         )}
       </header>
 
+      {/* Draft Mode Notice */}
+      <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#42245f]/5 border border-[#42245f]/20 text-[#42245f] text-xs">
+        <div className="flex items-center gap-2">
+          <span className="font-bold px-2 py-0.5 rounded bg-[#42245f] text-white text-[10px] uppercase tracking-wider">
+            Draft Mode
+          </span>
+          <span>
+            All content created or modified in this section is stored in <strong>Draft</strong> state. To transition items through peer review, approval, and publication, visit the <strong>Editorial Kanban Desk</strong>.
+          </span>
+        </div>
+        <a
+          href="/dashboard/editorial"
+          className="text-xs font-semibold text-[#42245f] hover:underline whitespace-nowrap ml-2"
+        >
+          Go to Editorial Desk →
+        </a>
+      </div>
+
       {feedback && (
-        <div className="p-3 rounded-lg bg-[#42245f]/10 border border-[#42245f]/20 text-[#42245f] text-xs font-medium">
+        <div className="p-3 rounded-lg bg-[#2f7d3b]/10 border border-[#2f7d3b]/20 text-[#2f7d3b] text-xs font-medium">
           {feedback}
         </div>
       )}
@@ -223,7 +235,7 @@ export function ContentIndexView({
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Filter by title or slug..."
+            placeholder="Filter drafts by title or slug..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-1.5 text-xs rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-[#9a78c2]"
@@ -232,7 +244,7 @@ export function ContentIndexView({
 
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <span className="text-xs text-muted-foreground font-medium">State:</span>
-          {["all", "draft", "submitted", "in_review", "approved", "published"].map((st) => (
+          {["all", "drafts", "submitted", "in_review", "published"].map((st) => (
             <button
               key={st}
               onClick={() => setSelectedStateFilter(st)}
@@ -248,14 +260,14 @@ export function ContentIndexView({
         </div>
       </div>
 
-      {/* Content List */}
+      {/* Content List (CRUD Focused) */}
       <div className="space-y-4">
         {filteredItems.length === 0 ? (
           <div className="p-12 text-center rounded-xl border border-dashed border-border bg-card">
             <IconFolder className="size-8 text-muted-foreground mx-auto mb-2 opacity-50" />
-            <p className="text-sm font-semibold text-foreground">No content items found</p>
+            <p className="text-sm font-semibold text-foreground">No draft content items found</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Adjust your filters or create a new draft within your assigned role scope.
+              Create a new draft item using the button above to get started.
             </p>
           </div>
         ) : (
@@ -304,43 +316,29 @@ export function ContentIndexView({
                   <p className="text-xs text-muted-foreground line-clamp-2">{item.summary}</p>
                 )}
 
-                {/* Workflow Actions */}
-                <div className="pt-2">
-                  <WorkflowActions
-                    content={item}
-                    currentUserId={dashboard.userId}
-                    permissions={permissions}
-                    pending={pending}
-                    onAction={(val, comment) => handleWorkflowAction(item.id, val, comment)}
-                  />
-                </div>
-
                 {/* Draft Editing & Gallery Composition */}
-                {(item.authorUserId === dashboard.userId || permissions.has("content:update:cms")) &&
-                ["draft", "rejected"].includes(item.state) ? (
-                  <details className="pt-2 border-t border-border group">
-                    <summary className="text-xs font-semibold text-[#42245f] cursor-pointer hover:underline py-1">
-                      Edit Draft & Media
-                    </summary>
-                    <div className="mt-3 space-y-4 p-4 rounded-lg bg-secondary/30 border border-border">
-                      <DraftEditor
-                        content={item}
+                <details className="pt-2 border-t border-border group" open={["draft", "rejected"].includes(item.state)}>
+                  <summary className="text-xs font-semibold text-[#42245f] cursor-pointer hover:underline py-1">
+                    Edit Draft & Media Details
+                  </summary>
+                  <div className="mt-3 space-y-4 p-4 rounded-lg bg-secondary/30 border border-border">
+                    <DraftEditor
+                      content={item}
+                      pending={pending}
+                      onSave={(e) => handleUpdate(e, item.id)}
+                    />
+                    {item.type === "gallery" && (
+                      <GalleryMediaEditor
+                        contentId={item.id}
+                        contentType={item.type}
+                        initialMediaIds={item.mediaIds}
+                        media={dashboard.media}
                         pending={pending}
-                        onSave={(e) => handleUpdate(e, item.id)}
+                        onSave={(mediaIds) => handleSaveMedia(item.id, mediaIds)}
                       />
-                      {item.type === "gallery" && (
-                        <GalleryMediaEditor
-                          contentId={item.id}
-                          contentType={item.type}
-                          initialMediaIds={item.mediaIds}
-                          media={dashboard.media}
-                          pending={pending}
-                          onSave={(mediaIds) => handleSaveMedia(item.id, mediaIds)}
-                        />
-                      )}
-                    </div>
-                  </details>
-                ) : null}
+                    )}
+                  </div>
+                </details>
 
                 {/* Revisions & Workflow History */}
                 <details className="text-xs text-muted-foreground pt-1">

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getCmsDashboard } from "../../../../cms-functions";
-import { ContentIndexView } from "../_content/content.index";
+import { EditorialKanbanView } from "./editorial.index";
 
 export const Route = createFileRoute(
   "/_authenticated/dashboard/_editorial/editorial/published",
@@ -11,6 +11,5 @@ export const Route = createFileRoute(
 
 function EditorialPublishedPage() {
   const dashboard = Route.useLoaderData();
-  return <ContentIndexView dashboard={dashboard} filterState="published" />;
+  return <EditorialKanbanView dashboard={dashboard} activeColumn="published" />;
 }
-

@@ -11,6 +11,5 @@ export const Route = createFileRoute(
 
 function PublicPublishedPage() {
   const data = Route.useLoaderData();
-  return <PublicWebView data={data} />;
+  return <PublicWebView data={data} activeTab="overview" />;
 }
-
