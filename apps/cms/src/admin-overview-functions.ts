@@ -16,6 +16,7 @@ import {
 import { requireAuthorization } from "@slgs/permissions";
 
 import { database, sessions } from "./auth.server";
+import { filterVisibleContent } from "./dashboard-policy";
 
 export const getCmsAdminOverview = createServerFn({ method: "GET" }).handler(
   async () => {
@@ -24,14 +25,13 @@ export const getCmsAdminOverview = createServerFn({ method: "GET" }).handler(
     });
     const identity = await requireIdentity(sessions, request);
     const grant = identity.grants.get("cms");
-    requireAuthorization({
-      identityId: identity.userId,
-      application: "cms",
-      permission: "content:read:cms",
-      grant,
-    });
+    const userPermissions = Array.from(grant?.permissions ?? []);
 
-    const [profile, content, media, users, clubs, scopedMemberships, audit] =
+    const hasUserRead = grant?.permissions.has("user:read:cms") || grant?.permissions.has("membership:read:cms");
+    const hasClubRead = grant?.permissions.has("club:read:cms") || grant?.permissions.has("club:manage:assigned");
+    const hasAuditRead = grant?.permissions.has("audit:read:cms");
+
+    const [profile, rawContent, media, users, clubs, scopedMemberships, audit] =
       await Promise.all([
         database.db
           .select({ name: user.name })
@@ -44,105 +44,135 @@ export const getCmsAdminOverview = createServerFn({ method: "GET" }).handler(
             title: contentItem.title,
             type: contentItem.type,
             state: contentItem.state,
+            authorUserId: contentItem.authorUserId,
+            owningClubId: contentItem.owningClubId,
             updatedAt: contentItem.updatedAt,
           })
           .from(contentItem)
           .orderBy(desc(contentItem.updatedAt)),
         database.db.select({ status: mediaAsset.status }).from(mediaAsset),
-        database.db
-          .select({
-            status: user.status,
-            membershipStatus: applicationMembership.status,
-          })
-          .from(user)
-          .innerJoin(
-            applicationMembership,
-            and(
-              eq(applicationMembership.userId, user.id),
-              eq(applicationMembership.application, "cms"),
-            ),
-          ),
-        database.db
-          .select({ id: club.id, name: club.name, status: club.status })
-          .from(club)
-          .orderBy(club.name),
-        database.db
-          .select({ clubId: roleAssignmentScope.value })
-          .from(roleAssignmentScope)
-          .innerJoin(
-            roleAssignment,
-            eq(roleAssignment.id, roleAssignmentScope.roleAssignmentId),
-          )
-          .innerJoin(
-            applicationMembership,
-            eq(applicationMembership.id, roleAssignment.membershipId),
-          )
-          .where(
-            and(
-              eq(roleAssignmentScope.dimension, "club"),
-              isNull(roleAssignment.revokedAt),
-              eq(applicationMembership.application, "cms"),
-              eq(applicationMembership.status, "active"),
-            ),
-          ),
-        database.db
-          .select({
-            eventType: editorialAuditEvent.eventType,
-            resourceType: editorialAuditEvent.resourceType,
-            outcome: editorialAuditEvent.outcome,
-            occurredAt: editorialAuditEvent.occurredAt,
-          })
-          .from(editorialAuditEvent)
-          .orderBy(desc(editorialAuditEvent.occurredAt))
-          .limit(8),
+        hasUserRead
+          ? database.db
+              .select({
+                status: user.status,
+                membershipStatus: applicationMembership.status,
+              })
+              .from(user)
+              .innerJoin(
+                applicationMembership,
+                and(
+                  eq(applicationMembership.userId, user.id),
+                  eq(applicationMembership.application, "cms"),
+                ),
+              )
+          : Promise.resolve([]),
+        hasClubRead
+          ? database.db
+              .select({ id: club.id, name: club.name, status: club.status })
+              .from(club)
+              .orderBy(club.name)
+          : Promise.resolve([]),
+        hasClubRead
+          ? database.db
+              .select({ clubId: roleAssignmentScope.value })
+              .from(roleAssignmentScope)
+              .innerJoin(
+                roleAssignment,
+                eq(roleAssignment.id, roleAssignmentScope.roleAssignmentId),
+              )
+              .innerJoin(
+                applicationMembership,
+                eq(applicationMembership.id, roleAssignment.membershipId),
+              )
+              .where(
+                and(
+                  eq(roleAssignmentScope.dimension, "club"),
+                  isNull(roleAssignment.revokedAt),
+                  eq(applicationMembership.application, "cms"),
+                  eq(applicationMembership.status, "active"),
+                ),
+              )
+          : Promise.resolve([]),
+        hasAuditRead
+          ? database.db
+              .select({
+                eventType: editorialAuditEvent.eventType,
+                resourceType: editorialAuditEvent.resourceType,
+                outcome: editorialAuditEvent.outcome,
+                occurredAt: editorialAuditEvent.occurredAt,
+              })
+              .from(editorialAuditEvent)
+              .orderBy(desc(editorialAuditEvent.occurredAt))
+              .limit(8)
+          : Promise.resolve([]),
       ]);
 
-    const countState = (state: (typeof content)[number]["state"]) =>
-      content.filter((item) => item.state === state).length;
+    const content = grant ? filterVisibleContent(rawContent, identity.userId, grant) : [];
+
+    const countState = (state: (typeof rawContent)[number]["state"]) =>
+      content.filter((item: (typeof rawContent)[number]) => item.state === state).length;
     const activeUsers = users.filter(
-      (item) => item.status === "active" && item.membershipStatus === "active",
+      (item: { status: string; membershipStatus: string }) =>
+        item.status === "active" && item.membershipStatus === "active",
     ).length;
+
+    // Determine primary user role label
+    let roleTitle = "CMS Member";
+    if (userPermissions.includes("role:assign:cms") || userPermissions.includes("user:create:cms")) {
+      roleTitle = "CMS Administrator";
+    } else if (userPermissions.includes("content:publish:approved") || userPermissions.includes("content:publish:cms")) {
+      roleTitle = "Publisher";
+    } else if (userPermissions.includes("content:approve:assigned") || userPermissions.includes("content:approve:cms")) {
+      roleTitle = "Approver";
+    } else if (userPermissions.includes("content:review:assigned") || userPermissions.includes("content:review:cms")) {
+      roleTitle = "Reviewer";
+    } else if (userPermissions.includes("article:create:own") || userPermissions.includes("content:create:own")) {
+      roleTitle = "Club Contributor";
+    }
+
     return {
       identity: {
-        displayName: profile[0]?.name ?? "CMS administrator",
-        role: "CMS Administrator",
+        userId: identity.userId,
+        displayName: profile[0]?.name ?? "CMS User",
+        role: roleTitle,
       },
+      permissions: userPermissions,
       summary: {
         totalContent: content.length,
         drafts: countState("draft") + countState("rejected"),
         awaitingReview: countState("submitted"),
         awaitingApproval: countState("in_review"),
         published: countState("published"),
-        mediaAssets: media.filter((item) => item.status === "available").length,
+        mediaAssets: media.filter((item: { status: string }) => item.status === "available").length,
         activeUsers,
-        activeClubs: clubs.filter((item) => item.status === "active").length,
+        activeClubs: clubs.filter((item: { status: string }) => item.status === "active").length,
       },
       users: {
         total: users.length,
         active: activeUsers,
         suspended: users.filter(
-          (item) =>
+          (item: { status: string; membershipStatus: string }) =>
             item.status === "suspended" ||
             item.membershipStatus === "suspended",
         ).length,
         inactive: users.filter(
-          (item) =>
+          (item: { status: string; membershipStatus: string }) =>
             item.status === "pending" ||
             item.status === "deactivated" ||
             item.membershipStatus === "deactivated",
         ).length,
       },
       workflow: {
-        drafts: content.filter((item) =>
+        drafts: content.filter((item: (typeof rawContent)[number]) =>
           ["draft", "rejected"].includes(item.state),
         ).length,
         review: countState("submitted"),
         approval: countState("in_review"),
         ready: countState("approved"),
         recentPublished: content
-          .filter((item) => item.state === "published")
+          .filter((item: (typeof rawContent)[number]) => item.state === "published")
           .slice(0, 5)
-          .map(({ id, title, type, updatedAt }) => ({
+          .map(({ id, title, type, updatedAt }: (typeof rawContent)[number]) => ({
             id,
             title,
             type,
@@ -150,21 +180,21 @@ export const getCmsAdminOverview = createServerFn({ method: "GET" }).handler(
           })),
       },
       clubs: clubs
-        .filter((item) => item.status === "active")
-        .map((item) => ({
+        .filter((item: { status: string }) => item.status === "active")
+        .map((item: { id: string; name: string; status: string }) => ({
           ...item,
           membershipCount: scopedMemberships.filter(
-            (membership) => membership.clubId === item.id,
+            (membership: { clubId: string }) => membership.clubId === item.id,
           ).length,
         })),
       publicWeb: {
         publishedPages: content.filter(
-          (item) => item.type === "page" && item.state === "published",
+          (item: (typeof rawContent)[number]) => item.type === "page" && item.state === "published",
         ).length,
         navigationStatus: "Application-managed",
         publishedSiteUrl: process.env.PUBLIC_SITE_URL ?? "http://slgs.edu.sl",
       },
-      recentActivity: audit.map((event) => ({
+      recentActivity: audit.map((event: { eventType: string; resourceType: string; outcome: string; occurredAt: Date }) => ({
         ...event,
         occurredAt: event.occurredAt.toISOString(),
       })),

@@ -28,8 +28,6 @@ export function TeamSwitcher({ teams }: { teams: Team[] }) {
 
   if (!activeTeam) return null;
 
-  const Logo = activeTeam.logo;
-
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -40,7 +38,7 @@ export function TeamSwitcher({ teams }: { teams: Team[] }) {
               size="lg"
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-background text-foreground">
-                <Logo className="size-4" />
+                <img src="favicon-96x96.png" alt="logog" className="h-8 w-8" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
@@ -67,7 +65,11 @@ export function TeamSwitcher({ teams }: { teams: Team[] }) {
                 onClick={() => setActiveTeam(team)}
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
-                  <team.logo className="size-4 shrink-0" />
+                  <img
+                    src="favicon-96x96.png"
+                    alt=""
+                    className="size-4 shrink-0"
+                  />
                 </div>
                 {team.name}
                 <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>

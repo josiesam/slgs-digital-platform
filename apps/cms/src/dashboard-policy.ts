@@ -53,3 +53,21 @@ export function filterVisibleContent<T extends ScopedContent>(
     );
   });
 }
+
+export function hasPermission(
+  grant: ApplicationGrant | undefined,
+  permission: Permission,
+): boolean {
+  return Boolean(
+    grant?.application === "cms" && grant.permissions.has(permission),
+  );
+}
+
+export function hasAnyPermission(
+  grant: ApplicationGrant | undefined,
+  permissions: readonly Permission[],
+): boolean {
+  if (!grant || grant.application !== "cms") return false;
+  return permissions.some((permission) => grant.permissions.has(permission));
+}
+

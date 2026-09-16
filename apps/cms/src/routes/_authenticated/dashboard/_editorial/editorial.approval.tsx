@@ -1,11 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getCmsDashboard } from "../../../../cms-functions";
+import { ContentIndexView } from "../_content/content.index";
 
 export const Route = createFileRoute(
   "/_authenticated/dashboard/_editorial/editorial/approval",
 )({
-  component: RouteComponent,
+  loader: () => getCmsDashboard(),
+  component: EditorialApprovalPage,
 });
 
-function RouteComponent() {
-  return <div>Hello "/_dashboard/_content/content"!</div>;
+function EditorialApprovalPage() {
+  const dashboard = Route.useLoaderData();
+  return <ContentIndexView dashboard={dashboard} filterState="approval" />;
 }
+

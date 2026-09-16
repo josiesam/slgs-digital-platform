@@ -21,5 +21,6 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthenticatedLayout2() {
-  return <Sidebar02 />;
+  const data = Route.useLoaderData();
+  return <Sidebar02 permissions={data.permissions} identity={data.identity} />;
 }

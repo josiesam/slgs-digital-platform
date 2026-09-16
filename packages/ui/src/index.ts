@@ -9,3 +9,6 @@ export * from "./components/ui/button";
 export * from "./components/ui/collapsible";
 export * from "./components/ui/avatar";
 export * from "./components/ui/separator";
+export * from "./components/ui/input";
+export * from "./components/ui/input-group";
+export * from "./components/ui/field";

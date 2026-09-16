@@ -1,11 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getCmsAdminOverview } from "../../../../admin-overview-functions";
+import { PublicWebView } from "./public.index";
 
 export const Route = createFileRoute(
   "/_authenticated/dashboard/_public/public/preview",
 )({
-  component: RouteComponent,
+  loader: () => getCmsAdminOverview(),
+  component: PublicPreviewPage,
 });
 
-function RouteComponent() {
-  return <div>Hello "/_dashboard/_content/content"!</div>;
+function PublicPreviewPage() {
+  const data = Route.useLoaderData();
+  return <PublicWebView data={data} />;
 }
+

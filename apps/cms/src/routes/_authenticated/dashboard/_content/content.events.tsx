@@ -1,11 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getCmsDashboard } from "../../../../cms-functions";
+import { ContentIndexView } from "./content.index";
 
 export const Route = createFileRoute(
   "/_authenticated/dashboard/_content/content/events",
 )({
-  component: RouteComponent,
+  loader: () => getCmsDashboard(),
+  component: ContentEventsPage,
 });
 
-function RouteComponent() {
-  return <div>Hello "/_dashboard/_content/content"!</div>;
+function ContentEventsPage() {
+  const dashboard = Route.useLoaderData();
+  return <ContentIndexView dashboard={dashboard} filterType="event" />;
 }
+

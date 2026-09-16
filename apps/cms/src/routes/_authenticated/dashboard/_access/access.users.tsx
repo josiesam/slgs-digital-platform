@@ -2,9 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useTransition, type FormEvent } from "react";
 
 import {
-  assignCmsUserRole,
   changeCmsUserStatus,
-  getCmsUserLifecycleHistory,
   getCmsUsers,
   provisionCmsUserAccount,
   revokeCmsRoleAssignment,
@@ -21,9 +19,7 @@ export const Route = createFileRoute(
 function CmsUsersPage() {
   const initialData = Route.useLoaderData();
   const [data, setData] = useState(initialData);
-  const [histories, setHistories] = useState<
-    Record<string, Awaited<ReturnType<typeof getCmsUserLifecycleHistory>>>
-  >({});
+
   const [message, setMessage] = useState("");
   const [pending, startTransition] = useTransition();
 
@@ -59,43 +55,68 @@ function CmsUsersPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6 p-6">
       <header className="pb-4 border-b">
-        <h1 className="text-2xl font-bold tracking-tight">CMS Users</h1>
-        <p className="text-sm text-muted-foreground">
-          Provision users, manage lifecycle state and sessions, and inspect or change effective CMS roles and scopes.
+        <h1 className="font-bold text-2xl tracking-tight">CMS Users</h1>
+        <p className="text-muted-foreground text-sm">
+          Provision users, manage lifecycle state and sessions, and inspect or
+          change effective CMS roles and scopes.
         </p>
       </header>
 
       {message ? (
-        <div className="p-3 rounded bg-accent text-accent-foreground text-sm font-medium" role="status">
+        <div
+          className="bg-accent p-3 rounded font-medium text-sm text-accent-foreground"
+          role="status"
+        >
           {message}
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <section aria-labelledby="provision-user" className="p-4 rounded-lg border bg-card shadow-sm space-y-4 h-fit">
-          <h2 id="provision-user" className="text-lg font-semibold">Provision CMS User</h2>
-          <p className="text-xs text-muted-foreground">
+      <div className="gap-6 grid grid-cols-1 lg:grid-cols-3">
+        <section
+          aria-labelledby="provision-user"
+          className="space-y-4 bg-card shadow-sm p-4 border rounded-lg h-fit"
+        >
+          <h2 id="provision-user" className="font-semibold text-lg">
+            Provision CMS User
+          </h2>
+          <p className="text-muted-foreground text-xs">
             Approved email domains: {data.approvedDomains.join(", ") || "none"}
           </p>
           <form className="space-y-3 text-xs" onSubmit={provision}>
             <label className="block space-y-1">
               <span className="font-medium">Name</span>
-              <input className="w-full p-2 border rounded bg-background" name="name" required maxLength={160} />
+              <input
+                className="bg-background p-2 border rounded w-full"
+                name="name"
+                required
+                maxLength={160}
+              />
             </label>
             <label className="block space-y-1">
               <span className="font-medium">Email</span>
-              <input className="w-full p-2 border rounded bg-background" name="email" type="email" required />
+              <input
+                className="bg-background p-2 border rounded w-full"
+                name="email"
+                type="email"
+                required
+              />
             </label>
             <label className="block space-y-1">
               <span className="font-medium">Approved person reference</span>
-              <input className="w-full p-2 border rounded bg-background" name="personReference" required maxLength={200} />
+              <input
+                className="bg-background p-2 border rounded w-full"
+                name="personReference"
+                required
+                maxLength={200}
+              />
             </label>
+
             <label className="block space-y-1">
               <span className="font-medium">Temporary password</span>
               <input
-                className="w-full p-2 border rounded bg-background"
+                className="bg-background p-2 border rounded w-full"
                 name="temporaryPassword"
                 type="password"
                 minLength={12}
@@ -106,68 +127,90 @@ function CmsUsersPage() {
             </label>
             <button
               disabled={pending}
-              className="w-full py-2 bg-primary text-primary-foreground font-semibold rounded hover:bg-primary/90 transition-colors"
+              className="bg-primary hover:bg-primary/90 py-2 rounded w-full font-semibold text-primary-foreground transition-colors"
             >
               Provision user
             </button>
           </form>
         </section>
 
-        <section aria-labelledby="user-list" className="lg:col-span-2 space-y-4">
+        <section
+          aria-labelledby="user-list"
+          className="space-y-4 lg:col-span-2"
+        >
           <div className="flex justify-between items-center">
-            <h2 id="user-list" className="text-lg font-semibold">CMS Memberships</h2>
+            <h2 id="user-list" className="font-semibold text-lg">
+              CMS Memberships
+            </h2>
             <form
               className="flex gap-2 text-xs"
               onSubmit={(event) => {
                 event.preventDefault();
-                refresh(String(new FormData(event.currentTarget).get("search") ?? ""));
+                refresh(
+                  String(new FormData(event.currentTarget).get("search") ?? ""),
+                );
               }}
             >
               <input
-                className="p-1.5 border rounded bg-background"
+                className="bg-background p-1.5 border rounded"
                 name="search"
                 type="search"
                 placeholder="Search users..."
               />
-              <button disabled={pending} className="px-3 py-1.5 border rounded bg-secondary">Search</button>
+              <button
+                disabled={pending}
+                className="bg-secondary px-3 py-1.5 border rounded"
+              >
+                Search
+              </button>
             </form>
           </div>
 
           <div className="space-y-4">
             {data.users.map((cmsUser) => (
-              <article className="p-4 rounded-lg border bg-card shadow-sm space-y-3" key={cmsUser.id}>
+              <article
+                className="space-y-3 bg-card shadow-sm p-4 border rounded-lg"
+                key={cmsUser.id}
+              >
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="text-base font-semibold">{cmsUser.name}</h3>
-                    <p className="text-xs text-muted-foreground">{cmsUser.email}</p>
+                    <h3 className="font-semibold text-base">{cmsUser.name}</h3>
+                    <p className="text-muted-foreground text-xs">
+                      {cmsUser.email}
+                    </p>
                   </div>
-                  <span className="text-xs px-2 py-0.5 rounded bg-muted font-medium">
+                  <span className="bg-muted px-2 py-0.5 rounded font-medium text-xs">
                     Status: {cmsUser.status}
                   </span>
                 </div>
 
-                <div className="text-xs space-y-2">
-                  <h4 className="font-semibold text-muted-foreground">Assigned Roles:</h4>
+                <div className="space-y-2 text-xs">
+                  <h4 className="font-semibold text-muted-foreground">
+                    Assigned Roles:
+                  </h4>
                   <ul className="space-y-1">
                     {cmsUser.assignments.map((assignment) => (
                       <li
                         key={`${assignment.id}-${assignment.scopeValue ?? "global"}`}
-                        className="flex justify-between items-center p-2 rounded bg-muted/50"
+                        className="flex justify-between items-center bg-muted/50 p-2 rounded"
                       >
                         <span>
                           <strong>{assignment.roleName}</strong>
-                          {assignment.scopeValue ? ` (${assignment.scopeDimension}: ${assignment.scopeValue})` : ""}
+                          {assignment.scopeValue
+                            ? ` (${assignment.scopeDimension}: ${assignment.scopeValue})`
+                            : ""}
                         </span>
                         <button
                           disabled={pending}
-                          className="text-xs text-destructive hover:underline"
+                          className="text-destructive text-xs hover:underline"
                           onClick={() =>
                             run(
                               () =>
                                 revokeCmsRoleAssignment({
                                   data: {
                                     assignmentId: assignment.id,
-                                    reason: "CMS administrator revoked assignment",
+                                    reason:
+                                      "CMS administrator revoked assignment",
                                   },
                                 }),
                               "Role revoked.",
@@ -181,11 +224,11 @@ function CmsUsersPage() {
                   </ul>
                 </div>
 
-                <div className="flex flex-wrap gap-2 pt-2 text-xs border-t">
+                <div className="flex flex-wrap gap-2 pt-2 border-t text-xs">
                   {cmsUser.status !== "active" ? (
                     <button
                       disabled={pending}
-                      className="px-2 py-1 border rounded bg-secondary hover:bg-secondary/80"
+                      className="bg-secondary hover:bg-secondary/80 px-2 py-1 border rounded"
                       onClick={() =>
                         run(
                           () =>
@@ -205,7 +248,7 @@ function CmsUsersPage() {
                   ) : (
                     <button
                       disabled={pending}
-                      className="px-2 py-1 border rounded bg-secondary hover:bg-secondary/80"
+                      className="bg-secondary hover:bg-secondary/80 px-2 py-1 border rounded"
                       onClick={() =>
                         run(
                           () =>
@@ -225,7 +268,7 @@ function CmsUsersPage() {
                   )}
                   <button
                     disabled={pending}
-                    className="px-2 py-1 border rounded bg-secondary hover:bg-secondary/80"
+                    className="bg-secondary hover:bg-secondary/80 px-2 py-1 border rounded"
                     onClick={() =>
                       run(
                         () =>

@@ -1,57 +1,78 @@
-import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
+import {
+  IconArticle,
+  IconCalendarEvent,
+  IconFile,
+  IconPlus,
+  IconSearch,
+  IconPhoto,
+  IconBell,
+  IconFolder,
+} from "@tabler/icons-react";
 
-import { getCurrentCmsIdentity } from "../../../../access";
+import {
+  createCmsContent,
+  getCmsDashboard,
+  setCmsContentMedia,
+  transitionCmsContent,
+  updateCmsContent,
+  type CmsPermission,
+  type CmsDashboardData,
+} from "../../../../cms-functions";
 import { DraftEditor } from "../../../../content-editor";
 import { GalleryMediaEditor } from "../../../../gallery-media-editor";
 import { WorkflowActions, type CmsWorkflowAction } from "../../../../workflow-actions";
-import {
-  assignCmsRole,
-  archiveCmsMedia,
-  createCmsContent,
-  createCmsClub,
-  createCustomCmsRole,
-  getCmsDashboard,
-  getMediaDownload,
-  initiateMediaUpload,
-  finalizeMediaUpload,
-  setCustomCmsRoleActive,
-  setCmsContentMedia,
-  transitionCmsContent,
-  updateCmsClub,
-  updateCmsContent,
-  type CmsPermission,
-} from "../../../../cms-functions";
 
 export const Route = createFileRoute(
   "/_authenticated/dashboard/_content/content/",
 )({
   loader: () => getCmsDashboard(),
-  component: CmsContentDashboard,
+  component: ContentIndexPage,
 });
 
 type ContentType = "page" | "article" | "event" | "announcement" | "gallery";
 const labels: Record<ContentType, string> = {
   page: "Page",
-  article: "News / article",
+  article: "News / Article",
   event: "Event",
   announcement: "Announcement",
   gallery: "Gallery",
 };
 
-function CmsContentDashboard() {
+export function ContentIndexPage() {
   const dashboard = Route.useLoaderData();
+  return <ContentIndexView dashboard={dashboard} />;
+}
+
+export function ContentIndexView({
+  dashboard,
+  filterType,
+  filterState,
+}: {
+  readonly dashboard: CmsDashboardData;
+  readonly filterType?: ContentType;
+  readonly filterState?: string;
+}) {
   const router = useRouter();
   const permissions = new Set<CmsPermission>(dashboard.permissions);
-  const hasAnyPermission = (...values: CmsPermission[]) =>
-    values.some((value) => permissions.has(value));
+
   const [feedback, setFeedback] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedStateFilter, setSelectedStateFilter] = useState<string>(
+    filterState ?? "all",
+  );
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
   const types = (Object.keys(labels) as ContentType[]).filter((type) =>
-    permissions.has(`${type}:create:own` as CmsPermission),
+    filterType
+      ? type === filterType
+      : permissions.has(`${type}:create:own` as CmsPermission) ||
+        permissions.has("content:create:own" as CmsPermission),
   );
   const [selectedType, setSelectedType] = useState<ContentType>(
-    types[0] ?? "page",
+    filterType ?? types[0] ?? "page",
   );
 
   async function refresh(task: () => Promise<unknown>, success: string) {
@@ -63,20 +84,20 @@ function CmsContentDashboard() {
       await router.invalidate();
     } catch {
       setFeedback(
-        "The action was not accepted. Check the fields, workflow state and your access.",
+        "The action could not be completed. Please check permissions and input constraints.",
       );
     } finally {
       setPending(false);
     }
   }
 
-  const action = (id: string, value: CmsWorkflowAction, comment?: string) =>
+  const handleWorkflowAction = (id: string, value: CmsWorkflowAction, comment?: string) =>
     refresh(
       () => transitionCmsContent({ data: { id, action: value, comment } }),
-      "Workflow updated.",
+      "Workflow state updated.",
     );
 
-  const create = (event: FormEvent<HTMLFormElement>) => {
+  const handleCreate = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
@@ -99,10 +120,11 @@ function CmsContentDashboard() {
         },
       });
       form.reset();
-    }, "Draft created.");
+      setShowCreateModal(false);
+    }, "Content draft created.");
   };
 
-  const update = (event: FormEvent<HTMLFormElement>, id: string) => {
+  const handleUpdate = (event: FormEvent<HTMLFormElement>, id: string) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     return refresh(
@@ -125,222 +147,375 @@ function CmsContentDashboard() {
             },
           },
         }),
-      "A new revision was saved.",
+      "New content revision saved.",
     );
   };
 
-  const states = [
-    "draft",
-    "submitted",
-    "in_review",
-    "rejected",
-    "approved",
-    "published",
-  ];
-
-  const uploadMedia = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const data = new FormData(form);
-    const file = data.get("file");
-    if (!(file instanceof File)) return;
-    return refresh(async () => {
-      const signatureBytes = Array.from(
-        new Uint8Array(await file.slice(0, 32).arrayBuffer()),
-      );
-      const initiated = await initiateMediaUpload({
-        data: {
-          filename: file.name,
-          declaredMimeType: file.type,
-          byteSize: file.size,
-          signatureBytes,
-          altText: String(data.get("altText")),
-          owningClubId: String(data.get("club") || "") || undefined,
-        },
-      });
-      const response = await fetch(initiated.uploadUrl, {
-        method: "PUT",
-        headers: { "Content-Type": initiated.contentType },
-        body: file,
-      });
-      if (!response.ok) throw new Error("Object upload failed.");
-      await finalizeMediaUpload({ data: { id: initiated.id } });
-      form.reset();
-    }, "Image uploaded and verified.");
-  };
-
-  const downloadMedia = (id: string) =>
-    refresh(async () => {
-      const result = await getMediaDownload({ data: { id } });
-      window.location.assign(result.downloadUrl);
-    }, "Secure download authorized.");
-
-  const archiveMedia = (id: string) =>
-    window.confirm(
-      "Archive this media asset? It will no longer be available for active content.",
-    )
-      ? refresh(
-          () => archiveCmsMedia({ data: { id } }),
-          "Media archived. The private object was retained.",
-        )
-      : Promise.resolve();
-
-  const saveContentMedia = (id: string, mediaIds: readonly string[]) =>
+  const handleSaveMedia = (id: string, mediaIds: readonly string[]) =>
     refresh(
       () => setCmsContentMedia({ data: { id, mediaIds: [...mediaIds] } }),
-      "Gallery composition saved as a new revision.",
+      "Gallery media composition updated.",
     );
 
+  const filteredItems = dashboard.content.filter((item) => {
+    const matchesType = !filterType || item.type === filterType;
+    const matchesSearch =
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.slug.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesState =
+      selectedStateFilter === "all"
+        ? true
+        : selectedStateFilter === "drafts"
+          ? ["draft", "rejected"].includes(item.state)
+          : selectedStateFilter === "review"
+            ? ["submitted", "in_review"].includes(item.state)
+            : selectedStateFilter === "approval"
+              ? item.state === "in_review" && Boolean(item.reviewedAt)
+              : item.state === selectedStateFilter;
+
+    return matchesType && matchesSearch && matchesState;
+  });
+
+  const titleHeader = filterType
+    ? `${labels[filterType]} Management`
+    : filterState
+      ? `${filterState.replace("_", " ").toUpperCase()} Queue`
+      : "Content Management";
+
   return (
-    <div className="p-6 space-y-6">
-      <header className="pb-4 border-b flex justify-between items-start">
+    <div className="p-4 md:p-6 space-y-6 max-w-[1600px] mx-auto">
+      {/* Header */}
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Content operations</p>
-          <h1 className="text-2xl font-bold tracking-tight">Content Management</h1>
-          <p className="text-sm text-muted-foreground">Create, review, approve and publish school content.</p>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-wider mb-1">
+            <span>Content</span>
+            <span>/</span>
+            <span className="text-foreground font-semibold">
+              {filterType ? labels[filterType] : filterState ? filterState : "All Items"}
+            </span>
+          </div>
+          <h1 className="text-2xl font-serif font-bold text-foreground">{titleHeader}</h1>
+          <p className="text-sm text-muted-foreground">
+            View, edit, and transition scoped pages, news, events, announcements, and galleries.
+          </p>
         </div>
-        <div className="text-right text-xs">
-          <span className="text-muted-foreground block">Signed in</span>
-          <strong className="text-sm font-semibold block">{dashboard.identity.displayName}</strong>
-          <span className="text-muted-foreground">{dashboard.identity.roles.join(", ") || "Assigned CMS user"}</span>
-        </div>
+
+        {types.length > 0 && (
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-md text-xs font-semibold text-white bg-[#42245f] hover:bg-[#542f7f] transition-colors shadow-sm"
+          >
+            <IconPlus className="size-4" />
+            <span>Create {filterType ? labels[filterType] : "Draft"}</span>
+          </button>
+        )}
       </header>
 
-      {feedback ? (
-        <div className="p-3 rounded bg-accent text-accent-foreground text-sm font-medium" role="status">
+      {feedback && (
+        <div className="p-3 rounded-lg bg-[#42245f]/10 border border-[#42245f]/20 text-[#42245f] text-xs font-medium">
           {feedback}
         </div>
-      ) : null}
+      )}
 
-      <section aria-labelledby="overview" className="space-y-3">
-        <h2 id="overview" className="text-lg font-semibold">Workflow overview</h2>
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-          {states.map((state) => (
-            <article className="p-3 rounded border bg-card text-card-foreground shadow-sm" key={state}>
-              <span className="text-xs text-muted-foreground capitalize block">{state.replace("_", " ")}</span>
-              <strong className="text-xl font-bold">
-                {dashboard.content.filter((item) => item.state === state).length}
-              </strong>
-            </article>
+      {/* Filter & Search Bar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 rounded-xl border border-border bg-card shadow-sm">
+        <div className="relative w-full sm:w-80">
+          <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Filter by title or slug..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-1.5 text-xs rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-[#9a78c2]"
+          />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <span className="text-xs text-muted-foreground font-medium">State:</span>
+          {["all", "draft", "submitted", "in_review", "approved", "published"].map((st) => (
+            <button
+              key={st}
+              onClick={() => setSelectedStateFilter(st)}
+              className={`px-2.5 py-1 rounded text-xs capitalize transition-colors font-medium ${
+                selectedStateFilter === st
+                  ? "bg-[#42245f] text-white"
+                  : "bg-secondary text-secondary-foreground hover:bg-accent"
+              }`}
+            >
+              {st.replace("_", " ")}
+            </button>
           ))}
         </div>
-      </section>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <section aria-labelledby="content-list" className="lg:col-span-2 space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 id="content-list" className="text-lg font-semibold">Authorized content</h2>
-            <span className="text-xs text-muted-foreground">{dashboard.content.length} items</span>
-          </div>
-
-          {dashboard.content.length === 0 ? (
-            <p className="text-sm text-muted-foreground p-6 text-center border rounded">
-              No content is available in your scope.
+      {/* Content List */}
+      <div className="space-y-4">
+        {filteredItems.length === 0 ? (
+          <div className="p-12 text-center rounded-xl border border-dashed border-border bg-card">
+            <IconFolder className="size-8 text-muted-foreground mx-auto mb-2 opacity-50" />
+            <p className="text-sm font-semibold text-foreground">No content items found</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Adjust your filters or create a new draft within your assigned role scope.
             </p>
-          ) : (
-            <div className="space-y-4">
-              {dashboard.content.map((item) => (
-                <article className="p-4 rounded-lg border bg-card shadow-sm space-y-3" key={item.id}>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="font-semibold uppercase tracking-wider text-muted-foreground">{labels[item.type]}</span>
-                    <span className="px-2 py-0.5 rounded bg-muted font-medium capitalize">{item.state.replace("_", " ")}</span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            {filteredItems.map((item) => (
+              <article
+                key={item.id}
+                className="p-5 rounded-xl border border-border bg-card shadow-sm space-y-4 hover:border-[#69439a]/30 transition-all"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="p-2 rounded-lg bg-[#42245f]/10 text-[#42245f]">
+                      {item.type === "page" && <IconFile className="size-5" />}
+                      {item.type === "article" && <IconArticle className="size-5" />}
+                      {item.type === "event" && <IconCalendarEvent className="size-5" />}
+                      {item.type === "announcement" && <IconBell className="size-5" />}
+                      {item.type === "gallery" && <IconPhoto className="size-5" />}
+                    </span>
+                    <div>
+                      <h3 className="text-base font-bold font-serif text-foreground">{item.title}</h3>
+                      <p className="text-xs text-muted-foreground font-mono">/{item.slug}</p>
+                    </div>
                   </div>
-                  <h3 className="text-base font-semibold">{item.title}</h3>
-                  <p className="text-xs font-mono text-muted-foreground">/{item.slug}</p>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-secondary text-secondary-foreground border">
+                      {labels[item.type as ContentType]}
+                    </span>
+                    <span
+                      className={`text-[11px] font-medium px-2 py-0.5 rounded border capitalize ${
+                        item.state === "published"
+                          ? "bg-[#2f7d3b]/10 text-[#2f7d3b] border-[#2f7d3b]/20"
+                          : item.state === "approved"
+                            ? "bg-[#79b6d6]/10 text-[#2f6287] border-[#79b6d6]/20"
+                            : item.state === "in_review" || item.state === "submitted"
+                              ? "bg-[#d39a22]/10 text-[#d39a22] border-[#d39a22]/20"
+                              : "bg-[#8564ae]/10 text-[#42245f] border-[#8564ae]/20"
+                      }`}
+                    >
+                      {item.state.replace("_", " ")}
+                    </span>
+                  </div>
+                </div>
+
+                {item.summary && (
+                  <p className="text-xs text-muted-foreground line-clamp-2">{item.summary}</p>
+                )}
+
+                {/* Workflow Actions */}
+                <div className="pt-2">
                   <WorkflowActions
                     content={item}
                     currentUserId={dashboard.userId}
                     permissions={permissions}
                     pending={pending}
-                    onAction={(value, comment) => action(item.id, value, comment)}
+                    onAction={(val, comment) => handleWorkflowAction(item.id, val, comment)}
                   />
-                  {(item.authorUserId === dashboard.userId ||
-                    permissions.has("content:update:cms")) &&
-                  ["draft", "rejected"].includes(item.state) ? (
-                    <details className="text-xs border-t pt-3">
-                      <summary className="cursor-pointer font-medium text-primary">Edit draft</summary>
-                      <div className="mt-3 space-y-3">
-                        <DraftEditor
-                          content={item}
-                          pending={pending}
-                          onSave={(event) => update(event, item.id)}
-                        />
+                </div>
+
+                {/* Draft Editing & Gallery Composition */}
+                {(item.authorUserId === dashboard.userId || permissions.has("content:update:cms")) &&
+                ["draft", "rejected"].includes(item.state) ? (
+                  <details className="pt-2 border-t border-border group">
+                    <summary className="text-xs font-semibold text-[#42245f] cursor-pointer hover:underline py-1">
+                      Edit Draft & Media
+                    </summary>
+                    <div className="mt-3 space-y-4 p-4 rounded-lg bg-secondary/30 border border-border">
+                      <DraftEditor
+                        content={item}
+                        pending={pending}
+                        onSave={(e) => handleUpdate(e, item.id)}
+                      />
+                      {item.type === "gallery" && (
                         <GalleryMediaEditor
                           contentId={item.id}
                           contentType={item.type}
                           initialMediaIds={item.mediaIds}
                           media={dashboard.media}
                           pending={pending}
-                          onSave={(mediaIds) => saveContentMedia(item.id, mediaIds)}
+                          onSave={(mediaIds) => handleSaveMedia(item.id, mediaIds)}
                         />
-                      </div>
-                    </details>
-                  ) : null}
-                </article>
-              ))}
+                      )}
+                    </div>
+                  </details>
+                ) : null}
+
+                {/* Revisions & Workflow History */}
+                <details className="text-xs text-muted-foreground pt-1">
+                  <summary className="cursor-pointer hover:underline font-medium">
+                    View Revisions ({item.revisions.length}) & Workflow History ({item.workflow.length})
+                  </summary>
+                  <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4 p-3 rounded bg-secondary/20 border border-border">
+                    <div>
+                      <strong className="block text-foreground font-semibold mb-1">Revisions</strong>
+                      <ul className="space-y-1 text-[11px]">
+                        {item.revisions.map((rev) => (
+                          <li key={rev.revision}>
+                            Rev {rev.revision} · {rev.createdByName} (
+                            {new Date(rev.createdAt).toLocaleDateString()})
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <strong className="block text-foreground font-semibold mb-1">Workflow Events</strong>
+                      <ul className="space-y-1 text-[11px]">
+                        {item.workflow.map((w, idx) => (
+                          <li key={`${w.occurredAt}-${idx}`}>
+                            {w.fromState ?? "created"} ➔ {w.toState} by {w.actorName}
+                            {w.comment ? ` ("${w.comment}")` : ""}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </details>
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Create Draft Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h2 className="text-lg font-serif font-bold text-foreground">
+                Create {filterType ? labels[filterType] : "Content"} Draft
+              </h2>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-muted-foreground hover:text-foreground text-sm font-bold"
+              >
+                ✕
+              </button>
             </div>
-          )}
-        </section>
 
-        <aside aria-labelledby="new-draft" className="space-y-4 p-4 rounded-lg border bg-card shadow-sm h-fit">
-          <h2 id="new-draft" className="text-lg font-semibold">Create a draft</h2>
-          {types.length === 0 ? (
-            <p className="text-xs text-muted-foreground">Your role does not include content creation.</p>
-          ) : (
-            <form className="space-y-3 text-xs" onSubmit={create}>
-              <label className="block space-y-1">
-                <span className="font-medium">Content type</span>
-                <select
-                  className="w-full p-2 border rounded bg-background"
-                  name="type"
-                  required
-                  value={selectedType}
-                  onChange={(event) => setSelectedType(event.currentTarget.value as ContentType)}
-                >
-                  {types.map((type) => (
-                    <option key={type} value={type}>
-                      {labels[type]}
+            <form onSubmit={handleCreate} className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label className="block space-y-1">
+                  <span className="font-semibold text-foreground">Content Type</span>
+                  <select
+                    name="type"
+                    required
+                    value={selectedType}
+                    onChange={(e) => setSelectedType(e.target.value as ContentType)}
+                    className="w-full p-2 border rounded-md bg-background"
+                  >
+                    {types.map((type) => (
+                      <option key={type} value={type}>
+                        {labels[type]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="block space-y-1">
+                  <span className="font-semibold text-foreground">Owning Club / Society</span>
+                  <select name="club" defaultValue="" className="w-full p-2 border rounded-md bg-background">
+                    <option value="">
+                      {dashboard.clubs.length ? "Select an authorized club" : "School / Global"}
                     </option>
-                  ))}
-                </select>
-              </label>
+                    {dashboard.clubs.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label className="block space-y-1">
+                  <span className="font-semibold text-foreground">Title</span>
+                  <input
+                    name="title"
+                    required
+                    maxLength={240}
+                    className="w-full p-2 border rounded-md bg-background"
+                  />
+                </label>
+
+                <label className="block space-y-1">
+                  <span className="font-semibold text-foreground">URL Slug</span>
+                  <input
+                    name="slug"
+                    pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+                    required
+                    placeholder="e.g. annual-sports-day"
+                    className="w-full p-2 border rounded-md bg-background"
+                  />
+                </label>
+              </div>
 
               <label className="block space-y-1">
-                <span className="font-medium">Title</span>
-                <input className="w-full p-2 border rounded bg-background" name="title" maxLength={240} required />
-              </label>
-
-              <label className="block space-y-1">
-                <span className="font-medium">URL slug</span>
-                <input
-                  className="w-full p-2 border rounded bg-background font-mono"
-                  name="slug"
-                  pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-                  required
+                <span className="font-semibold text-foreground">Summary</span>
+                <textarea
+                  name="summary"
+                  maxLength={600}
+                  rows={2}
+                  className="w-full p-2 border rounded-md bg-background"
                 />
               </label>
 
               <label className="block space-y-1">
-                <span className="font-medium">Summary</span>
-                <textarea className="w-full p-2 border rounded bg-background" name="summary" maxLength={600} rows={2} />
+                <span className="font-semibold text-foreground">Body Content</span>
+                <textarea
+                  name="body"
+                  rows={6}
+                  className="w-full p-2 border rounded-md bg-background"
+                />
               </label>
 
-              <label className="block space-y-1">
-                <span className="font-medium">Content body</span>
-                <textarea className="w-full p-2 border rounded bg-background" name="body" rows={6} />
-              </label>
+              {selectedType === "event" && (
+                <fieldset className="p-3 rounded border border-border space-y-3 bg-secondary/20">
+                  <legend className="font-semibold text-foreground px-1">Event Details</legend>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label className="block space-y-1">
+                      <span>Starts</span>
+                      <input name="eventStartAt" type="datetime-local" required className="w-full p-2 border rounded bg-background" />
+                    </label>
+                    <label className="block space-y-1">
+                      <span>Ends</span>
+                      <input name="eventEndAt" type="datetime-local" className="w-full p-2 border rounded bg-background" />
+                    </label>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label className="block space-y-1">
+                      <span>Location</span>
+                      <input name="eventLocation" className="w-full p-2 border rounded bg-background" />
+                    </label>
+                    <label className="block space-y-1">
+                      <span>Organiser</span>
+                      <input name="eventOrganiser" className="w-full p-2 border rounded bg-background" />
+                    </label>
+                  </div>
+                </fieldset>
+              )}
 
-              <button
-                disabled={pending}
-                type="submit"
-                className="w-full py-2 bg-primary text-primary-foreground font-semibold rounded hover:bg-primary/90 transition-colors"
-              >
-                {pending ? "Working…" : "Create draft"}
-              </button>
+              <div className="flex justify-end gap-2 pt-2 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="px-4 py-2 rounded-md border border-border hover:bg-accent text-xs font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={pending}
+                  className="px-4 py-2 rounded-md bg-[#42245f] hover:bg-[#542f7f] text-white text-xs font-semibold"
+                >
+                  {pending ? "Creating..." : "Save Draft"}
+                </button>
+              </div>
             </form>
-          )}
-        </aside>
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

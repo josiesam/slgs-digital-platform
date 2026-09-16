@@ -176,7 +176,7 @@ const dashboardRoutes: Route[] = [
         icon: <IconFile className="size-4" />,
       },
       {
-        title: "Roles & Permissions",
+        title: "Roles",
         link: "/dashboard/access/roles",
         icon: <IconShield className="size-4" />,
       },
@@ -208,9 +208,136 @@ const teams = [
   { id: "3", name: "Gamma Tech", logo: Logo, plan: "Free" },
 ];
 
-export function DashboardSidebar() {
+function getFilteredRoutes(permissions?: readonly string[]): Route[] {
+  if (!permissions || permissions.length === 0) return dashboardRoutes;
+  const p = new Set(permissions);
+  const isAdmin =
+    p.has("role:assign:cms") ||
+    p.has("user:create:cms") ||
+    p.has("configuration:manage:cms");
+
+  return dashboardRoutes
+    .map((group) => {
+      if (!group.subs) return group;
+      const filteredSubs = group.subs.filter((sub) => {
+        if (isAdmin) return true;
+        // Content subs
+        if (sub.link.includes("/content/pages"))
+          return (
+            p.has("page:create:own") ||
+            p.has("content:create:own") ||
+            p.has("content:read:cms") ||
+            p.has("content:read:club") ||
+            p.has("content:read:assigned")
+          );
+        if (sub.link.includes("/content/news"))
+          return (
+            p.has("article:create:own") ||
+            p.has("content:create:own") ||
+            p.has("content:read:cms") ||
+            p.has("content:read:club") ||
+            p.has("content:read:assigned")
+          );
+        if (sub.link.includes("/content/events"))
+          return (
+            p.has("event:create:own") ||
+            p.has("content:create:own") ||
+            p.has("content:read:cms") ||
+            p.has("content:read:club") ||
+            p.has("content:read:assigned")
+          );
+        if (sub.link.includes("/content/announcement"))
+          return (
+            p.has("announcement:create:own") ||
+            p.has("content:create:own") ||
+            p.has("content:read:cms") ||
+            p.has("content:read:club") ||
+            p.has("content:read:assigned")
+          );
+        if (sub.link.includes("/content/gallery"))
+          return (
+            p.has("gallery:create:own") ||
+            p.has("content:create:own") ||
+            p.has("content:read:cms") ||
+            p.has("content:read:club") ||
+            p.has("content:read:assigned")
+          );
+        if (sub.link.includes("/content/media"))
+          return (
+            p.has("media:create:own") ||
+            p.has("media:read:club") ||
+            p.has("media:read:cms")
+          );
+
+        // Editorial subs
+        if (sub.link.includes("/editorial/drafts"))
+          return (
+            p.has("content:create:own") ||
+            p.has("article:create:own") ||
+            p.has("content:submit:own") ||
+            p.has("content:read:club")
+          );
+        if (sub.link.includes("/editorial/review"))
+          return (
+            p.has("content:review:assigned") || p.has("content:review:cms")
+          );
+        if (sub.link.includes("/editorial/approval"))
+          return (
+            p.has("content:approve:assigned") || p.has("content:approve:cms")
+          );
+        if (sub.link.includes("/editorial/published"))
+          return (
+            p.has("content:publish:approved") ||
+            p.has("content:publish:cms") ||
+            p.has("content:read:approved")
+          );
+
+        // Public subs
+        if (sub.link.includes("/public"))
+          return (
+            p.has("content:publish:approved") ||
+            p.has("content:publish:cms") ||
+            p.has("configuration:manage:cms")
+          );
+
+        // Access subs
+        if (sub.link.includes("/access/users"))
+          return p.has("user:read:cms") || p.has("membership:read:cms");
+        if (sub.link.includes("/access/clubs"))
+          return p.has("club:read:cms") || p.has("club:manage:assigned");
+        if (sub.link.includes("/access/roles"))
+          return (
+            p.has("role:assign:cms") ||
+            p.has("role:create:cms") ||
+            p.has("configuration:manage:cms")
+          );
+
+        // System subs
+        if (sub.link.includes("/system/log")) return p.has("audit:read:cms");
+        if (sub.link.includes("/system/status"))
+          return p.has("configuration:manage:cms") || p.has("audit:read:cms");
+
+        return true;
+      });
+
+      return { ...group, subs: filteredSubs };
+    })
+    .filter(
+      (group) =>
+        group.id === "dashboard" || (group.subs && group.subs.length > 0),
+    );
+}
+
+export function DashboardSidebar({
+  permissions,
+  identity,
+}: {
+  readonly permissions?: readonly string[];
+  readonly identity?: { readonly displayName: string; readonly role: string };
+}) {
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const activeRoutes = getFilteredRoutes(permissions);
 
   return (
     <Sidebar collapsible="icon" variant="sidebar">
@@ -223,12 +350,19 @@ export function DashboardSidebar() {
               : "flex-row items-center justify-between",
           )}
         >
-          <a className="flex items-center gap-2" href="#">
-            <Logo className="h-8 w-8" />
+          <a className="flex items-center gap-2" href="/dashboard">
+            <span className="flex justify-center items-center bg-[#42245f] shadow-sm border border-[#c2b28a] rounded-lg w-8 h-8 font-serif font-bold text-white text-xs">
+              SL
+            </span>
             {!isCollapsed && (
-              <span className="font-semibold text-black dark:text-white">
-                SLGS CMS
-              </span>
+              <div className="flex flex-col text-left">
+                <span className="font-serif font-bold text-foreground text-sm leading-none">
+                  SLGS CMS
+                </span>
+                <span className="mt-0.5 text-[10px] text-muted-foreground uppercase tracking-wider">
+                  {identity?.role ?? "Administration"}
+                </span>
+              </div>
             )}
           </a>
 
@@ -247,7 +381,7 @@ export function DashboardSidebar() {
         </SidebarHeader>
         <Button
           onClick={toggleSidebar}
-          className="top-12 -right-3 absolute flex justify-center items-center shadow-sm border border-border rounded-full w-6 h-6 transition-colors"
+          className="top-12 -right-3 absolute flex justify-center items-center bg-background hover:bg-accent shadow-sm border border-border rounded-full w-6 h-6 transition-colors"
         >
           {isCollapsed ? (
             <IconChevronRight className="w-3 h-3" />
@@ -258,7 +392,7 @@ export function DashboardSidebar() {
       </div>
 
       <SidebarContent className="gap-4 px-2 py-4">
-        <DashboardNavigation routes={dashboardRoutes} />
+        <DashboardNavigation routes={activeRoutes} />
       </SidebarContent>
       <SidebarFooter className="px-2">
         <TeamSwitcher teams={teams} />
