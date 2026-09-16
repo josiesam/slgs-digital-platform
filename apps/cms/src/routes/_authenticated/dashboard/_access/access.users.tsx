@@ -8,6 +8,14 @@ import {
   revokeCmsRoleAssignment,
   revokeCmsSessions,
 } from "../../../../user-admin-functions";
+import {
+  Field,
+  FieldLabel,
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@slgs/ui";
+import { IconEye, IconEyeOff } from "@tabler/icons-react";
 
 export const Route = createFileRoute(
   "/_authenticated/dashboard/_access/access/users",
@@ -19,6 +27,7 @@ export const Route = createFileRoute(
 function CmsUsersPage() {
   const initialData = Route.useLoaderData();
   const [data, setData] = useState(initialData);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [message, setMessage] = useState("");
   const [pending, startTransition] = useTransition();
@@ -113,18 +122,29 @@ function CmsUsersPage() {
               />
             </label>
 
-            <label className="block space-y-1">
-              <span className="font-medium">Temporary password</span>
-              <input
-                className="bg-background p-2 border rounded w-full"
-                name="temporaryPassword"
-                type="password"
-                minLength={12}
-                maxLength={128}
-                autoComplete="new-password"
-                required
-              />
-            </label>
+            <Field className="max-w-sm">
+              <FieldLabel htmlFor="inline-end-input">
+                Temporary password
+              </FieldLabel>
+              <InputGroup>
+                <InputGroupInput
+                  name="temporaryPassword"
+                  type={showPassword ? "text" : "password"}
+                  minLength={12}
+                  maxLength={128}
+                  autoComplete="new-password"
+                  required
+                  placeholder="Enter password"
+                />
+                <InputGroupAddon
+                  onClick={() => setShowPassword(!showPassword)}
+                  align="inline-end"
+                >
+                  {showPassword ? <IconEyeOff /> : <IconEye />}
+                </InputGroupAddon>
+              </InputGroup>
+            </Field>
+
             <button
               disabled={pending}
               className="bg-primary hover:bg-primary/90 py-2 rounded w-full font-semibold text-primary-foreground transition-colors"
