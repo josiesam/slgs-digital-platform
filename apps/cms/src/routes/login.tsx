@@ -1,7 +1,16 @@
 import { createAuthClient } from "better-auth/react";
-import type { SubmitEvent } from "react";
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useForm } from "@tanstack/react-form";
+import {
+  Button,
+  Field,
+  FieldError,
+  FieldLabel,
+  Input,
+  PasswordInput,
+} from "@slgs/ui";
+import z from "zod";
 
 const authClient = createAuthClient();
 
@@ -11,13 +20,15 @@ function LoginPage() {
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
 
-  async function submit(event: SubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function handleSubmit({
+    value,
+  }: {
+    value: { email: string; password: string };
+  }) {
     setMessage("");
-    const data = new FormData(event.currentTarget);
     const result = await authClient.signIn.email({
-      email: String(data.get("email")),
-      password: String(data.get("password")),
+      email: value.email,
+      password: value.password,
     });
     if (result.error) {
       setMessage("Sign-in was not accepted.");
@@ -26,14 +37,35 @@ function LoginPage() {
     await navigate({ to: "/dashboard" });
   }
 
-  return <LoginForm application="CMS" message={message} onSubmit={submit} />;
+  return (
+    <LoginForm application="CMS" message={message} onSubmit={handleSubmit} />
+  );
 }
+
+const loginSchema = z.object({
+  email: z.email(),
+  password: z.string().min(8),
+});
 
 export function LoginForm(props: {
   application: string;
   message: string;
-  onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
+  onSubmit: (props: {
+    value: { email: string; password: string };
+  }) => void | Promise<void>;
 }) {
+  const form = useForm({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+    onSubmit: props.onSubmit,
+    validators: {
+      onBlur: loginSchema,
+      onSubmit: loginSchema,
+    },
+  });
+
   return (
     <section className="home-hero">
       <main className="auth-card">
@@ -43,34 +75,66 @@ export function LoginForm(props: {
             Sign in to {props.application}
           </h1>
         </div>
-        <form className="flex flex-col gap-4" onSubmit={props.onSubmit}>
-          <label className="flex flex-col gap-2">
-            Email
-            <input
-              className="rounded-md border bg-background px-3 py-2"
-              name="email"
-              type="email"
-              autoComplete="username"
-              required
-            />
-          </label>
-          <label className="flex flex-col gap-2">
-            Password
-            <input
-              className="rounded-md border bg-background px-3 py-2"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-            />
-          </label>
+        <form
+          className="flex flex-col gap-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            form.handleSubmit();
+          }}
+        >
+          <form.Field
+            name="email"
+            children={(field) => (
+              <Field>
+                <FieldLabel id={field.name} htmlFor={field.name}>
+                  Email
+                </FieldLabel>
+                <Input
+                  id={field.name}
+                  name={field.name}
+                  type="email"
+                  autoComplete="username"
+                  required
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                />
+                {!field.state.meta.isDefaultValue &&
+                  field.state.meta.isDirty && (
+                    <FieldError errors={field.state.meta.errors} />
+                  )}
+              </Field>
+            )}
+          />
+          <form.Field
+            name="password"
+            children={(field) => (
+              <Field>
+                <FieldLabel id={field.name} htmlFor={field.name}>
+                  Password
+                </FieldLabel>
+                <PasswordInput
+                  id={field.name}
+                  name={field.name}
+                  placeholder="Enter your password"
+                  autoComplete="current-password"
+                  required
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                />
+                {!field.state.meta.isDefaultValue &&
+                  field.state.meta.isDirty && (
+                    <FieldError errors={field.state.meta.errors} />
+                  )}
+              </Field>
+            )}
+          />
           {props.message ? <p role="alert">{props.message}</p> : null}
-          <button
+          <Button
             className="rounded-md bg-primary px-4 py-2 text-primary-foreground"
             type="submit"
           >
             Sign in
-          </button>
+          </Button>
         </form>
       </main>
     </section>

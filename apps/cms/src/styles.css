@@ -813,7 +813,7 @@ summary:focus-visible {
 
 @theme inline {
   --font-heading: var(--font-sans);
-  --font-sans: 'Nunito Sans Variable', sans-serif;
+  --font-sans: "Nunito Sans Variable", sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -855,72 +855,104 @@ summary:focus-visible {
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  /* SLGS institutional colors */
+  --slgs-purple: #69439a;
+  --slgs-purple-dark: #42245f;
+  --slgs-purple-light: #8564ae;
+  --slgs-silver: #a7a9ac;
+  --slgs-silver-light: #e1e2e3;
+  --slgs-silver-dark: #73767a;
+  --slgs-khaki: #c2b28a;
+  --slgs-khaki-light: #eee9dc;
+  --slgs-khaki-dark: #8d7d58;
+  --slgs-white: #ffffff;
+  --slgs-off-white: #faf9f6;
+  --slgs-ink: #252329;
+  --slgs-muted: #65616a;
+  --slgs-border: #dedbe1;
+  --slgs-red: #c94a43;
+  --slgs-purple-hover: #542f7f;
+  --slgs-focus: #9a78c2;
+
+  /* Sporting house colors */
+  --house-primus: #c83a32;
+  --house-secundus: #2f7d3b;
+  --house-tertius: #79b6d6;
+  --house-quartus: #2f6287;
+  --house-quintus: #d39a22;
+  --house-primus-light: #f5d9d7;
+  --house-secundus-light: #dcecdf;
+  --house-tertius-light: #dcecf5;
+  --house-quartus-light: #dbe5ec;
+  --house-quintus-light: #f7ebc9;
+
+  /* Mapped to shadcn/ui tokens */
+  --background: var(--slgs-white);
+  --foreground: var(--slgs-ink);
+  --card: var(--slgs-white);
+  --card-foreground: var(--slgs-ink);
+  --popover: var(--slgs-white);
+  --popover-foreground: var(--slgs-ink);
+  --primary: var(--slgs-purple);
+  --primary-foreground: var(--slgs-white);
+  --secondary: var(--slgs-silver-light);
+  --secondary-foreground: var(--slgs-ink);
+  --muted: var(--slgs-silver-light);
+  --muted-foreground: var(--slgs-muted);
+  --accent: var(--slgs-khaki-light);
+  --accent-foreground: var(--slgs-ink);
+  --destructive: var(--slgs-red);
+  --border: var(--slgs-border);
+  --input: var(--slgs-silver-light);
+  --ring: var(--slgs-purple);
+  --chart-1: var(--house-primus);
+  --chart-2: var(--house-secundus);
+  --chart-3: var(--house-tertius);
+  --chart-4: var(--house-quartus);
+  --chart-5: var(--house-quintus);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: var(--slgs-off-white);
+  --sidebar-foreground: var(--slgs-ink);
+  --sidebar-primary: var(--slgs-purple);
+  --sidebar-primary-foreground: var(--slgs-white);
+  --sidebar-accent: var(--slgs-silver-light);
+  --sidebar-accent-foreground: var(--slgs-ink);
+  --sidebar-border: var(--slgs-border);
+  --sidebar-ring: var(--slgs-purple);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: var(--slgs-ink);
+  --foreground: var(--slgs-white);
+  --card: var(--slgs-purple-dark);
+  --card-foreground: var(--slgs-white);
+  --popover: var(--slgs-purple-dark);
+  --popover-foreground: var(--slgs-white);
+  --primary: var(--slgs-purple-light);
+  --primary-foreground: var(--slgs-white);
+  --secondary: var(--slgs-silver-dark);
+  --secondary-foreground: var(--slgs-white);
+  --muted: var(--slgs-silver-dark);
+  --muted-foreground: var(--slgs-silver-light);
+  --accent: var(--slgs-khaki-dark);
+  --accent-foreground: var(--slgs-white);
+  --destructive: var(--slgs-red);
+  --border: var(--slgs-silver-dark);
+  --input: var(--slgs-silver-dark);
+  --ring: var(--slgs-purple-light);
+  --chart-1: var(--house-primus);
+  --chart-2: var(--house-secundus);
+  --chart-3: var(--house-tertius);
+  --chart-4: var(--house-quartus);
+  --chart-5: var(--house-quintus);
+  --sidebar: var(--slgs-purple-dark);
+  --sidebar-foreground: var(--slgs-white);
+  --sidebar-primary: var(--slgs-purple-light);
+  --sidebar-primary-foreground: var(--slgs-white);
+  --sidebar-accent: var(--slgs-silver-dark);
+  --sidebar-accent-foreground: var(--slgs-white);
+  --sidebar-border: var(--slgs-silver-dark);
+  --sidebar-ring: var(--slgs-purple-light);
 }
 
 @layer base {
