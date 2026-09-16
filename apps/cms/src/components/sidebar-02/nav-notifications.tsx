@@ -1,5 +1,5 @@
 import { BellIcon } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@slgs/ui";
+import { Avatar, AvatarFallback, AvatarImage, useSidebar } from "@slgs/ui";
 import { Button } from "@slgs/ui";
 import {
   DropdownMenu,
@@ -23,6 +23,8 @@ export function NotificationsPopover({
 }: {
   notifications: Notification[];
 }) {
+  const { isMobile } = useSidebar();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -35,7 +37,7 @@ export function NotificationsPopover({
           <BellIcon className="size-5" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="my-6 w-80" side="right">
+      <DropdownMenuContent className="my-6 w-80" side={isMobile ? "bottom" : "right"}>
         <DropdownMenuLabel>Notifications</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {notifications.map(({ id, avatar, fallback, text, time }) => (

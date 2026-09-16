@@ -25,6 +25,7 @@ import { Route as AuthenticatedDashboardContentRouteImport } from './routes/_aut
 import { Route as AuthenticatedDashboardEditorialRouteImport } from './routes/_authenticated/dashboard/_editorial'
 import { Route as AuthenticatedDashboardPublicRouteImport } from './routes/_authenticated/dashboard/_public'
 import { Route as AuthenticatedDashboardSystemRouteImport } from './routes/_authenticated/dashboard/_system'
+import { Route as AuthenticatedDashboardProfileRouteImport } from './routes/_authenticated/dashboard/profile'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthenticatedDashboardAccessAccessIndexRouteImport } from './routes/_authenticated/dashboard/_access/access.index'
 import { Route as AuthenticatedDashboardAccessAccessClubsRouteImport } from './routes/_authenticated/dashboard/_access/access.clubs'
@@ -129,6 +130,12 @@ const AuthenticatedDashboardPublicRoute =
 const AuthenticatedDashboardSystemRoute =
   AuthenticatedDashboardSystemRouteImport.update({
     id: '/_system',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardProfileRoute =
+  AuthenticatedDashboardProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
@@ -291,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/admin/system-status': typeof AdminSystemStatusRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
+  '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/dashboard/access/clubs': typeof AuthenticatedDashboardAccessAccessClubsRoute
@@ -328,6 +336,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/admin': typeof AdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
+  '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/access/clubs': typeof AuthenticatedDashboardAccessAccessClubsRoute
   '/dashboard/access/roles': typeof AuthenticatedDashboardAccessAccessRolesRoute
@@ -371,6 +380,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/_editorial': typeof AuthenticatedDashboardEditorialRouteWithChildren
   '/_authenticated/dashboard/_public': typeof AuthenticatedDashboardPublicRouteWithChildren
   '/_authenticated/dashboard/_system': typeof AuthenticatedDashboardSystemRouteWithChildren
+  '/_authenticated/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/dashboard/_access/access/clubs': typeof AuthenticatedDashboardAccessAccessClubsRoute
@@ -410,6 +420,7 @@ export interface FileRouteTypes {
     | '/admin/system-status'
     | '/admin/users'
     | '/admin/'
+    | '/dashboard/profile'
     | '/api/auth/$'
     | '/dashboard/'
     | '/dashboard/access/clubs'
@@ -447,6 +458,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin'
     | '/dashboard'
+    | '/dashboard/profile'
     | '/api/auth/$'
     | '/dashboard/access/clubs'
     | '/dashboard/access/roles'
@@ -489,6 +501,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/_editorial'
     | '/_authenticated/dashboard/_public'
     | '/_authenticated/dashboard/_system'
+    | '/_authenticated/dashboard/profile'
     | '/api/auth/$'
     | '/_authenticated/dashboard/'
     | '/_authenticated/dashboard/_access/access/clubs'
@@ -641,6 +654,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardSystemRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/profile': {
+      id: '/_authenticated/dashboard/profile'
+      path: '/profile'
+      fullPath: '/dashboard/profile'
+      preLoaderRoute: typeof AuthenticatedDashboardProfileRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
     '/api/auth/$': {
@@ -959,6 +979,7 @@ interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardEditorialRoute: typeof AuthenticatedDashboardEditorialRouteWithChildren
   AuthenticatedDashboardPublicRoute: typeof AuthenticatedDashboardPublicRouteWithChildren
   AuthenticatedDashboardSystemRoute: typeof AuthenticatedDashboardSystemRouteWithChildren
+  AuthenticatedDashboardProfileRoute: typeof AuthenticatedDashboardProfileRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
 }
 
@@ -974,6 +995,7 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
       AuthenticatedDashboardPublicRouteWithChildren,
     AuthenticatedDashboardSystemRoute:
       AuthenticatedDashboardSystemRouteWithChildren,
+    AuthenticatedDashboardProfileRoute: AuthenticatedDashboardProfileRoute,
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   }
 

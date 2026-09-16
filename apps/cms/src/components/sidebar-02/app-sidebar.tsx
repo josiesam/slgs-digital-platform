@@ -32,7 +32,7 @@ import { Logo } from "./logo";
 import type { Route } from "./nav-main";
 import DashboardNavigation from "./nav-main";
 import { NotificationsPopover } from "./nav-notifications";
-import { TeamSwitcher } from "./team-switcher";
+import { NavUser } from "./nav-user";
 
 const sampleNotifications = [
   {
@@ -202,12 +202,6 @@ const dashboardRoutes: Route[] = [
   },
 ];
 
-const teams = [
-  { id: "1", name: "Alpha Inc.", logo: Logo, plan: "Free" },
-  { id: "2", name: "Beta Corp.", logo: Logo, plan: "Free" },
-  { id: "3", name: "Gamma Tech", logo: Logo, plan: "Free" },
-];
-
 function getFilteredRoutes(permissions?: readonly string[]): Route[] {
   if (!permissions || permissions.length === 0) return dashboardRoutes;
   const p = new Set(permissions);
@@ -335,8 +329,8 @@ export function DashboardSidebar({
   readonly permissions?: readonly string[];
   readonly identity?: { readonly displayName: string; readonly role: string };
 }) {
-  const { state, toggleSidebar } = useSidebar();
-  const isCollapsed = state === "collapsed";
+  const { isMobile, state, toggleSidebar } = useSidebar();
+  const isCollapsed = !isMobile && state === "collapsed";
   const activeRoutes = getFilteredRoutes(permissions);
 
   return (
@@ -379,23 +373,25 @@ export function DashboardSidebar({
             <NotificationsPopover notifications={sampleNotifications} />
           </motion.div>
         </SidebarHeader>
-        <Button
-          onClick={toggleSidebar}
-          className="top-12 -right-3 absolute flex justify-center items-center bg-background hover:bg-accent shadow-sm border border-border rounded-full w-6 h-6 transition-colors"
-        >
-          {isCollapsed ? (
-            <IconChevronRight className="w-3 h-3" />
-          ) : (
-            <IconChevronLeft className="w-3 h-3" />
-          )}
-        </Button>
+        {!isMobile && (
+          <Button
+            onClick={toggleSidebar}
+            className="top-12 -right-3 absolute flex justify-center items-center bg-background hover:bg-accent shadow-sm border border-border rounded-full w-6 h-6 transition-colors"
+          >
+            {isCollapsed ? (
+              <IconChevronRight className="w-3 h-3" />
+            ) : (
+              <IconChevronLeft className="w-3 h-3" />
+            )}
+          </Button>
+        )}
       </div>
 
       <SidebarContent className="gap-4 px-2 py-4">
         <DashboardNavigation routes={activeRoutes} />
       </SidebarContent>
       <SidebarFooter className="px-2">
-        <TeamSwitcher teams={teams} />
+        <NavUser user={identity} />
       </SidebarFooter>
     </Sidebar>
   );

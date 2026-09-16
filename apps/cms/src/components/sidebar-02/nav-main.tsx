@@ -27,9 +27,15 @@ export type Route = {
 };
 
 export default function DashboardNavigation({ routes }: { routes: Route[] }) {
-  const { state } = useSidebar();
-  const isCollapsed = state === "collapsed";
+  const { isMobile, state, setOpenMobile } = useSidebar();
+  const isCollapsed = !isMobile && state === "collapsed";
   const [openCollapsible, setOpenCollapsible] = useState<string | null>(null);
+
+  const handleNavClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   return (
     <SidebarMenu>
@@ -89,6 +95,7 @@ export default function DashboardNavigation({ routes }: { routes: Route[] }) {
 
                               <Link
                                 className="flex items-center rounded-md px-4 py-1.5 font-medium text-muted-foreground text-sm hover:bg-sidebar-muted hover:text-foreground"
+                                onClick={handleNavClick}
                                 to={subRoute.link}
                               >
                                 {subRoute.title}
@@ -108,6 +115,7 @@ export default function DashboardNavigation({ routes }: { routes: Route[] }) {
                     "flex items-center rounded-lg px-2 text-muted-foreground transition-colors hover:bg-sidebar-muted hover:text-foreground",
                     isCollapsed && "justify-center",
                   )}
+                  onClick={handleNavClick}
                   to={route.link}
                 >
                   {route.icon}
