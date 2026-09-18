@@ -1,15 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import {
-  createPublicContentFromEnvironment,
-  publicContentKindSchema,
-  withPublicContentCache,
-} from "@slgs/public-content";
-
-const content = withPublicContentCache(
-  createPublicContentFromEnvironment(process.env),
-);
+import { publicContentKindSchema } from "@slgs/public-content";
+import { getPublicContentGateway } from "./public-content.server";
 
 export const listPublicContent = createServerFn({ method: "GET" })
   .validator((input) =>
@@ -20,7 +13,7 @@ export const listPublicContent = createServerFn({ method: "GET" })
       })
       .parse(input),
   )
-  .handler(({ data }) => content.list(data.kind, data.limit));
+  .handler(({ data }) => getPublicContentGateway().list(data.kind, data.limit));
 
 export const findPublicContent = createServerFn({ method: "GET" })
   .validator((input) =>
@@ -31,10 +24,11 @@ export const findPublicContent = createServerFn({ method: "GET" })
       })
       .parse(input),
   )
-  .handler(({ data }) => content.find(data.kind, data.slug));
+  .handler(({ data }) => getPublicContentGateway().find(data.kind, data.slug));
 
 export const getHomeContent = createServerFn({ method: "GET" }).handler(
   async () => {
+    const content = getPublicContentGateway();
     const [announcements, news, events, galleries] = await Promise.all([
       content.list("announcement", 3),
       content.list("article", 3),
@@ -47,6 +41,7 @@ export const getHomeContent = createServerFn({ method: "GET" }).handler(
 
 export const getSitemapContent = createServerFn({ method: "GET" }).handler(
   async () => {
+    const content = getPublicContentGateway();
     const [pages, articles, events, galleries, announcements] =
       await Promise.all([
         content.list("page", 100),
