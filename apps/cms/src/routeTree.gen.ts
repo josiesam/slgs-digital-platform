@@ -51,6 +51,7 @@ import { Route as AuthenticatedDashboardPublicPublicPublishedRouteImport } from 
 import { Route as AuthenticatedDashboardSystemSystemIndexRouteImport } from './routes/_authenticated/dashboard/_system/system.index'
 import { Route as AuthenticatedDashboardSystemSystemLogRouteImport } from './routes/_authenticated/dashboard/_system/system.log'
 import { Route as AuthenticatedDashboardSystemSystemStatusRouteImport } from './routes/_authenticated/dashboard/_system/system.status'
+import { Route as AuthenticatedDashboardEditorialEditorialStatusContentIdRouteImport } from './routes/_authenticated/dashboard/_editorial/editorial.$status.$contentId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -287,6 +288,12 @@ const AuthenticatedDashboardSystemSystemStatusRoute =
     path: '/system/status',
     getParentRoute: () => AuthenticatedDashboardSystemRoute,
   } as any)
+const AuthenticatedDashboardEditorialEditorialStatusContentIdRoute =
+  AuthenticatedDashboardEditorialEditorialStatusContentIdRouteImport.update({
+    id: '/editorial/$status/$contentId',
+    path: '/editorial/$status/$contentId',
+    getParentRoute: () => AuthenticatedDashboardEditorialRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -325,6 +332,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/editorial/': typeof AuthenticatedDashboardEditorialEditorialIndexRoute
   '/dashboard/public/': typeof AuthenticatedDashboardPublicPublicIndexRoute
   '/dashboard/system/': typeof AuthenticatedDashboardSystemSystemIndexRoute
+  '/dashboard/editorial/$status/$contentId': typeof AuthenticatedDashboardEditorialEditorialStatusContentIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -362,6 +370,7 @@ export interface FileRoutesByTo {
   '/dashboard/editorial': typeof AuthenticatedDashboardEditorialEditorialIndexRoute
   '/dashboard/public': typeof AuthenticatedDashboardPublicPublicIndexRoute
   '/dashboard/system': typeof AuthenticatedDashboardSystemSystemIndexRoute
+  '/dashboard/editorial/$status/$contentId': typeof AuthenticatedDashboardEditorialEditorialStatusContentIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -407,6 +416,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/_editorial/editorial/': typeof AuthenticatedDashboardEditorialEditorialIndexRoute
   '/_authenticated/dashboard/_public/public/': typeof AuthenticatedDashboardPublicPublicIndexRoute
   '/_authenticated/dashboard/_system/system/': typeof AuthenticatedDashboardSystemSystemIndexRoute
+  '/_authenticated/dashboard/_editorial/editorial/$status/$contentId': typeof AuthenticatedDashboardEditorialEditorialStatusContentIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -447,6 +457,7 @@ export interface FileRouteTypes {
     | '/dashboard/editorial/'
     | '/dashboard/public/'
     | '/dashboard/system/'
+    | '/dashboard/editorial/$status/$contentId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -484,6 +495,7 @@ export interface FileRouteTypes {
     | '/dashboard/editorial'
     | '/dashboard/public'
     | '/dashboard/system'
+    | '/dashboard/editorial/$status/$contentId'
   id:
     | '__root__'
     | '/'
@@ -528,6 +540,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/_editorial/editorial/'
     | '/_authenticated/dashboard/_public/public/'
     | '/_authenticated/dashboard/_system/system/'
+    | '/_authenticated/dashboard/_editorial/editorial/$status/$contentId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -838,6 +851,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardSystemSystemStatusRouteImport
       parentRoute: typeof AuthenticatedDashboardSystemRoute
     }
+    '/_authenticated/dashboard/_editorial/editorial/$status/$contentId': {
+      id: '/_authenticated/dashboard/_editorial/editorial/$status/$contentId'
+      path: '/editorial/$status/$contentId'
+      fullPath: '/dashboard/editorial/$status/$contentId'
+      preLoaderRoute: typeof AuthenticatedDashboardEditorialEditorialStatusContentIdRouteImport
+      parentRoute: typeof AuthenticatedDashboardEditorialRoute
+    }
   }
 }
 
@@ -904,6 +924,7 @@ interface AuthenticatedDashboardEditorialRouteChildren {
   AuthenticatedDashboardEditorialEditorialPublishedRoute: typeof AuthenticatedDashboardEditorialEditorialPublishedRoute
   AuthenticatedDashboardEditorialEditorialReviewRoute: typeof AuthenticatedDashboardEditorialEditorialReviewRoute
   AuthenticatedDashboardEditorialEditorialIndexRoute: typeof AuthenticatedDashboardEditorialEditorialIndexRoute
+  AuthenticatedDashboardEditorialEditorialStatusContentIdRoute: typeof AuthenticatedDashboardEditorialEditorialStatusContentIdRoute
 }
 
 const AuthenticatedDashboardEditorialRouteChildren: AuthenticatedDashboardEditorialRouteChildren =
@@ -918,6 +939,8 @@ const AuthenticatedDashboardEditorialRouteChildren: AuthenticatedDashboardEditor
       AuthenticatedDashboardEditorialEditorialReviewRoute,
     AuthenticatedDashboardEditorialEditorialIndexRoute:
       AuthenticatedDashboardEditorialEditorialIndexRoute,
+    AuthenticatedDashboardEditorialEditorialStatusContentIdRoute:
+      AuthenticatedDashboardEditorialEditorialStatusContentIdRoute,
   }
 
 const AuthenticatedDashboardEditorialRouteWithChildren =

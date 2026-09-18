@@ -17,6 +17,21 @@ export const contentTypeSchema = z.enum([
   "gallery",
 ]);
 export type ContentType = z.infer<typeof contentTypeSchema>;
+
+export function defaultCanonicalPath(type: ContentType, slug: string): string {
+  switch (type) {
+    case "article":
+      return `/news/${slug}`;
+    case "event":
+      return `/events/${slug}`;
+    case "gallery":
+      return `/gallery/${slug}`;
+    case "announcement":
+      return `/announcements/${slug}`;
+    case "page":
+      return `/${slug}`;
+  }
+}
 export const workflowStateSchema = z.enum([
   "draft",
   "submitted",
@@ -24,6 +39,7 @@ export const workflowStateSchema = z.enum([
   "rejected",
   "approved",
   "published",
+  "requires_rebase",
 ]);
 export type WorkflowState = z.infer<typeof workflowStateSchema>;
 
@@ -98,6 +114,21 @@ export interface CmsActor {
   readonly grant: ApplicationGrant;
 }
 
+export interface CmsRevisionRecord {
+  readonly id: string;
+  readonly contentId: string;
+  readonly revision: number;
+  readonly revisionLabel: string;
+  readonly snapshotId: string;
+  readonly baseSnapshotId: string | null;
+  readonly status: WorkflowState;
+  readonly rebasedFromSnapshotId: string | null;
+  readonly verifiedVersionNumber: number | null;
+  readonly snapshot: Record<string, unknown>;
+  readonly createdBy: string;
+  readonly createdAt: Date;
+}
+
 export interface CmsContent {
   readonly id: string;
   readonly type: ContentType;
@@ -113,6 +144,9 @@ export interface CmsContent {
   readonly owningClubId: string | null;
   readonly state: WorkflowState;
   readonly currentRevision: number;
+  readonly currentSnapshotId: string | null;
+  readonly currentBaseSnapshotId: string | null;
+  readonly verifiedVersion: number | null;
   readonly eventStartAt: Date | null;
   readonly eventEndAt: Date | null;
   readonly eventLocation: string | null;
@@ -148,7 +182,30 @@ export interface CmsRepository {
   findContent(id: string): Promise<CmsContent | null>;
   createContent(content: CmsContent): Promise<void>;
   saveContent(content: CmsContent): Promise<void>;
-  createRevision(content: CmsContent, actorUserId: string): Promise<void>;
+  createRevision(
+    content: CmsContent,
+    actorUserId: string,
+    options?: {
+      snapshotId?: string;
+      baseSnapshotId?: string | null;
+      revisionLabel?: string;
+      status?: WorkflowState;
+      rebasedFromSnapshotId?: string | null;
+      verifiedVersionNumber?: number | null;
+    },
+  ): Promise<CmsRevisionRecord>;
+  findRevisions(contentId: string): Promise<readonly CmsRevisionRecord[]>;
+  findRevisionBySnapshotId(
+    snapshotId: string,
+  ): Promise<CmsRevisionRecord | null>;
+  findRevisionsByBaseSnapshotId(
+    baseSnapshotId: string,
+  ): Promise<readonly CmsRevisionRecord[]>;
+  updateRevisionStatus(
+    revisionId: string,
+    status: WorkflowState,
+    verifiedVersionNumber?: number | null,
+  ): Promise<void>;
   findMedia(id: string): Promise<CmsMediaAsset | null>;
   replaceContentMedia(
     contentId: string,
@@ -259,7 +316,7 @@ export class CmsService {
           state:
             item.state === "in_review"
               ? "submitted"
-              : item.state === "rejected"
+              : item.state === "rejected" || item.state === "requires_rebase"
                 ? "draft"
                 : item.state,
           scopes: contentScopes(item),
@@ -303,6 +360,7 @@ export class CmsService {
     if (await this.repository.slugExists(value.slug))
       throw new CmsDomainError("SLUG_CONFLICT", "The slug is already in use.");
     const now = new Date();
+    const snapshotId = `snap_${crypto.randomUUID()}`;
     const item: CmsContent = {
       id: crypto.randomUUID(),
       type: value.type,
@@ -312,12 +370,16 @@ export class CmsService {
       body: value.body,
       seoTitle: value.seoTitle ?? null,
       seoDescription: value.seoDescription ?? null,
-      canonicalPath: value.canonicalPath ?? null,
+      canonicalPath:
+        value.canonicalPath ?? defaultCanonicalPath(value.type, value.slug),
       featuredMediaId: null,
       authorUserId: actor.userId,
       owningClubId: value.owningClubId ?? null,
       state: "draft",
       currentRevision: 1,
+      currentSnapshotId: snapshotId,
+      currentBaseSnapshotId: null,
+      verifiedVersion: null,
       eventStartAt: value.eventStartAt ?? null,
       eventEndAt: value.eventEndAt ?? null,
       eventLocation: value.eventLocation ?? null,
@@ -335,7 +397,12 @@ export class CmsService {
     await this.authorize(actor, [creationPermission(value.type)], item);
     await this.repository.transaction(async (repository) => {
       await repository.createContent(item);
-      await repository.createRevision(item, actor.userId);
+      await repository.createRevision(item, actor.userId, {
+        snapshotId,
+        baseSnapshotId: null,
+        revisionLabel: "1.0",
+        status: "draft",
+      });
       await repository.appendWorkflowEvent({
         contentId: item.id,
         fromState: null,
@@ -350,6 +417,7 @@ export class CmsService {
         null,
         {
           type: item.type,
+          snapshotId,
         },
         repository,
       );
@@ -382,11 +450,6 @@ export class CmsService {
     input: UpdateContentInput,
   ): Promise<CmsContent> {
     const item = await this.requiredContent(id);
-    if (!["draft", "rejected"].includes(item.state))
-      throw new CmsDomainError(
-        "INVALID_TRANSITION",
-        "Only draft or rejected content can be edited.",
-      );
     await this.authorize(actor, updatePermissions(item.type), item);
     const value = updateContentSchema.parse(input);
     if (
@@ -395,22 +458,42 @@ export class CmsService {
       (await this.repository.slugExists(value.slug, id))
     )
       throw new CmsDomainError("SLUG_CONFLICT", "The slug is already in use.");
+    const newSlug = value.slug ?? item.slug;
+    const canonicalPath =
+      value.canonicalPath !== undefined
+        ? (value.canonicalPath ?? defaultCanonicalPath(item.type, newSlug))
+        : (item.canonicalPath ?? defaultCanonicalPath(item.type, newSlug));
+    const newRevisionNumber = item.currentRevision + 1;
+    const snapshotId = `snap_${crypto.randomUUID()}`;
+    const baseSnapshotId = item.currentSnapshotId;
+    const revisionLabel = `1.${newRevisionNumber - 1}`;
     const updated: CmsContent = {
       ...item,
       ...value,
-      currentRevision: item.currentRevision + 1,
+      canonicalPath,
+      currentRevision: newRevisionNumber,
+      currentSnapshotId: snapshotId,
+      currentBaseSnapshotId: baseSnapshotId,
+      // state: "draft",
+      state: item.state === "requires_rebase" ? "draft" : item.state,
       updatedAt: new Date(),
     };
+
     await this.repository.transaction(async (repository) => {
+      await repository.createRevision(updated, actor.userId, {
+        snapshotId,
+        baseSnapshotId,
+        revisionLabel,
+        status: "draft",
+      });
       await repository.saveContent(updated);
-      await repository.createRevision(updated, actor.userId);
       await this.audit(
         actor,
         "content.updated",
         id,
         "success",
         null,
-        {},
+        { snapshotId, baseSnapshotId },
         repository,
       );
     });
@@ -430,12 +513,6 @@ export class CmsService {
       );
     }
     const item = await this.requiredContent(id);
-    if (!["draft", "rejected"].includes(item.state)) {
-      throw new CmsDomainError(
-        "INVALID_TRANSITION",
-        "Media can only be changed on draft or rejected content.",
-      );
-    }
     await this.authorize(actor, updatePermissions(item.type), item);
     for (const mediaId of orderedIds) {
       const asset = await this.repository.findMedia(mediaId);
@@ -482,23 +559,35 @@ export class CmsService {
         );
       }
     }
+    const newRevisionNumber = item.currentRevision + 1;
+    const snapshotId = `snap_${crypto.randomUUID()}`;
+    const baseSnapshotId = item.currentSnapshotId;
+    const revisionLabel = `1.${newRevisionNumber - 1}`;
     const updated: CmsContent = {
       ...item,
       featuredMediaId: orderedIds[0] ?? null,
-      currentRevision: item.currentRevision + 1,
+      currentRevision: newRevisionNumber,
+      currentSnapshotId: snapshotId,
+      currentBaseSnapshotId: baseSnapshotId,
+      state: "draft",
       updatedAt: new Date(),
     };
     await this.repository.transaction(async (repository) => {
+      await repository.createRevision(updated, actor.userId, {
+        snapshotId,
+        baseSnapshotId,
+        revisionLabel,
+        status: "draft",
+      });
       await repository.saveContent(updated);
       await repository.replaceContentMedia(id, orderedIds);
-      await repository.createRevision(updated, actor.userId);
       await this.audit(
         actor,
         "content.media.updated",
         id,
         "success",
         null,
-        { mediaCount: orderedIds.length },
+        { mediaCount: orderedIds.length, snapshotId, baseSnapshotId },
         repository,
       );
     });
@@ -527,10 +616,57 @@ export class CmsService {
         "The requested workflow transition is not allowed.",
       );
     await this.authorize(actor, options.permissions, item);
+
+    // Dependency progression check: verify no unresolved predecessor revisions exist
+    const revisions = await this.repository.findRevisions(id);
+    const activeRevisionRecord = revisions.find(
+      (r) => r.snapshotId === item.currentSnapshotId,
+    );
+    if (activeRevisionRecord && activeRevisionRecord.baseSnapshotId) {
+      const baseRev = await this.repository.findRevisionBySnapshotId(
+        activeRevisionRecord.baseSnapshotId,
+      );
+      if (baseRev && baseRev.status === "rejected") {
+        throw new CmsDomainError(
+          "INVALID_TRANSITION",
+          "Cannot progress revision because its base snapshot was rejected and requires a rebase.",
+        );
+      }
+      // Check for any earlier revisions on the same content or base snapshot that remain unresolved
+      const unresolvedPredecessor = revisions.some(
+        (r) =>
+          r.id !== activeRevisionRecord.id &&
+          r.revision < activeRevisionRecord.revision &&
+          r.baseSnapshotId === activeRevisionRecord.baseSnapshotId &&
+          ["draft", "submitted", "in_review", "requires_rebase"].includes(
+            r.status,
+          ),
+      );
+      if (unresolvedPredecessor) {
+        throw new CmsDomainError(
+          "INVALID_TRANSITION",
+          "Cannot progress revision because an unresolved predecessor revision exists.",
+        );
+      }
+    }
+
     const now = new Date();
+    let verifiedVersion = item.verifiedVersion;
+
+    if (options.to === "published") {
+      // Calculate next verified publication version number
+      const highestVersion = revisions.reduce((max, r) => {
+        return r.verifiedVersionNumber && r.verifiedVersionNumber > max
+          ? r.verifiedVersionNumber
+          : max;
+      }, item.verifiedVersion ?? 0);
+      verifiedVersion = highestVersion + 1;
+    }
+
     const updated: CmsContent = {
       ...item,
       state: options.to,
+      verifiedVersion,
       submittedAt: options.to === "submitted" ? now : item.submittedAt,
       reviewedAt:
         options.eventType === "content.review.completed"
@@ -546,8 +682,38 @@ export class CmsService {
       publishedBy: options.to === "published" ? actor.userId : item.publishedBy,
       updatedAt: now,
     };
+
     await this.repository.transaction(async (repository) => {
       await repository.saveContent(updated);
+      if (activeRevisionRecord) {
+        await repository.updateRevisionStatus(
+          activeRevisionRecord.id,
+          options.to,
+          options.to === "published" ? verifiedVersion : null,
+        );
+      }
+
+      // If transition is rejection, cascade to dependent revisions that share this snapshot as baseSnapshotId
+      if (options.to === "rejected" && activeRevisionRecord) {
+        const dependentRevisions =
+          await repository.findRevisionsByBaseSnapshotId(
+            activeRevisionRecord.snapshotId,
+          );
+        for (const depRev of dependentRevisions) {
+          if (!["published", "rejected"].includes(depRev.status)) {
+            await repository.updateRevisionStatus(depRev.id, "requires_rebase");
+            const depContent = await repository.findContent(depRev.contentId);
+            if (depContent && depContent.state !== "published") {
+              await repository.saveContent({
+                ...depContent,
+                state: "requires_rebase",
+                updatedAt: now,
+              });
+            }
+          }
+        }
+      }
+
       await repository.appendWorkflowEvent({
         contentId: id,
         fromState: item.state,
@@ -561,10 +727,86 @@ export class CmsService {
         id,
         "success",
         null,
-        {},
+        {
+          snapshotId: item.currentSnapshotId,
+          verifiedVersion: verifiedVersion ?? null,
+        },
         repository,
       );
     });
+    return updated;
+  }
+
+  async rebase(
+    actor: CmsActor,
+    id: string,
+    targetBaseSnapshotId?: string,
+  ): Promise<CmsContent> {
+    const item = await this.requiredContent(id);
+    if (item.state !== "requires_rebase") {
+      throw new CmsDomainError(
+        "INVALID_TRANSITION",
+        "Only content in 'requires_rebase' state can be rebased.",
+      );
+    }
+    await this.authorize(actor, updatePermissions(item.type), item);
+
+    let newBaseSnapshotId = targetBaseSnapshotId ?? null;
+    if (!newBaseSnapshotId) {
+      // Find latest published or approved snapshot for this content or fallback
+      const revisions = await this.repository.findRevisions(id);
+      const validBase = revisions
+        .filter((r) => ["published", "approved"].includes(r.status))
+        .pop();
+      newBaseSnapshotId = validBase ? validBase.snapshotId : null;
+    }
+
+    const newRevisionNumber = item.currentRevision + 1;
+    const newSnapshotId = `snap_${crypto.randomUUID()}`;
+    const oldSnapshotId = item.currentSnapshotId;
+    const revisionLabel = `1.${newRevisionNumber - 1}`;
+    const now = new Date();
+
+    const updated: CmsContent = {
+      ...item,
+      state: "draft",
+      currentRevision: newRevisionNumber,
+      currentSnapshotId: newSnapshotId,
+      currentBaseSnapshotId: newBaseSnapshotId,
+      updatedAt: now,
+    };
+
+    await this.repository.transaction(async (repository) => {
+      await repository.createRevision(updated, actor.userId, {
+        snapshotId: newSnapshotId,
+        baseSnapshotId: newBaseSnapshotId,
+        revisionLabel,
+        status: "draft",
+        rebasedFromSnapshotId: oldSnapshotId,
+      });
+      await repository.saveContent(updated);
+      await repository.appendWorkflowEvent({
+        contentId: id,
+        fromState: "requires_rebase",
+        toState: "draft",
+        actorUserId: actor.userId,
+        comment: `Rebased from snapshot ${oldSnapshotId} onto base snapshot ${newBaseSnapshotId}`,
+      });
+      await this.audit(
+        actor,
+        "content.rebased",
+        id,
+        "success",
+        null,
+        {
+          newSnapshotId,
+          newBaseSnapshotId,
+          rebasedFromSnapshotId: oldSnapshotId,
+        },
+        repository,
+      );
+    });
+
     return updated;
   }
 
@@ -634,7 +876,7 @@ export class CmsService {
 export class InMemoryCmsRepository implements CmsRepository {
   readonly clubs = new Set<string>();
   readonly contents = new Map<string, CmsContent>();
-  readonly revisions: Array<{ content: CmsContent; actorUserId: string }> = [];
+  readonly revisions: CmsRevisionRecord[] = [];
   readonly workflow: Array<Record<string, unknown>> = [];
   readonly audit: CmsAuditEvent[] = [];
   readonly media = new Map<string, CmsMediaAsset>();
@@ -682,8 +924,76 @@ export class InMemoryCmsRepository implements CmsRepository {
   async saveContent(content: CmsContent) {
     this.contents.set(content.id, content);
   }
-  async createRevision(content: CmsContent, actorUserId: string) {
-    this.revisions.push({ content: { ...content }, actorUserId });
+  async createRevision(
+    content: CmsContent,
+    actorUserId: string,
+    options?: {
+      snapshotId?: string;
+      baseSnapshotId?: string | null;
+      revisionLabel?: string;
+      status?: WorkflowState;
+      rebasedFromSnapshotId?: string | null;
+      verifiedVersionNumber?: number | null;
+    },
+  ) {
+    const record: CmsRevisionRecord = {
+      id: crypto.randomUUID(),
+      contentId: content.id,
+      revision: content.currentRevision,
+      revisionLabel:
+        options?.revisionLabel ?? `1.${content.currentRevision - 1}`,
+      snapshotId: options?.snapshotId ?? `snap_${crypto.randomUUID()}`,
+      baseSnapshotId: options?.baseSnapshotId ?? content.currentBaseSnapshotId,
+      status: options?.status ?? content.state,
+      rebasedFromSnapshotId: options?.rebasedFromSnapshotId ?? null,
+      verifiedVersionNumber: options?.verifiedVersionNumber ?? null,
+      snapshot: {
+        type: content.type,
+        title: content.title,
+        slug: content.slug,
+        summary: content.summary,
+        body: content.body,
+        seoTitle: content.seoTitle,
+        seoDescription: content.seoDescription,
+        canonicalPath: content.canonicalPath,
+        featuredMediaId: content.featuredMediaId,
+        owningClubId: content.owningClubId,
+        eventStartAt: content.eventStartAt?.toISOString() ?? null,
+        eventEndAt: content.eventEndAt?.toISOString() ?? null,
+        eventLocation: content.eventLocation,
+        eventOrganiser: content.eventOrganiser,
+      },
+      createdBy: actorUserId,
+      createdAt: new Date(),
+    };
+    this.revisions.push(record);
+    return record;
+  }
+  async findRevisions(contentId: string) {
+    return this.revisions.filter((r) => r.contentId === contentId);
+  }
+  async findRevisionBySnapshotId(snapshotId: string) {
+    return this.revisions.find((r) => r.snapshotId === snapshotId) ?? null;
+  }
+  async findRevisionsByBaseSnapshotId(baseSnapshotId: string) {
+    return this.revisions.filter((r) => r.baseSnapshotId === baseSnapshotId);
+  }
+  async updateRevisionStatus(
+    revisionId: string,
+    status: WorkflowState,
+    verifiedVersionNumber?: number | null,
+  ) {
+    const idx = this.revisions.findIndex((r) => r.id === revisionId);
+    if (idx !== -1 && this.revisions[idx]) {
+      this.revisions[idx] = {
+        ...this.revisions[idx],
+        status,
+        verifiedVersionNumber:
+          verifiedVersionNumber !== undefined
+            ? verifiedVersionNumber
+            : this.revisions[idx].verifiedVersionNumber,
+      };
+    }
   }
   async findMedia(id: string) {
     return this.media.get(id) ?? null;

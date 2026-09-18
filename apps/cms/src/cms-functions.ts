@@ -109,6 +109,7 @@ const actionSchema = z.object({
     "approve",
     "publish",
     "unpublish",
+    "rebase",
   ]),
   comment: z.string().trim().max(2_000).optional(),
 });
@@ -153,6 +154,9 @@ export const getCmsDashboard = createServerFn({ method: "GET" }).handler(
         authorUserId: contentItem.authorUserId,
         owningClubId: contentItem.owningClubId,
         currentRevision: contentItem.currentRevision,
+        currentSnapshotId: contentItem.currentSnapshotId,
+        currentBaseSnapshotId: contentItem.currentBaseSnapshotId,
+        verifiedVersion: contentItem.verifiedVersion,
         eventStartAt: contentItem.eventStartAt,
         eventEndAt: contentItem.eventEndAt,
         eventLocation: contentItem.eventLocation,
@@ -292,6 +296,12 @@ export const getCmsDashboard = createServerFn({ method: "GET" }).handler(
           .select({
             contentId: contentRevision.contentId,
             revision: contentRevision.revision,
+            revisionLabel: contentRevision.revisionLabel,
+            snapshotId: contentRevision.snapshotId,
+            baseSnapshotId: contentRevision.baseSnapshotId,
+            status: contentRevision.status,
+            rebasedFromSnapshotId: contentRevision.rebasedFromSnapshotId,
+            verifiedVersionNumber: contentRevision.verifiedVersionNumber,
             createdAt: contentRevision.createdAt,
             createdByName: user.name,
           })
@@ -367,6 +377,12 @@ export const getCmsDashboard = createServerFn({ method: "GET" }).handler(
           .filter((revision) => revision.contentId === item.id)
           .map((revision) => ({
             revision: revision.revision,
+            revisionLabel: revision.revisionLabel,
+            snapshotId: revision.snapshotId,
+            baseSnapshotId: revision.baseSnapshotId,
+            status: revision.status,
+            rebasedFromSnapshotId: revision.rebasedFromSnapshotId,
+            verifiedVersionNumber: revision.verifiedVersionNumber,
             createdByName: revision.createdByName,
             createdAt: revision.createdAt.toISOString(),
           })),
@@ -384,6 +400,75 @@ export const getCmsDashboard = createServerFn({ method: "GET" }).handler(
     };
   },
 );
+
+export const getEditorialContentDetails = createServerFn({ method: "GET" })
+  .validator((input: { id: string }) =>
+    z.object({ id: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { actor } = await requestIdentity();
+    const item = await service.getContent(actor, data.id);
+    const revisions = await repository.findRevisions(data.id);
+    const activeRevision =
+      revisions.find((r) => r.snapshotId === item.currentSnapshotId) ?? null;
+    const baseRevision = item.currentBaseSnapshotId
+      ? await repository.findRevisionBySnapshotId(item.currentBaseSnapshotId)
+      : null;
+    const dependentRevisions = item.currentSnapshotId
+      ? await repository.findRevisionsByBaseSnapshotId(item.currentSnapshotId)
+      : [];
+
+    const workflowEvents = await database.db
+      .select({
+        fromState: workflowEvent.fromState,
+        toState: workflowEvent.toState,
+        comment: workflowEvent.comment,
+        occurredAt: workflowEvent.occurredAt,
+        actorName: user.name,
+      })
+      .from(workflowEvent)
+      .innerJoin(user, eq(user.id, workflowEvent.actorUserId))
+      .where(eq(workflowEvent.contentId, data.id))
+      .orderBy(desc(workflowEvent.occurredAt));
+
+    return {
+      content: {
+        ...item,
+        eventStartAt: item.eventStartAt?.toISOString() ?? null,
+        eventEndAt: item.eventEndAt?.toISOString() ?? null,
+        submittedAt: item.submittedAt?.toISOString() ?? null,
+        reviewedAt: item.reviewedAt?.toISOString() ?? null,
+        approvedAt: item.approvedAt?.toISOString() ?? null,
+        publishedAt: item.publishedAt?.toISOString() ?? null,
+        createdAt: item.createdAt.toISOString(),
+        updatedAt: item.updatedAt.toISOString(),
+      },
+      activeRevision: activeRevision
+        ? {
+            ...activeRevision,
+            createdAt: activeRevision.createdAt.toISOString(),
+          }
+        : null,
+      baseRevision: baseRevision
+        ? {
+            ...baseRevision,
+            createdAt: baseRevision.createdAt.toISOString(),
+          }
+        : null,
+      revisions: revisions.map((r) => ({
+        ...r,
+        createdAt: r.createdAt.toISOString(),
+      })),
+      dependentRevisions: dependentRevisions.map((r) => ({
+        ...r,
+        createdAt: r.createdAt.toISOString(),
+      })),
+      workflow: workflowEvents.map((w) => ({
+        ...w,
+        occurredAt: w.occurredAt.toISOString(),
+      })),
+    };
+  });
 
 export const createCmsContent = createServerFn({ method: "POST" })
   .validator((input) => createContentSchema.parse(input))

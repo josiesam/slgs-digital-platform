@@ -2,7 +2,7 @@
 
 Status: **ACTIVE — IMPLEMENTATION COMPLETE, OPERATIONAL VERIFICATION PENDING**
 
-The database, domain, authorization and private R2 infrastructure gates pass. The latest functional assessment supersedes earlier closure wording: Phase 1C is not closed until representative role workflows, CMS-to-Web publication/unpublication and the real browser R2 flow pass through the applications.
+The database, domain, authorization and private R2 infrastructure gates pass. The latest functional assessment supersedes earlier closure wording: Phase 1C is not closed until representative role workflows, CMS-to-Web publication/unpublication and the real browser R2 flow pass through the applications. See [docs/20-content-lifecycle-and-canonical-routing.md](file:///Users/sensebod/Project/alma-mater/docs/20-content-lifecycle-and-canonical-routing.md) for full state transition and canonical routing specifications.
 
 ## Architecture
 

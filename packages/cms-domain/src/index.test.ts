@@ -8,6 +8,7 @@ import {
   InMemoryCmsRepository,
   InMemoryMediaRepository,
   MediaService,
+  defaultCanonicalPath,
   validateImageUpload,
   type CmsActor,
 } from "./index";
@@ -335,6 +336,218 @@ describe("CMS workflow service", () => {
     await expect(
       service.setContentMedia(galleryAuthor, gallery.id, ["cross-club-media"]),
     ).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
+  });
+
+  it("auto-generates default canonical path when omitted", async () => {
+    const repository = new InMemoryCmsRepository();
+    repository.addClub("club-news");
+    const service = new CmsService(repository);
+
+    expect(defaultCanonicalPath("article", "my-story")).toBe("/news/my-story");
+    expect(defaultCanonicalPath("event", "sports-day")).toBe("/events/sports-day");
+    expect(defaultCanonicalPath("gallery", "photos")).toBe("/gallery/photos");
+    expect(defaultCanonicalPath("announcement", "notice")).toBe("/announcements/notice");
+    expect(defaultCanonicalPath("page", "about")).toBe("/about");
+
+    const created = await service.createContent(articleAuthor, {
+      type: "article",
+      title: "Story with no path",
+      slug: "story-with-no-path",
+      body: "Body",
+      owningClubId: "club-news",
+    });
+
+    expect(created.canonicalPath).toBe("/news/story-with-no-path");
+  });
+});
+
+describe("single base snapshot + requires_rebase workflow model", () => {
+  it("tracks immutable snapshot_id and base_snapshot_id for created and updated content", async () => {
+    const repository = new InMemoryCmsRepository();
+    repository.addClub("club-news");
+    const service = new CmsService(repository);
+
+    const created = await createArticle(service);
+    expect(created.currentSnapshotId).toBeDefined();
+    expect(created.currentSnapshotId).toMatch(/^snap_/);
+    expect(created.currentBaseSnapshotId).toBeNull();
+
+    const initialSnapshotId = created.currentSnapshotId;
+
+    const updated = await service.updateContent(articleAuthor, created.id, {
+      title: "Updated headline",
+    });
+    expect(updated.currentRevision).toBe(2);
+    expect(updated.currentSnapshotId).not.toBe(initialSnapshotId);
+    expect(updated.currentBaseSnapshotId).toBe(initialSnapshotId);
+
+    const revisions = await repository.findRevisions(created.id);
+    expect(revisions).toHaveLength(2);
+    expect(revisions[0]?.snapshotId).toBe(initialSnapshotId);
+    expect(revisions[0]?.baseSnapshotId).toBeNull();
+    expect(revisions[1]?.snapshotId).toBe(updated.currentSnapshotId);
+    expect(revisions[1]?.baseSnapshotId).toBe(initialSnapshotId);
+  });
+
+  it("cascades rejection to requires_rebase without deleting original snapshots", async () => {
+    const repository = new InMemoryCmsRepository();
+    repository.addClub("club-news");
+    const service = new CmsService(repository);
+
+    const baseContent = await createArticle(service);
+    const rev1SnapshotId = baseContent.currentSnapshotId!;
+
+    const baseUpdated = await service.updateContent(articleAuthor, baseContent.id, {
+      title: "Base Revision 1.3",
+    });
+    const baseSnapshotId = baseUpdated.currentSnapshotId!;
+
+    // Create a dependent content item linked to baseSnapshotId
+    const dependentContent = await service.createContent(articleAuthor, {
+      type: "article",
+      title: "Dependent Item",
+      slug: "dependent-item",
+      body: "Dependent body",
+      owningClubId: "club-news",
+    });
+    // Set dependent content's baseSnapshotId to baseSnapshotId
+    await repository.saveContent({
+      ...dependentContent,
+      currentBaseSnapshotId: baseSnapshotId,
+    });
+    const depRevisions = await repository.findRevisions(dependentContent.id);
+    if (depRevisions[0]) {
+      this; // update repository revision base
+      (depRevisions[0] as any).baseSnapshotId = baseSnapshotId;
+    }
+
+    // Submit and reject base content revision
+    await service.submit(articleAuthor, baseContent.id);
+    const reviewer = actor("reviewer", [
+      "content:read:assigned",
+      "content:review:assigned",
+      "content:reject:assigned",
+    ]);
+    await service.startReview(reviewer, baseContent.id);
+    const rejected = await service.reject(reviewer, baseContent.id, "Fact check failed");
+
+    expect(rejected.state).toBe("rejected");
+
+    // All base content revisions remain intact in repository history
+    const revisions = await repository.findRevisions(baseContent.id);
+    expect(revisions).toHaveLength(2);
+    expect(revisions[1]?.snapshotId).toBe(baseSnapshotId);
+    expect(revisions[1]?.status).toBe("rejected");
+
+    // Dependent content item moved to requires_rebase
+    const updatedDependent = await repository.findContent(dependentContent.id);
+    expect(updatedDependent?.state).toBe("requires_rebase");
+  });
+
+  it("performs an immutable rebase operation creating a new revision", async () => {
+    const repository = new InMemoryCmsRepository();
+    repository.addClub("club-news");
+    const service = new CmsService(repository);
+
+    const created = await createArticle(service);
+    const updated = await service.updateContent(articleAuthor, created.id, {
+      title: "First edit",
+    });
+
+    // Manually set item to requires_rebase for test
+    await repository.saveContent({
+      ...updated,
+      state: "requires_rebase",
+    });
+
+    const rebased = await service.rebase(articleAuthor, created.id);
+
+    expect(rebased.state).toBe("draft");
+    expect(rebased.currentRevision).toBe(3);
+    expect(rebased.currentSnapshotId).toBeDefined();
+    expect(rebased.currentSnapshotId).not.toBe(updated.currentSnapshotId);
+
+    const revisions = await repository.findRevisions(created.id);
+    expect(revisions).toHaveLength(3);
+    const latestRev = revisions[2];
+    expect(latestRev?.rebasedFromSnapshotId).toBe(updated.currentSnapshotId);
+  });
+
+  it("assigns incrementing verifiedVersionNumber upon publication", async () => {
+    const repository = new InMemoryCmsRepository();
+    repository.addClub("club-news");
+    const service = new CmsService(repository);
+
+    const created = await createArticle(service);
+    const submitted = await service.submit(articleAuthor, created.id);
+
+    const reviewer = actor("reviewer", [
+      "content:read:assigned",
+      "content:review:assigned",
+    ]);
+    await service.startReview(reviewer, submitted.id);
+    await service.completeReview(reviewer, submitted.id, "Looks good");
+
+    const approver = actor("approver", [
+      "content:read:assigned",
+      "content:approve:assigned",
+    ]);
+    await service.approve(approver, submitted.id);
+
+    const publisher = actor("publisher", [
+      "content:read:approved",
+      "content:publish:approved",
+    ]);
+    const published = await service.publish(publisher, submitted.id);
+
+    expect(published.state).toBe("published");
+    expect(published.verifiedVersion).toBe(1);
+
+    const revisions = await repository.findRevisions(created.id);
+    expect(revisions[0]?.verifiedVersionNumber).toBe(1);
+    expect(revisions[0]?.status).toBe("published");
+  });
+
+  it("resets active content state to draft when creating a new revision snapshot on published content while base snapshot retains published status", async () => {
+    const repository = new InMemoryCmsRepository();
+    repository.addClub("club-news");
+    const service = new CmsService(repository);
+
+    const created = await createArticle(service);
+    await service.submit(articleAuthor, created.id);
+    const reviewer = actor("reviewer", ["content:read:assigned", "content:review:assigned"]);
+    await service.startReview(reviewer, created.id);
+    await service.completeReview(reviewer, created.id, "Reviewed");
+    const approver = actor("approver", ["content:read:assigned", "content:approve:assigned"]);
+    await service.approve(approver, created.id);
+    const publisher = actor("publisher", ["content:read:approved", "content:publish:approved"]);
+    const published = await service.publish(publisher, created.id);
+
+    expect(published.state).toBe("published");
+    expect(published.verifiedVersion).toBe(1);
+
+    // Edit published content to create Revision 1.1 snapshot
+    const updated = await service.updateContent(articleAuthor, created.id, {
+      title: "Updated Title for Revision 1.1",
+    });
+
+    // New active content state MUST start at draft
+    expect(updated.state).toBe("draft");
+    expect(updated.currentRevision).toBe(2);
+    expect(updated.verifiedVersion).toBe(1); // retains last verified publication version
+
+    const revisions = await repository.findRevisions(created.id);
+    expect(revisions).toHaveLength(2);
+
+    // Base snapshot (S1) retains published status and verified version 1
+    const baseRev = revisions.find((r) => r.snapshotId === published.currentSnapshotId);
+    expect(baseRev?.status).toBe("published");
+    expect(baseRev?.verifiedVersionNumber).toBe(1);
+
+    // New revision snapshot (S2) starts at draft status
+    const newRev = revisions.find((r) => r.snapshotId === updated.currentSnapshotId);
+    expect(newRev?.status).toBe("draft");
+    expect(newRev?.baseSnapshotId).toBe(published.currentSnapshotId);
   });
 });
 

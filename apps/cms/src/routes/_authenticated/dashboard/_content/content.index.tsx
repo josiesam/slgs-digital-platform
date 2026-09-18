@@ -15,14 +15,12 @@ import {
   createCmsContent,
   getCmsDashboard,
   setCmsContentMedia,
-  transitionCmsContent,
   updateCmsContent,
   type CmsPermission,
   type CmsDashboardData,
 } from "../../../../cms-functions";
 import { DraftEditor } from "../../../../content-editor";
 import { GalleryMediaEditor } from "../../../../gallery-media-editor";
-import { WorkflowActions, type CmsWorkflowAction } from "../../../../workflow-actions";
 
 export const Route = createFileRoute(
   "/_authenticated/dashboard/_content/content/",
@@ -90,12 +88,6 @@ export function ContentIndexView({
       setPending(false);
     }
   }
-
-  const handleWorkflowAction = (id: string, value: CmsWorkflowAction, comment?: string) =>
-    refresh(
-      () => transitionCmsContent({ data: { id, action: value, comment } }),
-      "Workflow state updated.",
-    );
 
   const handleCreate = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -188,9 +180,12 @@ export function ContentIndexView({
               {filterType ? labels[filterType] : "Draft Repository"}
             </span>
           </div>
-          <h1 className="text-2xl font-serif font-bold text-foreground">{titleHeader}</h1>
+          <h1 className="text-2xl font-serif font-bold text-foreground">
+            {titleHeader}
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Create, edit, and manage draft content items. All edits here are saved as draft revisions.
+            Create, edit, and manage draft content items. All edits here are
+            saved as draft revisions.
           </p>
         </div>
 
@@ -200,7 +195,7 @@ export function ContentIndexView({
             className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-md text-xs font-semibold text-white bg-[#42245f] hover:bg-[#542f7f] transition-colors shadow-sm"
           >
             <IconPlus className="size-4" />
-            <span>+ New Draft {filterType ? labels[filterType] : ""}</span>
+            <span>New Draft {filterType ? labels[filterType] : ""}</span>
           </button>
         )}
       </header>
@@ -212,7 +207,10 @@ export function ContentIndexView({
             Draft Mode
           </span>
           <span>
-            All content created or modified in this section is stored in <strong>Draft</strong> state. To transition items through peer review, approval, and publication, visit the <strong>Editorial Kanban Desk</strong>.
+            All content created or modified in this section is stored in{" "}
+            <strong>Draft</strong> state. To transition items through peer
+            review, approval, and publication, visit the{" "}
+            <strong>Editorial Kanban Desk</strong>.
           </span>
         </div>
         <a
@@ -243,20 +241,24 @@ export function ContentIndexView({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <span className="text-xs text-muted-foreground font-medium">State:</span>
-          {["all", "drafts", "submitted", "in_review", "published"].map((st) => (
-            <button
-              key={st}
-              onClick={() => setSelectedStateFilter(st)}
-              className={`px-2.5 py-1 rounded text-xs capitalize transition-colors font-medium ${
-                selectedStateFilter === st
-                  ? "bg-[#42245f] text-white"
-                  : "bg-secondary text-secondary-foreground hover:bg-accent"
-              }`}
-            >
-              {st.replace("_", " ")}
-            </button>
-          ))}
+          <span className="text-xs text-muted-foreground font-medium">
+            State:
+          </span>
+          {["all", "drafts", "submitted", "in_review", "published"].map(
+            (st) => (
+              <button
+                key={st}
+                onClick={() => setSelectedStateFilter(st)}
+                className={`px-2.5 py-1 rounded text-xs capitalize transition-colors font-medium ${
+                  selectedStateFilter === st
+                    ? "bg-[#42245f] text-white"
+                    : "bg-secondary text-secondary-foreground hover:bg-accent"
+                }`}
+              >
+                {st.replace("_", " ")}
+              </button>
+            ),
+          )}
         </div>
       </div>
 
@@ -265,7 +267,9 @@ export function ContentIndexView({
         {filteredItems.length === 0 ? (
           <div className="p-12 text-center rounded-xl border border-dashed border-border bg-card">
             <IconFolder className="size-8 text-muted-foreground mx-auto mb-2 opacity-50" />
-            <p className="text-sm font-semibold text-foreground">No draft content items found</p>
+            <p className="text-sm font-semibold text-foreground">
+              No draft content items found
+            </p>
             <p className="text-xs text-muted-foreground mt-1">
               Create a new draft item using the button above to get started.
             </p>
@@ -281,14 +285,26 @@ export function ContentIndexView({
                   <div className="flex items-center gap-3">
                     <span className="p-2 rounded-lg bg-[#42245f]/10 text-[#42245f]">
                       {item.type === "page" && <IconFile className="size-5" />}
-                      {item.type === "article" && <IconArticle className="size-5" />}
-                      {item.type === "event" && <IconCalendarEvent className="size-5" />}
-                      {item.type === "announcement" && <IconBell className="size-5" />}
-                      {item.type === "gallery" && <IconPhoto className="size-5" />}
+                      {item.type === "article" && (
+                        <IconArticle className="size-5" />
+                      )}
+                      {item.type === "event" && (
+                        <IconCalendarEvent className="size-5" />
+                      )}
+                      {item.type === "announcement" && (
+                        <IconBell className="size-5" />
+                      )}
+                      {item.type === "gallery" && (
+                        <IconPhoto className="size-5" />
+                      )}
                     </span>
                     <div>
-                      <h3 className="text-base font-bold font-serif text-foreground">{item.title}</h3>
-                      <p className="text-xs text-muted-foreground font-mono">/{item.slug}</p>
+                      <h3 className="text-base font-bold font-serif text-foreground">
+                        {item.title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground font-mono">
+                        /{item.slug}
+                      </p>
                     </div>
                   </div>
 
@@ -302,7 +318,8 @@ export function ContentIndexView({
                           ? "bg-[#2f7d3b]/10 text-[#2f7d3b] border-[#2f7d3b]/20"
                           : item.state === "approved"
                             ? "bg-[#79b6d6]/10 text-[#2f6287] border-[#79b6d6]/20"
-                            : item.state === "in_review" || item.state === "submitted"
+                            : item.state === "in_review" ||
+                                item.state === "submitted"
                               ? "bg-[#d39a22]/10 text-[#d39a22] border-[#d39a22]/20"
                               : "bg-[#8564ae]/10 text-[#42245f] border-[#8564ae]/20"
                       }`}
@@ -313,11 +330,16 @@ export function ContentIndexView({
                 </div>
 
                 {item.summary && (
-                  <p className="text-xs text-muted-foreground line-clamp-2">{item.summary}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">
+                    {item.summary}
+                  </p>
                 )}
 
                 {/* Draft Editing & Gallery Composition */}
-                <details className="pt-2 border-t border-border group" open={["draft", "rejected"].includes(item.state)}>
+                <details
+                  className="pt-2 border-t border-border group"
+                  open={["draft", "rejected"].includes(item.state)}
+                >
                   <summary className="text-xs font-semibold text-[#42245f] cursor-pointer hover:underline py-1">
                     Edit Draft & Media Details
                   </summary>
@@ -334,7 +356,9 @@ export function ContentIndexView({
                         initialMediaIds={item.mediaIds}
                         media={dashboard.media}
                         pending={pending}
-                        onSave={(mediaIds) => handleSaveMedia(item.id, mediaIds)}
+                        onSave={(mediaIds) =>
+                          handleSaveMedia(item.id, mediaIds)
+                        }
                       />
                     )}
                   </div>
@@ -343,11 +367,14 @@ export function ContentIndexView({
                 {/* Revisions & Workflow History */}
                 <details className="text-xs text-muted-foreground pt-1">
                   <summary className="cursor-pointer hover:underline font-medium">
-                    View Revisions ({item.revisions.length}) & Workflow History ({item.workflow.length})
+                    View Revisions ({item.revisions.length}) & Workflow History
+                    ({item.workflow.length})
                   </summary>
                   <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4 p-3 rounded bg-secondary/20 border border-border">
                     <div>
-                      <strong className="block text-foreground font-semibold mb-1">Revisions</strong>
+                      <strong className="block text-foreground font-semibold mb-1">
+                        Revisions
+                      </strong>
                       <ul className="space-y-1 text-[11px]">
                         {item.revisions.map((rev) => (
                           <li key={rev.revision}>
@@ -358,11 +385,14 @@ export function ContentIndexView({
                       </ul>
                     </div>
                     <div>
-                      <strong className="block text-foreground font-semibold mb-1">Workflow Events</strong>
+                      <strong className="block text-foreground font-semibold mb-1">
+                        Workflow Events
+                      </strong>
                       <ul className="space-y-1 text-[11px]">
                         {item.workflow.map((w, idx) => (
                           <li key={`${w.occurredAt}-${idx}`}>
-                            {w.fromState ?? "created"} ➔ {w.toState} by {w.actorName}
+                            {w.fromState ?? "created"} ➔ {w.toState} by{" "}
+                            {w.actorName}
                             {w.comment ? ` ("${w.comment}")` : ""}
                           </li>
                         ))}
@@ -395,12 +425,16 @@ export function ContentIndexView({
             <form onSubmit={handleCreate} className="space-y-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <label className="block space-y-1">
-                  <span className="font-semibold text-foreground">Content Type</span>
+                  <span className="font-semibold text-foreground">
+                    Content Type
+                  </span>
                   <select
                     name="type"
                     required
                     value={selectedType}
-                    onChange={(e) => setSelectedType(e.target.value as ContentType)}
+                    onChange={(e) =>
+                      setSelectedType(e.target.value as ContentType)
+                    }
                     className="w-full p-2 border rounded-md bg-background"
                   >
                     {types.map((type) => (
@@ -412,10 +446,18 @@ export function ContentIndexView({
                 </label>
 
                 <label className="block space-y-1">
-                  <span className="font-semibold text-foreground">Owning Club / Society</span>
-                  <select name="club" defaultValue="" className="w-full p-2 border rounded-md bg-background">
+                  <span className="font-semibold text-foreground">
+                    Owning Club / Society
+                  </span>
+                  <select
+                    name="club"
+                    defaultValue=""
+                    className="w-full p-2 border rounded-md bg-background"
+                  >
                     <option value="">
-                      {dashboard.clubs.length ? "Select an authorized club" : "School / Global"}
+                      {dashboard.clubs.length
+                        ? "Select an authorized club"
+                        : "School / Global"}
                     </option>
                     {dashboard.clubs.map((item) => (
                       <option key={item.id} value={item.id}>
@@ -438,7 +480,9 @@ export function ContentIndexView({
                 </label>
 
                 <label className="block space-y-1">
-                  <span className="font-semibold text-foreground">URL Slug</span>
+                  <span className="font-semibold text-foreground">
+                    URL Slug
+                  </span>
                   <input
                     name="slug"
                     pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
@@ -460,7 +504,9 @@ export function ContentIndexView({
               </label>
 
               <label className="block space-y-1">
-                <span className="font-semibold text-foreground">Body Content</span>
+                <span className="font-semibold text-foreground">
+                  Body Content
+                </span>
                 <textarea
                   name="body"
                   rows={6}
@@ -470,25 +516,42 @@ export function ContentIndexView({
 
               {selectedType === "event" && (
                 <fieldset className="p-3 rounded border border-border space-y-3 bg-secondary/20">
-                  <legend className="font-semibold text-foreground px-1">Event Details</legend>
+                  <legend className="font-semibold text-foreground px-1">
+                    Event Details
+                  </legend>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <label className="block space-y-1">
                       <span>Starts</span>
-                      <input name="eventStartAt" type="datetime-local" required className="w-full p-2 border rounded bg-background" />
+                      <input
+                        name="eventStartAt"
+                        type="datetime-local"
+                        required
+                        className="w-full p-2 border rounded bg-background"
+                      />
                     </label>
                     <label className="block space-y-1">
                       <span>Ends</span>
-                      <input name="eventEndAt" type="datetime-local" className="w-full p-2 border rounded bg-background" />
+                      <input
+                        name="eventEndAt"
+                        type="datetime-local"
+                        className="w-full p-2 border rounded bg-background"
+                      />
                     </label>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <label className="block space-y-1">
                       <span>Location</span>
-                      <input name="eventLocation" className="w-full p-2 border rounded bg-background" />
+                      <input
+                        name="eventLocation"
+                        className="w-full p-2 border rounded bg-background"
+                      />
                     </label>
                     <label className="block space-y-1">
                       <span>Organiser</span>
-                      <input name="eventOrganiser" className="w-full p-2 border rounded bg-background" />
+                      <input
+                        name="eventOrganiser"
+                        className="w-full p-2 border rounded bg-background"
+                      />
                     </label>
                   </div>
                 </fieldset>

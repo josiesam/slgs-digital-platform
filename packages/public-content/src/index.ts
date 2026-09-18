@@ -72,6 +72,21 @@ const viewFor = (kind: Exclude<PublicContentKind, "event">) =>
     gallery: publicGallery,
   })[kind];
 
+export function defaultCanonicalPath(kind: PublicContentKind, slug: string): string {
+  switch (kind) {
+    case "article":
+      return `/news/${slug}`;
+    case "event":
+      return `/events/${slug}`;
+    case "gallery":
+      return `/gallery/${slug}`;
+    case "announcement":
+      return `/announcements/${slug}`;
+    case "page":
+      return `/${slug}`;
+  }
+}
+
 function serialize(
   row: StandardRow | EventRow,
   kind: PublicContentKind,
@@ -91,7 +106,7 @@ function serialize(
     body: row.body,
     seoTitle: row.seoTitle,
     seoDescription: row.seoDescription,
-    canonicalPath: row.canonicalPath,
+    canonicalPath: row.canonicalPath ?? defaultCanonicalPath(kind, row.slug),
     publishedAt: row.publishedAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     event: eventRow

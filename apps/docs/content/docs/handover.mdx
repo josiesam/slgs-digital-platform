@@ -5,7 +5,7 @@ description: Public Web and CMS environment, verification, and production handov
 
 # Developer & Operations Handover
 
-The active SLGS platform consists of the anonymous Public Web, authenticated CMS, and technical documentation application.
+The active SLGS platform consists of the anonymous Public Web (`apps/web`), authenticated CMS (`apps/cms`), and technical documentation portal (`apps/docs`).
 
 ## Prerequisites
 
@@ -14,19 +14,25 @@ The active SLGS platform consists of the anonymous Public Web, authenticated CMS
 - PostgreSQL 16+ or compatible managed PostgreSQL
 - A private Cloudflare R2 bucket
 
-## Runtime separation
+## Runtime Separation & Database Roles
 
-The Web runtime receives only `WEB_DATABASE_URL` and `PUBLIC_SITE_URL`. It has read-only access to `public_content` projections and receives no Better Auth or R2 credentials. The CMS runtime receives `CMS_DATABASE_URL`, the Better Auth configuration, email configuration, and bucket-scoped R2 credentials.
+The Web runtime receives only `WEB_DATABASE_URL` and `PUBLIC_SITE_URL`. It connects using the restricted `slgs_web` database role with read-only access to `public_content` views (`WHERE state = 'published' AND published_at IS NOT NULL`). It receives no Better Auth or R2 credentials.
 
-CMS authorization is identity → active CMS membership → club/organisation scope → active CMS role → permission. Every sensitive mutation is authorized on the server and audited.
+The CMS runtime receives `CMS_DATABASE_URL`, Better Auth configuration, email configuration, and bucket-scoped R2 credentials.
 
-## Local checks
+CMS authorization is identity → active CMS membership → club/organisation scope → active CMS role → permission. Server-side checks enforce self-action suppression (`independentActor`): authors cannot review or approve their own content. Every sensitive mutation is authorized and audited.
+
+## Local Verification Commands
 
 ```bash
 pnpm check
+pnpm test
 git diff --check
 ```
 
 Do not run production migrations from an application runtime credential. The Senior Software Engineer must approve backups, retention, migration execution, post-migration SQL verification, authenticated browser verification, R2 checks, deployment, DNS, and TLS.
 
-See the repository runbooks `docs/21-operational-verification-runbook.md` and `docs/26-cms-operational-verification-checklist.md` for the controlled procedure and sign-off evidence.
+See the repository runbooks:
+- [`docs/20-content-lifecycle-and-canonical-routing.md`](file:///Users/sensebod/Project/alma-mater/docs/20-content-lifecycle-and-canonical-routing.md) for full state transition and canonical path specifications.
+- [`docs/21-operational-verification-runbook.md`](file:///Users/sensebod/Project/alma-mater/docs/21-operational-verification-runbook.md) for the controlled operational verification procedure.
+- [`docs/26-cms-operational-verification-checklist.md`](file:///Users/sensebod/Project/alma-mater/docs/26-cms-operational-verification-checklist.md) for sign-off evidence.

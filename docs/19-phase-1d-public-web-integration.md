@@ -2,7 +2,7 @@
 
 Status: **ACTIVE — IMPLEMENTATION COMPLETE, OPERATIONAL VERIFICATION PENDING**
 
-The public read boundary, application origin and route/metadata engineering gates pass. The latest functional assessment supersedes earlier closure wording: final Phase 1D closure awaits browser verification of CMS publication appearing on Web and unpublication removing it. Phase 1C is conditionally closed for the same functional gate.
+The public read boundary, application origin and route/metadata engineering gates pass. The latest functional assessment supersedes earlier closure wording: final Phase 1D closure awaits browser verification of CMS publication appearing on Web and unpublication removing it. Phase 1C is conditionally closed for the same functional gate. See [docs/20-content-lifecycle-and-canonical-routing.md](file:///Users/sensebod/Project/alma-mater/docs/20-content-lifecycle-and-canonical-routing.md) for complete content lifecycle and canonical routing specifications.
 
 ## Public architecture
 

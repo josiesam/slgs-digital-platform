@@ -15,6 +15,20 @@
       "when": 1789027640702,
       "tag": "0001_current-security-baseline",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789636462020,
+      "tag": "0002_current-schema-baseline",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789643413224,
+      "tag": "0003_current-schema-baseline",
+      "breakpoints": true
     }
   ]
 }

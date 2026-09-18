@@ -36,6 +36,9 @@ const contentSelection = {
   owningClubId: contentItem.owningClubId,
   state: contentItem.state,
   currentRevision: contentItem.currentRevision,
+  currentSnapshotId: contentItem.currentSnapshotId,
+  currentBaseSnapshotId: contentItem.currentBaseSnapshotId,
+  verifiedVersion: contentItem.verifiedVersion,
   eventStartAt: contentItem.eventStartAt,
   eventEndAt: contentItem.eventEndAt,
   eventLocation: contentItem.eventLocation,
@@ -50,6 +53,9 @@ const contentSelection = {
   createdAt: contentItem.createdAt,
   updatedAt: contentItem.updatedAt,
 };
+
+const toDate = (val: Date | string | null | undefined): Date | null =>
+  val ? (val instanceof Date ? val : new Date(val)) : null;
 
 const values = (item: CmsContent) => ({
   id: item.id,
@@ -66,19 +72,22 @@ const values = (item: CmsContent) => ({
   owningClubId: item.owningClubId,
   state: item.state,
   currentRevision: item.currentRevision,
-  eventStartAt: item.eventStartAt,
-  eventEndAt: item.eventEndAt,
+  currentSnapshotId: item.currentSnapshotId,
+  currentBaseSnapshotId: item.currentBaseSnapshotId,
+  verifiedVersion: item.verifiedVersion,
+  eventStartAt: toDate(item.eventStartAt),
+  eventEndAt: toDate(item.eventEndAt),
   eventLocation: item.eventLocation,
   eventOrganiser: item.eventOrganiser,
-  submittedAt: item.submittedAt,
-  reviewedAt: item.reviewedAt,
+  submittedAt: toDate(item.submittedAt),
+  reviewedAt: toDate(item.reviewedAt),
   reviewedBy: item.reviewedBy,
-  approvedAt: item.approvedAt,
+  approvedAt: toDate(item.approvedAt),
   approvedBy: item.approvedBy,
-  publishedAt: item.publishedAt,
+  publishedAt: toDate(item.publishedAt),
   publishedBy: item.publishedBy,
-  createdAt: item.createdAt,
-  updatedAt: item.updatedAt,
+  createdAt: toDate(item.createdAt) ?? new Date(),
+  updatedAt: toDate(item.updatedAt) ?? new Date(),
 });
 
 export class DrizzleCmsRepository implements CmsRepository {
@@ -128,35 +137,158 @@ export class DrizzleCmsRepository implements CmsRepository {
   }
 
   async saveContent(item: CmsContent) {
+    const { id: _, ...updateValues } = values(item);
     await this.database
       .update(contentItem)
-      .set(values(item))
+      .set(updateValues)
       .where(eq(contentItem.id, item.id));
   }
 
-  async createRevision(item: CmsContent, actorUserId: string) {
+  async createRevision(
+    item: CmsContent,
+    actorUserId: string,
+    options?: {
+      snapshotId?: string;
+      baseSnapshotId?: string | null;
+      revisionLabel?: string;
+      status?: WorkflowState;
+      rebasedFromSnapshotId?: string | null;
+      verifiedVersionNumber?: number | null;
+    },
+  ) {
+    const id = crypto.randomUUID();
+    const revisionLabel = options?.revisionLabel ?? `1.${item.currentRevision - 1}`;
+    const snapshotId = options?.snapshotId ?? `snap_${crypto.randomUUID()}`;
+    const baseSnapshotId = options?.baseSnapshotId ?? item.currentBaseSnapshotId ?? null;
+    const status = options?.status ?? item.state;
+    const rebasedFromSnapshotId = options?.rebasedFromSnapshotId ?? null;
+    const verifiedVersionNumber = options?.verifiedVersionNumber ?? null;
+    const snapshot = {
+      type: item.type,
+      title: item.title,
+      slug: item.slug,
+      summary: item.summary,
+      body: item.body,
+      seoTitle: item.seoTitle,
+      seoDescription: item.seoDescription,
+      canonicalPath: item.canonicalPath,
+      featuredMediaId: item.featuredMediaId,
+      owningClubId: item.owningClubId,
+      eventStartAt: item.eventStartAt?.toISOString() ?? null,
+      eventEndAt: item.eventEndAt?.toISOString() ?? null,
+      eventLocation: item.eventLocation,
+      eventOrganiser: item.eventOrganiser,
+    };
+    const now = new Date();
+
     await this.database.insert(contentRevision).values({
-      id: crypto.randomUUID(),
+      id,
       contentId: item.id,
       revision: item.currentRevision,
+      revisionLabel,
+      snapshotId,
+      baseSnapshotId,
+      status,
+      rebasedFromSnapshotId,
+      verifiedVersionNumber,
+      snapshot,
       createdBy: actorUserId,
-      snapshot: {
-        type: item.type,
-        title: item.title,
-        slug: item.slug,
-        summary: item.summary,
-        body: item.body,
-        seoTitle: item.seoTitle,
-        seoDescription: item.seoDescription,
-        canonicalPath: item.canonicalPath,
-        featuredMediaId: item.featuredMediaId,
-        owningClubId: item.owningClubId,
-        eventStartAt: item.eventStartAt?.toISOString() ?? null,
-        eventEndAt: item.eventEndAt?.toISOString() ?? null,
-        eventLocation: item.eventLocation,
-        eventOrganiser: item.eventOrganiser,
-      },
+      createdAt: now,
     });
+
+    return {
+      id,
+      contentId: item.id,
+      revision: item.currentRevision,
+      revisionLabel,
+      snapshotId,
+      baseSnapshotId,
+      status,
+      rebasedFromSnapshotId,
+      verifiedVersionNumber,
+      snapshot,
+      createdBy: actorUserId,
+      createdAt: now,
+    };
+  }
+
+  async findRevisions(contentId: string) {
+    const rows = await this.database
+      .select()
+      .from(contentRevision)
+      .where(eq(contentRevision.contentId, contentId));
+    return rows.map((r) => ({
+      id: r.id,
+      contentId: r.contentId,
+      revision: r.revision,
+      revisionLabel: r.revisionLabel,
+      snapshotId: r.snapshotId,
+      baseSnapshotId: r.baseSnapshotId,
+      status: r.status,
+      rebasedFromSnapshotId: r.rebasedFromSnapshotId,
+      verifiedVersionNumber: r.verifiedVersionNumber,
+      snapshot: r.snapshot as Record<string, unknown>,
+      createdBy: r.createdBy,
+      createdAt: r.createdAt,
+    }));
+  }
+
+  async findRevisionBySnapshotId(snapshotId: string) {
+    const [row] = await this.database
+      .select()
+      .from(contentRevision)
+      .where(eq(contentRevision.snapshotId, snapshotId))
+      .limit(1);
+    if (!row) return null;
+    return {
+      id: row.id,
+      contentId: row.contentId,
+      revision: row.revision,
+      revisionLabel: row.revisionLabel,
+      snapshotId: row.snapshotId,
+      baseSnapshotId: row.baseSnapshotId,
+      status: row.status,
+      rebasedFromSnapshotId: row.rebasedFromSnapshotId,
+      verifiedVersionNumber: row.verifiedVersionNumber,
+      snapshot: row.snapshot as Record<string, unknown>,
+      createdBy: row.createdBy,
+      createdAt: row.createdAt,
+    };
+  }
+
+  async findRevisionsByBaseSnapshotId(baseSnapshotId: string) {
+    const rows = await this.database
+      .select()
+      .from(contentRevision)
+      .where(eq(contentRevision.baseSnapshotId, baseSnapshotId));
+    return rows.map((r) => ({
+      id: r.id,
+      contentId: r.contentId,
+      revision: r.revision,
+      revisionLabel: r.revisionLabel,
+      snapshotId: r.snapshotId,
+      baseSnapshotId: r.baseSnapshotId,
+      status: r.status,
+      rebasedFromSnapshotId: r.rebasedFromSnapshotId,
+      verifiedVersionNumber: r.verifiedVersionNumber,
+      snapshot: r.snapshot as Record<string, unknown>,
+      createdBy: r.createdBy,
+      createdAt: r.createdAt,
+    }));
+  }
+
+  async updateRevisionStatus(
+    revisionId: string,
+    status: WorkflowState,
+    verifiedVersionNumber?: number | null,
+  ) {
+    await this.database
+      .update(contentRevision)
+      .set({
+        status,
+        ...(verifiedVersionNumber !== undefined ? { verifiedVersionNumber } : {}),
+      })
+      .where(eq(contentRevision.id, revisionId));
   }
 
   async replaceContentMedia(contentId: string, mediaIds: readonly string[]) {

@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { withPublicContentCache, type PublicContentGateway } from "./index";
+import {
+  defaultCanonicalPath,
+  withPublicContentCache,
+  type PublicContentGateway,
+} from "./index";
 
 describe("public content boundary", () => {
   it("caches only already-projected public DTOs for a bounded period", async () => {
@@ -37,5 +41,13 @@ describe("public content boundary", () => {
         "storageKey",
       ]),
     );
+  });
+
+  it("exports defaultCanonicalPath helper for fallback path construction", () => {
+    expect(defaultCanonicalPath("article", "anniversary")).toBe("/news/anniversary");
+    expect(defaultCanonicalPath("event", "sports-day")).toBe("/events/sports-day");
+    expect(defaultCanonicalPath("gallery", "campus")).toBe("/gallery/campus");
+    expect(defaultCanonicalPath("announcement", "closure")).toBe("/announcements/closure");
+    expect(defaultCanonicalPath("page", "academics")).toBe("/academics");
   });
 });

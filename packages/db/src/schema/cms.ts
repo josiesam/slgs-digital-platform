@@ -30,6 +30,7 @@ export const cmsWorkflowState = pgEnum("cms_workflow_state", [
   "rejected",
   "approved",
   "published",
+  "requires_rebase",
 ]);
 export const cmsClubStatus = pgEnum("cms_club_status", [
   "active",
@@ -94,6 +95,9 @@ export const contentItem = cmsSchema.table(
     }),
     state: cmsWorkflowState().notNull().default("draft"),
     currentRevision: integer("current_revision").notNull().default(1),
+    currentSnapshotId: text("current_snapshot_id"),
+    currentBaseSnapshotId: text("current_base_snapshot_id"),
+    verifiedVersion: integer("verified_version"),
     eventStartAt: timestamp("event_start_at", { withTimezone: true }),
     eventEndAt: timestamp("event_end_at", { withTimezone: true }),
     eventLocation: text("event_location"),
@@ -144,6 +148,14 @@ export const contentRevision = cmsSchema.table(
       .notNull()
       .references(() => contentItem.id, { onDelete: "restrict" }),
     revision: integer().notNull(),
+    revisionLabel: text("revision_label").notNull().default("1.0"),
+    snapshotId: text("snapshot_id")
+      .notNull()
+      .default(sql`concat('snap_', gen_random_uuid()::text)`),
+    baseSnapshotId: text("base_snapshot_id"),
+    status: cmsWorkflowState("status").notNull().default("draft"),
+    rebasedFromSnapshotId: text("rebased_from_snapshot_id"),
+    verifiedVersionNumber: integer("verified_version_number"),
     snapshot: jsonb().$type<Record<string, unknown>>().notNull(),
     createdBy: text("created_by")
       .notNull()
@@ -154,7 +166,9 @@ export const contentRevision = cmsSchema.table(
   },
   (table) => [
     unique("cms_content_revision_unique").on(table.contentId, table.revision),
+    unique("cms_content_snapshot_unique").on(table.snapshotId),
     index("cms_content_revision_created_idx").on(table.createdAt),
+    index("cms_content_revision_base_idx").on(table.baseSnapshotId),
   ],
 );
 

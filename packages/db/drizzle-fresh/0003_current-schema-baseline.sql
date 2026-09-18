@@ -1,0 +1,1 @@
+ALTER TABLE "cms"."content_revision" ALTER COLUMN "snapshot_id" SET DEFAULT concat('snap_', gen_random_uuid()::text);

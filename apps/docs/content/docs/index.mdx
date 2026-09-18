@@ -13,22 +13,23 @@ The SLGS Digital Platform is built as a production-quality monorepo containing t
 
 ## Vision & Objectives
 
-The platform modernizes the public web presence of Sierra Leone Grammar School while introducing a dedicated, secure School Information Management System (S.I.M.S.) and ICT/STEM equipment asset management capability.
+The platform modernizes the public web presence of Sierra Leone Grammar School while introducing a dedicated, secure Content Management System (CMS) for editorial governance and student club participation.
 
 ### Core Problems Solved
 
 1. **Decoupled Public Communication**: Routine website content updates do not require developer intervention or code changes.
 2. **Student Content Moderation**: Controlled publishing capabilities are provided to student clubs (e.g. Multimedia Club, News Journal Club) with mandatory review and approval steps.
-3. **Private CMS Operations**: Identities, drafts, workflow history, audit data and private media metadata are isolated from the public website.
-4. **ICT/STEM Asset Tracking**: End-to-end lifecycle tracking for computers, laboratory equipment, networking devices, and STEM kits across school locations.
+3. **Private CMS Operations**: Identities, drafts, workflow history, audit data, and private media metadata are strictly isolated from the public website.
+4. **Canonical Path & SEO Integration**: Automatic canonical URL mapping (`/news/:slug`, `/events/:slug`, `/gallery/:slug`, `/announcements/:slug`, `/:slug`) and dynamic sitemap generation.
 
 ---
 
 ## Product Principles
 
 - **Separation of Concerns**: Keep public communication and private administration strictly decoupled across applications.
-- **Default Deny**: Administrative data and S.I.M.S. endpoints are private by default. UI hiding is not security; all authorization is enforced server-side.
-- **Moderated Publishing**: Student-generated content must pass through formal review before publication.
+- **Default Deny**: Administrative data and CMS endpoints are private by default. UI hiding is not security; all authorization is enforced server-side.
+- **Moderated Publishing & Independence**: Student-generated content must pass through a 5-stage workflow (`draft` → `submitted` → `in_review` → `approved` → `published`). Authors cannot review or approve their own work (`independentActor`).
+- **Security Barrier Views**: The public web app (`apps/web`) queries read-only PostgreSQL views (`public_content.*`) that project **only** published content with a publication timestamp (`WHERE state = 'published' AND published_at IS NOT NULL`).
 - **Auditability**: All sensitive administrative actions, publishing workflow state changes, identity/permission mutations, and asset lifecycle events maintain append-only audit trails.
 - **Boring Technology**: Prefer understandable, type-safe, maintainable stack choices (React 19, TypeScript, PostgreSQL, Drizzle ORM, Better Auth) over unnecessary runtime complexity.
 
@@ -40,12 +41,14 @@ The platform modernizes the public web presence of Sierra Leone Grammar School w
 | :--- | :--- | :--- | :--- |
 | **Public Website** | `apps/web` | Prospective students, parents, alumni, public | Read-only public portal (news, admissions, academics, school life) |
 | **Content CMS** | `apps/cms` | Multimedia Club, News Journal, Content Editors, CMS Admins | Private editorial application for publishing public site content |
+| **Documentation** | `apps/docs` | Developers, system administrators, auditors | Fumadocs technical documentation & operational handover guide |
 
 ---
 
 ## Navigation & Handover Guide
 
 - 🏛️ **[System Architecture](/docs/architecture)** — Monorepo layout, shared packages, database isolation, security boundaries.
-- 🌐 **[Public Web (`apps/web`)](/docs/web)** — Public site structure, read-only data architecture, domain deployment.
-- ✍️ **[Content CMS (`apps/cms`)](/docs/cms)** — Editorial workflows, Cloudflare R2 media storage, approval states.
-- 🛠️ **[Handover & Operations](/docs/handover)** — Environment variables, local setup, DB CLI scripts, verification checklists.
+- 🌐 **[Public Web (`apps/web`)](/docs/web)** — Public site structure, read-only data architecture, canonical URLs, domain deployment.
+- ✍️ **[Content CMS (`apps/cms`)](/docs/cms)** — Editorial workflows, 5-stage state machine, independent reviewer rules, Cloudflare R2 media.
+- 📖 **[CMS User Guide](/docs/cms-user-guide)** — Step-by-step guide for school authors, student clubs, editors, and administrators.
+- 🛠️ **[Handover & Operations](/docs/handover)** — Environment variables, local setup, verification scripts, handover checklists.

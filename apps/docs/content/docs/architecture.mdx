@@ -5,15 +5,28 @@ description: Public Web and CMS boundaries, packages, security, and data archite
 
 # System Architecture
 
-The SLGS platform contains an anonymous Public Web and authenticated CMS in a TypeScript, pnpm and Turborepo monorepo.
+The SLGS platform contains an anonymous Public Web (`apps/web`) and an authenticated Content Management System (`apps/cms`) built in a TypeScript, pnpm, and Turborepo monorepo.
 
 ```text
-apps/web → public_content security-barrier views → published CMS content
-apps/cms → identity + cms schemas → private Cloudflare R2
+apps/web → slgs_web DB Role → public_content Security Views → Published Content (state = published & published_at IS NOT NULL)
+apps/cms → slgs_cms DB Role → cms & identity Schemas → Private Cloudflare R2 Bucket
 ```
 
-`apps/web` uses the least-privileged `slgs_web` role and cannot read identity or CMS operational tables. `apps/cms` uses Better Auth, the `slgs_cms` role and server-side authorization for users, memberships, clubs, roles, content, workflow, media and audit.
+## Security & Data Boundary
 
-Shared packages provide database access, authentication, CMS-only authorization, editorial domain behavior, public DTOs, UI and Zod validation. The R2 bucket remains private; uploads and downloads use short-lived, server-authorized presigned URLs.
+- **`apps/web`**: Uses the least-privileged `slgs_web` PostgreSQL database role. It queries only security-barrier views in the `public_content` schema (`page`, `article`, `event`, `announcement`, `gallery`). These views project **only** rows where `state = 'published'` and `published_at IS NOT NULL`. It cannot read identity, session, draft, audit, or operational CMS tables.
+- **`apps/cms`**: Uses Better Auth, the `slgs_cms` database role, and server-side domain services (`@slgs/cms-domain`) for users, memberships, clubs, roles, content, workflow, media, and audit trails.
 
-The discontinued school-administration product is not an active application, package, schema or runtime role. Historical migrations and deprecated decision records remain for traceability.
+## Content Workflow & Independence
+
+- **5-Stage State Machine**: `draft` / `rejected` → `submitted` → `in_review` → `approved` → `published` (and `published` → `approved` for unpublishing).
+- **Independent Actor Enforcement**: Server-side authorization checks prevent self-review and self-approval (`authorUserId !== actor.userId`). Reviews must be completed (`reviewedAt` timestamp set) before approval is granted.
+- **Canonical Path Architecture**: Every content item resolves to a canonical URL path (`/news/:slug`, `/events/:slug`, `/gallery/:slug`, `/announcements/:slug`, `/:slug`). Unspecified paths are auto-generated via `defaultCanonicalPath`.
+
+## Shared Packages & Media Storage
+
+Shared packages provide database schemas (`@slgs/db`), authentication (`@slgs/auth`), CMS authorization (`@slgs/permissions`), editorial domain logic (`@slgs/cms-domain`), public DTOs (`@slgs/public-content`), design system components (`@slgs/ui`), and Zod validation schemas (`@slgs/validation`).
+
+The Cloudflare R2 media bucket remains private; browser upload/download interactions are authorized server-side through short-lived presigned URLs.
+
+The discontinued school-administration product is not an active application, package, schema, or runtime role. Historical migrations and deprecated decision records remain for traceability.

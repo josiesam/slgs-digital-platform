@@ -9,9 +9,11 @@ description: Editorial workflows, publishing lifecycle, Cloudflare R2 media mana
 
 `apps/cms` is the private editorial management platform used to create, edit, moderate, and publish content for the public SLGS website.
 
-## Administration workspace
+---
 
-`/admin` is the CMS command centre. Its navigation groups Content, Editorial queues, Public Web, Access, and System oversight. Summary cards use current server data and link to working views; detailed club, user, and role lifecycle forms stay outside the dashboard.
+## Administration Workspace
+
+The CMS workspace includes navigation for Content CRUD, Editorial Kanban queues, Access management, and System oversight. Summary cards use live server metrics and link to active working views.
 
 The CMS Administrator receives complete intended CMS access through explicit permissions in the closed server-side catalogue. It does not bypass authorization, the published-content boundary, or reviewer independence.
 
@@ -21,70 +23,91 @@ The CMS Administrator receives complete intended CMS access through explicit per
 
 1. **Student Clubs (Multimedia & News Journal Clubs)**:
    - Create article drafts, upload media, and submit items for editorial review.
-   - Restricted to draft creation and submission; cannot publish directly to the public web.
-2. **CMS Editors**:
-   - Review submitted content, suggest edits, approve or reject submissions, and manage page content.
-3. **CMS Administrators**:
-   - Full editorial governance, user role management within CMS, publishing approval, and revision rollback.
+   - Restricted to draft creation and submission; cannot review, approve, or publish directly to the public web.
+2. **CMS Editors & Reviewers**:
+   - Start and complete peer reviews (`start_review`, `complete_review`), record editorial notes, and approve or reject submissions.
+3. **CMS Administrators & Publishers**:
+   - Final publishing approval (`publish`), unpublishing (`unpublish`), user role management within CMS, and revision management.
 
 ---
 
 ## Managed Content Types
 
-- **Pages**: Managed static institutional pages (About, Academics, Facilities, Song, History).
+- **Pages**: Managed static institutional pages (About, Academics, Facilities, History).
 - **Articles**: News journal posts, academic updates, sports recaps, and announcements.
 - **Events**: School calendar events, ceremony schedules, and athletic meets.
 - **Galleries**: Curated photo albums with image metadata, captions, and layout ordering.
-- **Media**: Centralized media library containing images, documents, and graphics.
+- **Media**: Centralized media library containing verified images and media assets.
 
 ---
 
-## 5-Stage Publishing Workflow
+## 5-Stage Publishing Workflow & State Machine
 
 To prevent unauthorized or unvetted content from reaching the public site, all CMS assets follow a strict 5-stage state transition machine enforced by `@slgs/cms-domain`:
 
 ```
-┌─────────┐      Submit       ┌───────────┐      Review      ┌──────────┐
-│  Draft  │ ────────────────► │ Submitted │ ───────────────► │  Review  │
-└─────────┘                   └───────────┘                  └────┬─────┘
-     ▲                              │                             │
-     │                              ▼ Reject                      ▼ Approve
-     │                        ┌───────────┐                  ┌──────────┐
-     └─────────────────────── │ Rejected  │                  │ Approved │
-               Edit           └───────────┘                  └────┬─────┘
-                                                                  │ Publish
-                                                                  ▼
-                                                             ┌───────────┐
-                                                             │ Published │
-                                                             └───────────┘
+┌─────────┐      Submit       ┌───────────┐    Start Review   ┌────────────┐
+│  Draft  │ ────────────────► │ Submitted │ ────────────────► │ In Review  │
+└─────────┘                   └───────────┘                   └─────┬──────┘
+     ▲                              │                               │
+     │                              ▼ Reject (Comment)              │ Complete Review (reviewedAt)
+     │                        ┌───────────┐                         ▼
+     └─────────────────────── │ Rejected  │                   ┌────────────┐
+               Edit           └───────────┘                   │  Approved  │
+                                                              └─────┬──────┘
+                                                                    │ Publish (publishedAt)
+                                                                    ▼
+                                                               ┌───────────┐
+                                                               │ Published │
+                                                               └───────────┘
 ```
 
-### Workflow Rules
+### Detailed Workflow Rules
 
 - **Draft**: Initial creation by content authors or student club members.
-- **Submitted**: Placed into the review queue for CMS Editors.
-- **Review**: Under active evaluation by an authorized Editor/Admin.
-- **Approved / Rejected**: Rejection returns content to author with feedback notes. Approval queues content for publication.
-- **Published**: Promoted to public view. Automatically projects a read-only DTO into the PostgreSQL `public_content` schema.
+- **Submitted**: Placed into the peer review queue for CMS Editors.
+- **In Review**: Under active review. Reviewers call `start_review` to begin, then `complete_review` to record `reviewedAt`, `reviewedBy`, and mandatory editorial notes. Rejection (`reject`) returns the item to `rejected` state with feedback notes.
+- **Approved**: Approval (`approve`) requires a completed review (`reviewedAt` IS NOT NULL) and an independent approver.
+- **Published**: Promotion (`publish`) sets `publishedAt` timestamp and `publishedBy`. The PostgreSQL database view projects the record into the `public_content` schema.
+- **Unpublish**: `unpublish` returns published content to `approved` state, immediately removing it from public view.
+
+### Independent Actor Rule (`independentActor`)
+
+Server-side authorization enforces strict author-reviewer-approver separation:
+`actor.userId !== content.authorUserId`
+
+Authors cannot start review, complete review, or approve their own content. Self-action attempts trigger `AUTHORIZATION_DENIED` and record audit log denials with reason `self_review_denied`.
+
+---
+
+## Canonical Path Management
+
+Every content item has a `canonicalPath` property representing its public URL location. If left blank during creation or editing, `@slgs/cms-domain` automatically derives the canonical path:
+
+- `article` → `/news/:slug`
+- `event` → `/events/:slug`
+- `gallery` → `/gallery/:slug`
+- `announcement` → `/announcements/:slug`
+- `page` → `/:slug`
 
 ---
 
 ## Media Strategy & Cloudflare R2 Integration
 
-All binary media (images, PDFs, graphics) are stored in **Cloudflare R2** object storage rather than PostgreSQL:
+All binary media files are stored in **Cloudflare R2** object storage:
 
-1. **Private Bucket Security**: The R2 bucket remains completely private; no direct public read access is enabled.
+1. **Private Bucket**: The R2 bucket is private with no public read access.
 2. **Presigned Transfer Protocol**:
-   - The browser requests an upload URL from the CMS server (`@slgs/cms-domain`).
-   - The server verifies user authorization and generates a short-lived presigned R2 upload URL.
-   - The client uploads directly to R2.
-   - The server performs post-upload verification and records media metadata in PostgreSQL.
-3. **Storage Schema**:
-   - Media metadata (file dimensions, MIME type, storage key, uploader identity, alt text) is tracked in `cms.media_assets`.
+   - Authenticated browser requests an upload URL from CMS server function.
+   - Server verifies authorization and generates short-lived presigned PUT URL.
+   - Browser uploads directly to R2.
+   - Server finalizes upload by inspecting R2 headers, verifying byte size, MIME type, SHA-256 checksum, and image magic bytes.
+3. **Storage Schema**: tracked in `cms.media_asset` and `cms.content_media`.
 
 ---
 
 ## Revisions & Audit Log
 
-- **Revision History**: Every content update creates a version snapshot in `cms.revisions`, enabling side-by-side diff comparison and seamless rollback to previous published states.
-- **Append-Only Audit Trail**: Every publishing state transition (`draft` → `published`, `review` → `rejected`) records an immutable entry in `cms.audit_logs` capturing timestamp, session identity, action type, target asset, and IP context.
+- **Revision History**: Every content update creates an immutable snapshot in `cms.content_revision`.
+- **Workflow Log**: Transitions capture `from_state`, `to_state`, `actor_user_id`, `comment`, and `occurred_at` in `cms.workflow_event`.
+- **Audit Trail**: Sensitive actions and authorization decisions record an append-only entry in `cms.editorial_audit_event`.
