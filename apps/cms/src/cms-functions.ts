@@ -791,6 +791,7 @@ export const updateCmsMedia = createServerFn({ method: "POST" })
         id: z.string().uuid(),
         altText: z.string().trim().min(1).max(500).optional(),
         owningClubId: z.string().nullable().optional(),
+        filename: z.string().trim().min(1).max(255).optional(),
       })
       .parse(input),
   )
@@ -799,8 +800,71 @@ export const updateCmsMedia = createServerFn({ method: "POST" })
     const asset = await getMediaService().updateMetadata(actor, data.id, {
       altText: data.altText,
       owningClubId: data.owningClubId,
+      filename: data.filename,
     });
-    return { id: asset.id, altText: asset.altText, owningClubId: asset.owningClubId };
+    return {
+      id: asset.id,
+      altText: asset.altText,
+      owningClubId: asset.owningClubId,
+      filename: asset.originalFilename,
+    };
+  });
+
+const mediaReplacementSchema = z.object({
+  id: z.string().uuid(),
+  filename: z.string().trim().min(1).max(255),
+  declaredMimeType: z.enum(["image/png", "image/jpeg", "image/webp"]),
+  byteSize: z.number().int().positive().max(10_000_000),
+  signatureBytes: z.array(z.number().int().min(0).max(255)).min(3).max(32),
+});
+
+export const initiateMediaReplacement = createServerFn({ method: "POST" })
+  .validator((input) => mediaReplacementSchema.parse(input))
+  .handler(async ({ data }) => {
+    const { actor } = await requestIdentity();
+    const result = await getMediaService().initiateMediaReplacement(actor, data.id, {
+      filename: data.filename,
+      declaredMimeType: data.declaredMimeType,
+      byteSize: data.byteSize,
+      bytes: Uint8Array.from(data.signatureBytes),
+    });
+    return {
+      assetId: result.assetId,
+      newStorageKey: result.newStorageKey,
+      uploadUrl: result.uploadUrl,
+      expiresAt: result.expiresAt.toISOString(),
+      contentType: result.detectedMimeType,
+      normalizedFilename: result.normalizedFilename,
+      originalFilename: result.originalFilename,
+      byteSize: result.byteSize,
+    };
+  });
+
+export const finalizeMediaReplacement = createServerFn({ method: "POST" })
+  .validator((input) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        newStorageKey: z.string().min(1),
+        originalFilename: z.string().min(1),
+        normalizedFilename: z.string().min(1),
+        declaredMimeType: z.enum(["image/png", "image/jpeg", "image/webp"]),
+        detectedMimeType: z.enum(["image/png", "image/jpeg", "image/webp"]),
+        byteSize: z.number().int().positive(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { actor } = await requestIdentity();
+    const asset = await getMediaService().finalizeMediaReplacement(actor, data.id, {
+      newStorageKey: data.newStorageKey,
+      originalFilename: data.originalFilename,
+      normalizedFilename: data.normalizedFilename,
+      declaredMimeType: data.declaredMimeType,
+      detectedMimeType: data.detectedMimeType,
+      byteSize: data.byteSize,
+    });
+    return { id: asset.id, status: asset.status };
   });
 
 export const deleteCmsMedia = createServerFn({ method: "POST" })

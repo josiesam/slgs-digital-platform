@@ -803,15 +803,38 @@ describe("media validation", () => {
     const unarchived = await service.unarchive(owner, initiated.asset.id);
     expect(unarchived.status).toBe("available");
 
-    // Update Metadata
+    // Update Metadata and Rename Filename
     const updated = await service.updateMetadata(owner, initiated.asset.id, {
       altText: "Updated Alt Text",
+      filename: "new-sports-day.png",
     });
     expect(updated.altText).toBe("Updated Alt Text");
+    expect(updated.originalFilename).toBe("new-sports-day.png");
+    expect(updated.normalizedFilename).toBe("new-sports-day.png");
+
+    // Replace Media File
+    const replacement = await service.initiateMediaReplacement(owner, initiated.asset.id, {
+      filename: "replacement.png",
+      declaredMimeType: "image/png",
+      byteSize: 8,
+      bytes: png,
+    });
+    expect(replacement.uploadUrl).toBeDefined();
+
+    const finalizedReplacement = await service.finalizeMediaReplacement(owner, initiated.asset.id, {
+      newStorageKey: replacement.newStorageKey,
+      originalFilename: "replacement.png",
+      normalizedFilename: "replacement.png",
+      declaredMimeType: "image/png",
+      detectedMimeType: "image/png",
+      byteSize: 8,
+    });
+    expect(finalizedReplacement.originalFilename).toBe("replacement.png");
+    expect(finalizedReplacement.status).toBe("available");
 
     // Delete Media
     await service.deleteMedia(owner, initiated.asset.id);
     expect(await repository.findMedia(initiated.asset.id)).toBeNull();
-    expect(deletedKey).toBe(initiated.asset.storageKey);
+    expect(deletedKey).toBe(replacement.newStorageKey);
   });
 });

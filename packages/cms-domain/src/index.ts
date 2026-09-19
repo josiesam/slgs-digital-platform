@@ -1447,7 +1447,7 @@ export class MediaService {
   async updateMetadata(
     actor: CmsActor,
     id: string,
-    input: { altText?: string; owningClubId?: string | null },
+    input: { altText?: string; owningClubId?: string | null; filename?: string },
   ) {
     const asset = await this.repository.findMedia(id);
     if (!asset)
@@ -1487,8 +1487,32 @@ export class MediaService {
         ? input.owningClubId
         : asset.owningClubId;
 
+    let originalFilename = asset.originalFilename;
+    let normalizedFilename = asset.normalizedFilename;
+    if (input.filename !== undefined) {
+      const newFilename = z
+        .string()
+        .trim()
+        .min(1)
+        .max(255)
+        .parse(input.filename);
+      originalFilename = newFilename;
+      const ext = newFilename.split(".").pop()?.toLowerCase() ?? "";
+      const stem =
+        newFilename
+          .replace(/\.[^.]+$/, "")
+          .toLowerCase()
+          .normalize("NFKD")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "")
+          .slice(0, 100) || "image";
+      normalizedFilename = ext ? `${stem}.${ext}` : stem;
+    }
+
     const updated: CmsMediaAsset = {
       ...asset,
+      originalFilename,
+      normalizedFilename,
       altText: newAltText,
       owningClubId: newOwningClubId,
     };
@@ -1502,10 +1526,206 @@ export class MediaService {
       resourceId: id,
       outcome: "success",
       reasonCode: null,
-      metadata: { altText: newAltText, owningClubId: newOwningClubId },
+      metadata: {
+        altText: newAltText,
+        owningClubId: newOwningClubId,
+        filename: originalFilename,
+      },
       occurredAt: new Date(),
     });
     return updated;
+  }
+
+  async initiateMediaReplacement(
+    actor: CmsActor,
+    id: string,
+    input: ImageUploadInput,
+  ) {
+    const asset = await this.repository.findMedia(id);
+    if (!asset)
+      throw new CmsDomainError("CONTENT_NOT_FOUND", "Media was not found.");
+    const permissions: Permission[] = [
+      "media:update:own",
+      "media:update:club",
+      "media:update:cms",
+    ];
+    let permitted = false;
+    for (const permission of permissions) {
+      const decision = evaluateAuthorization({
+        identityId: actor.userId,
+        application: "cms",
+        permission,
+        grant: actor.grant,
+        resource: {
+          ownerId: asset.ownerUserId,
+          scopes: asset.owningClubId
+            ? [{ dimension: "club", value: asset.owningClubId }]
+            : [],
+        },
+      });
+      if (decision.allowed) {
+        permitted = true;
+        break;
+      }
+    }
+    if (!permitted) await this.authorize(actor, permissions[0]!, asset);
+
+    const validated = validateImageUpload(input);
+    const ext = validated.normalizedFilename.split(".").pop() ?? "png";
+    const newStorageKey = `cms/media/${crypto.randomUUID()}.${ext}`;
+
+    const upload = await this.storage.createUpload({
+      storageKey: newStorageKey,
+      mimeType: validated.detectedMimeType,
+      byteSize: validated.byteSize,
+    });
+
+    await this.repository.appendAudit({
+      id: crypto.randomUUID(),
+      eventType: "media.replacement.initiated",
+      actorUserId: actor.userId,
+      sessionId: actor.sessionId ?? null,
+      resourceType: "media",
+      resourceId: asset.id,
+      outcome: "success",
+      reasonCode: null,
+      metadata: { newStorageKey, mimeType: validated.detectedMimeType },
+      occurredAt: new Date(),
+    });
+
+    return {
+      assetId: asset.id,
+      newStorageKey,
+      uploadUrl: upload.uploadUrl,
+      expiresAt: upload.expiresAt,
+      detectedMimeType: validated.detectedMimeType,
+      normalizedFilename: validated.normalizedFilename,
+      originalFilename: input.filename,
+      byteSize: validated.byteSize,
+    };
+  }
+
+  async finalizeMediaReplacement(
+    actor: CmsActor,
+    id: string,
+    input: {
+      newStorageKey: string;
+      originalFilename: string;
+      normalizedFilename: string;
+      declaredMimeType: string;
+      detectedMimeType: string;
+      byteSize: number;
+    },
+  ) {
+    const asset = await this.repository.findMedia(id);
+    if (!asset)
+      throw new CmsDomainError("CONTENT_NOT_FOUND", "Media was not found.");
+    const permissions: Permission[] = [
+      "media:update:own",
+      "media:update:club",
+      "media:update:cms",
+    ];
+    let permitted = false;
+    for (const permission of permissions) {
+      const decision = evaluateAuthorization({
+        identityId: actor.userId,
+        application: "cms",
+        permission,
+        grant: actor.grant,
+        resource: {
+          ownerId: asset.ownerUserId,
+          scopes: asset.owningClubId
+            ? [{ dimension: "club", value: asset.owningClubId }]
+            : [],
+        },
+      });
+      if (decision.allowed) {
+        permitted = true;
+        break;
+      }
+    }
+    if (!permitted) await this.authorize(actor, permissions[0]!, asset);
+
+    const stored = await this.storage.inspect(input.newStorageKey);
+    if (
+      stored.byteSize !== input.byteSize ||
+      stored.mimeType !== input.detectedMimeType
+    ) {
+      throw new Error(
+        "Stored object metadata does not match the replacement request.",
+      );
+    }
+    const storedRead = await this.storage.read(input.newStorageKey);
+    const reader = storedRead.body.getReader();
+    const chunks: Uint8Array[] = [];
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) chunks.push(value);
+    }
+    const totalLength = chunks.reduce((acc, c) => acc + c.length, 0);
+    const bytes = new Uint8Array(totalLength);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.length;
+    }
+    validateImageUpload({
+      filename: input.normalizedFilename,
+      declaredMimeType: stored.mimeType,
+      byteSize: bytes.byteLength,
+      bytes,
+    });
+    const digest = await crypto.subtle.digest(
+      "SHA-256",
+      Uint8Array.from(bytes).buffer,
+    );
+    const checksumSha256 = Array.from(new Uint8Array(digest), (value) =>
+      value.toString(16).padStart(2, "0"),
+    ).join("");
+
+    const oldStorageKey = asset.storageKey;
+
+    const replaced: CmsMediaAsset = {
+      ...asset,
+      storageKey: input.newStorageKey,
+      originalFilename: input.originalFilename.slice(0, 255),
+      normalizedFilename: input.normalizedFilename,
+      declaredMimeType: input.declaredMimeType,
+      detectedMimeType: input.detectedMimeType,
+      byteSize: input.byteSize,
+      checksumSha256,
+      status: "available" as const,
+    };
+
+    await this.repository.saveMedia(replaced);
+
+    if (this.storage.delete && oldStorageKey !== input.newStorageKey) {
+      try {
+        await this.storage.delete(oldStorageKey);
+      } catch (e) {
+        console.warn("Failed to delete old replaced storage object:", e);
+      }
+    }
+
+    await this.repository.appendAudit({
+      id: crypto.randomUUID(),
+      eventType: "media.replaced",
+      actorUserId: actor.userId,
+      sessionId: actor.sessionId ?? null,
+      resourceType: "media",
+      resourceId: id,
+      outcome: "success",
+      reasonCode: null,
+      metadata: {
+        checksumSha256,
+        oldStorageKey,
+        newStorageKey: input.newStorageKey,
+      },
+      occurredAt: new Date(),
+    });
+
+    return replaced;
   }
 
   async deleteMedia(actor: CmsActor, id: string) {

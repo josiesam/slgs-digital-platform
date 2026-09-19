@@ -383,6 +383,12 @@ export class DrizzleCmsRepository implements CmsRepository {
     await this.database
       .update(mediaAsset)
       .set({
+        storageKey: asset.storageKey,
+        originalFilename: asset.originalFilename,
+        normalizedFilename: asset.normalizedFilename,
+        declaredMimeType: asset.declaredMimeType,
+        detectedMimeType: asset.detectedMimeType,
+        byteSize: asset.byteSize,
         altText: asset.altText,
         owningClubId: asset.owningClubId,
         status: asset.status,
