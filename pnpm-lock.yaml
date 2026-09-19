@@ -414,6 +414,15 @@ importers:
 
   packages/public-content:
     dependencies:
+      '@aws-sdk/client-s3':
+        specifier: ^3.1120.0
+        version: 3.1120.0
+      '@aws-sdk/s3-request-presigner':
+        specifier: ^3.1120.0
+        version: 3.1120.0
+      '@slgs/cms-domain':
+        specifier: workspace:*
+        version: link:../cms-domain
       '@slgs/db':
         specifier: workspace:*
         version: link:../db

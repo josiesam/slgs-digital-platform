@@ -1,0 +1,5 @@
+DROP VIEW "public_content"."media";--> statement-breakpoint
+CREATE VIEW "public_content"."media" AS (select "cms"."content_media"."content_id", "cms"."media_asset"."id", "cms"."media_asset"."storage_key", "cms"."media_asset"."detected_mime_type", "cms"."media_asset"."alt_text", "cms"."media_asset"."caption", "cms"."media_asset"."width", "cms"."media_asset"."height", "cms"."content_media"."purpose", "cms"."content_media"."sort_order" from "cms"."content_media" inner join "cms"."media_asset" on "cms"."content_media"."media_id" = "cms"."media_asset"."id" inner join "cms"."content_item" on "cms"."content_media"."content_id" = "cms"."content_item"."id" where (("cms"."content_item"."state" = 'published' and "cms"."content_item"."published_at" is not null) and "cms"."media_asset"."status" = 'available' and "cms"."media_asset"."archived_at" is null));--> statement-breakpoint
+ALTER VIEW "public_content"."media" SET (security_barrier = true);--> statement-breakpoint
+GRANT SELECT ON "public_content"."media" TO slgs_web;
+GRANT SELECT ON ALL TABLES IN SCHEMA "public_content" TO slgs_web;

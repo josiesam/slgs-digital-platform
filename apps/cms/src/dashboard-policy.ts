@@ -8,7 +8,13 @@ type ScopedContent = {
   readonly authorUserId: string;
   readonly owningClubId: string | null;
   readonly state:
-    "draft" | "submitted" | "in_review" | "rejected" | "approved" | "published";
+    | "draft"
+    | "submitted"
+    | "in_review"
+    | "rejected"
+    | "approved"
+    | "published"
+    | "requires_rebase";
 };
 
 export function filterVisibleContent<T extends ScopedContent>(
@@ -39,7 +45,7 @@ export function filterVisibleContent<T extends ScopedContent>(
             state:
               item.state === "in_review"
                 ? "submitted"
-                : item.state === "rejected"
+                : item.state === "rejected" || item.state === "requires_rebase"
                   ? "draft"
                   : item.state,
             scopes: [

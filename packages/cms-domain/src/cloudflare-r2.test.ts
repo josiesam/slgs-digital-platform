@@ -42,11 +42,21 @@ describe("Cloudflare R2 storage adapter", () => {
       command.constructor.name === "HeadObjectCommand"
         ? { ContentLength: 8, ContentType: "image/png", ETag: "etag" }
         : {
+            ContentLength: 8,
+            ContentType: "image/png",
+            ETag: "etag",
             Body: {
-              transformToByteArray: async () =>
-                new Uint8Array([
-                  0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
-                ]),
+              transformToWebStream: () =>
+                new ReadableStream({
+                  start(controller) {
+                    controller.enqueue(
+                      new Uint8Array([
+                        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+                      ]),
+                    );
+                    controller.close();
+                  },
+                }),
             },
           },
     );
@@ -58,7 +68,10 @@ describe("Cloudflare R2 storage adapter", () => {
       mimeType: "image/png",
       etag: "etag",
     });
-    expect(await storage.read("cms/media/opaque.png")).toHaveLength(8);
+    const readResult = await storage.read("cms/media/opaque.png");
+    expect(readResult.byteSize).toBe(8);
+    expect(readResult.mimeType).toBe("image/png");
+    expect(readResult.body).toBeDefined();
   });
 
   it("fails closed when required configuration is absent", () => {

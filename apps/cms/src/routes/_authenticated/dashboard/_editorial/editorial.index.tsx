@@ -120,10 +120,12 @@ export function EditorialKanbanView({
     (item) => item.state === "submitted" || (item.state === "in_review" && !item.reviewedAt),
   );
   const colApproval = filteredContent.filter(
-    (item) => item.state === "in_review" && Boolean(item.reviewedAt),
+    (item) =>
+      item.state === "approved" ||
+      (item.state === "in_review" && Boolean(item.reviewedAt)),
   );
-  const colPublished = filteredContent.filter((item) =>
-    ["approved", "published"].includes(item.state),
+  const colPublished = filteredContent.filter(
+    (item) => item.state === "published",
   );
 
   return (

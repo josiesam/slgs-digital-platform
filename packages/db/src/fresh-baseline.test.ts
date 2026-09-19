@@ -31,4 +31,11 @@ describe("fresh CMS/Public Web database baseline", () => {
       "GRANT SELECT ON ALL TABLES IN SCHEMA public_content TO slgs_web",
     );
   });
+
+  it("projects public media view in public_content schema with security barrier", () => {
+    const fresh0004 = readBaseline("0004_current-schema-baseline.sql");
+
+    expect(fresh0004).toContain('CREATE VIEW "public_content"."media"');
+    expect(fresh0004).toContain('ALTER VIEW "public_content"."media" SET (security_barrier = true)');
+  });
 });

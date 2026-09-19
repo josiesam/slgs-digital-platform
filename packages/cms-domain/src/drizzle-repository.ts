@@ -383,11 +383,18 @@ export class DrizzleCmsRepository implements CmsRepository {
     await this.database
       .update(mediaAsset)
       .set({
+        altText: asset.altText,
+        owningClubId: asset.owningClubId,
         status: asset.status,
         checksumSha256: asset.checksumSha256,
         archivedAt: asset.status === "archived" ? new Date() : null,
         updatedAt: new Date(),
       })
       .where(eq(mediaAsset.id, asset.id));
+  }
+
+  async deleteMedia(id: string): Promise<void> {
+    await this.database.delete(contentMedia).where(eq(contentMedia.mediaId, id));
+    await this.database.delete(mediaAsset).where(eq(mediaAsset.id, id));
   }
 }

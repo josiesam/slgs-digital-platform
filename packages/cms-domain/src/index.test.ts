@@ -610,7 +610,18 @@ describe("media validation", () => {
         return { byteSize: 8, mimeType: "image/png", etag: "etag" };
       },
       async read() {
-        return new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+        const bytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+        return {
+          body: new ReadableStream({
+            start(controller) {
+              controller.enqueue(bytes);
+              controller.close();
+            },
+          }),
+          byteSize: bytes.byteLength,
+          mimeType: "image/png",
+          etag: "etag",
+        };
       },
     });
     const owner = actor(
@@ -653,7 +664,18 @@ describe("media validation", () => {
         return { byteSize: 8, mimeType: "image/png", etag: null };
       },
       async read() {
-        return new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+        const bytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+        return {
+          body: new ReadableStream({
+            start(controller) {
+              controller.enqueue(bytes);
+              controller.close();
+            },
+          }),
+          byteSize: bytes.byteLength,
+          mimeType: "image/png",
+          etag: "etag",
+        };
       },
     });
     const owner = actor("owner", ["media:create:own"], "club-media");
@@ -691,7 +713,17 @@ describe("media validation", () => {
         return { byteSize: 8, mimeType: "image/png", etag: "etag" };
       },
       async read() {
-        return png;
+        return {
+          body: new ReadableStream({
+            start(controller) {
+              controller.enqueue(png);
+              controller.close();
+            },
+          }),
+          byteSize: png.byteLength,
+          mimeType: "image/png",
+          etag: "etag",
+        };
       },
     });
     const owner = actor(
@@ -716,5 +748,70 @@ describe("media validation", () => {
     expect(await service.createDownload(owner, finalized.id)).toHaveProperty(
       "downloadUrl",
     );
+  });
+
+  it("supports unarchiving, updating metadata, and permanently deleting media", async () => {
+    const repository = new InMemoryMediaRepository();
+    const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    let deletedKey: string | null = null;
+    const service = new MediaService(repository, {
+      async createUpload() {
+        return { uploadUrl: "https://storage.invalid", expiresAt: new Date() };
+      },
+      async createDownload() {
+        return { downloadUrl: "https://storage.invalid", expiresAt: new Date() };
+      },
+      async inspect() {
+        return { byteSize: 8, mimeType: "image/png", etag: "etag" };
+      },
+      async read() {
+        return {
+          body: new ReadableStream({
+            start(controller) {
+              controller.enqueue(png);
+              controller.close();
+            },
+          }),
+          byteSize: 8,
+          mimeType: "image/png",
+          etag: "etag",
+        };
+      },
+      async delete(key) {
+        deletedKey = key;
+      },
+    });
+
+    const owner = actor(
+      "owner",
+      ["media:create:own", "media:archive:own", "media:update:own"],
+      "club-media",
+    );
+    const initiated = await service.initiateImageUpload(owner, {
+      filename: "photo.png",
+      declaredMimeType: "image/png",
+      byteSize: 8,
+      bytes: png,
+      altText: "Original Alt",
+      owningClubId: "club-media",
+    });
+
+    // Archive and then Unarchive
+    await service.archive(owner, initiated.asset.id);
+    expect((await repository.findMedia(initiated.asset.id))?.status).toBe("archived");
+
+    const unarchived = await service.unarchive(owner, initiated.asset.id);
+    expect(unarchived.status).toBe("available");
+
+    // Update Metadata
+    const updated = await service.updateMetadata(owner, initiated.asset.id, {
+      altText: "Updated Alt Text",
+    });
+    expect(updated.altText).toBe("Updated Alt Text");
+
+    // Delete Media
+    await service.deleteMedia(owner, initiated.asset.id);
+    expect(await repository.findMedia(initiated.asset.id)).toBeNull();
+    expect(deletedKey).toBe(initiated.asset.storageKey);
   });
 });

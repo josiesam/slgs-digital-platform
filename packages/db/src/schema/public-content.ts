@@ -1,7 +1,7 @@
-import { and, eq, isNotNull } from "drizzle-orm";
-import { pgSchema } from "drizzle-orm/pg-core";
+import { and, eq, isNotNull, isNull } from "drizzle-orm";
+import { integer, pgSchema, text } from "drizzle-orm/pg-core";
 
-import { contentItem } from "./cms";
+import { contentItem, contentMedia, mediaAsset } from "./cms";
 
 export const publicContentSchema = pgSchema("public_content");
 
@@ -64,4 +64,30 @@ export const publicEvent = publicContentSchema.view("event").as((query) =>
     })
     .from(contentItem)
     .where(and(published, eq(contentItem.type, "event"))),
+);
+
+export const publicMedia = publicContentSchema.view("media").as((query) =>
+  query
+    .select({
+      contentId: contentMedia.contentId,
+      mediaId: mediaAsset.id,
+      storageKey: mediaAsset.storageKey,
+      mimeType: mediaAsset.detectedMimeType,
+      altText: mediaAsset.altText,
+      caption: mediaAsset.caption,
+      width: mediaAsset.width,
+      height: mediaAsset.height,
+      purpose: contentMedia.purpose,
+      sortOrder: contentMedia.sortOrder,
+    })
+    .from(contentMedia)
+    .innerJoin(mediaAsset, eq(contentMedia.mediaId, mediaAsset.id))
+    .innerJoin(contentItem, eq(contentMedia.contentId, contentItem.id))
+    .where(
+      and(
+        published,
+        eq(mediaAsset.status, "available"),
+        isNull(mediaAsset.archivedAt),
+      ),
+    ),
 );

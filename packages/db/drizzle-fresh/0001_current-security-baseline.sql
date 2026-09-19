@@ -63,7 +63,7 @@ GRANT SELECT, INSERT, UPDATE ON identity."user", identity.account TO slgs_cms;
 GRANT SELECT, INSERT, UPDATE, DELETE ON identity.session, identity.verification, identity.two_factor TO slgs_cms;
 GRANT SELECT, INSERT, UPDATE ON identity.application_membership, identity.role_assignment, identity.role_definition TO slgs_cms;
 GRANT SELECT, INSERT ON identity.role_assignment_scope, identity.security_audit_event TO slgs_cms;
-GRANT SELECT, INSERT, UPDATE ON cms.club, cms.content_item, cms.content_revision, cms.workflow_event, cms.media_asset, cms.content_media, cms.retention_policy TO slgs_cms;
+GRANT SELECT, INSERT, UPDATE, DELETE ON cms.club, cms.content_item, cms.content_revision, cms.workflow_event, cms.media_asset, cms.content_media, cms.retention_policy TO slgs_cms;
 GRANT SELECT, INSERT ON cms.editorial_audit_event TO slgs_cms;
 GRANT USAGE ON SCHEMA identity TO slgs_platform_admin;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA identity TO slgs_platform_admin;

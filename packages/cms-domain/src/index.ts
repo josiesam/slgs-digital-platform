@@ -124,7 +124,7 @@ export interface CmsRevisionRecord {
   readonly status: WorkflowState;
   readonly rebasedFromSnapshotId: string | null;
   readonly verifiedVersionNumber: number | null;
-  readonly snapshot: Record<string, unknown>;
+  readonly snapshot: Record<string, any>;
   readonly createdBy: string;
   readonly createdAt: Date;
 }
@@ -474,8 +474,7 @@ export class CmsService {
       currentRevision: newRevisionNumber,
       currentSnapshotId: snapshotId,
       currentBaseSnapshotId: baseSnapshotId,
-      // state: "draft",
-      state: item.state === "requires_rebase" ? "draft" : item.state,
+      state: "draft",
       updatedAt: new Date(),
     };
 
@@ -505,93 +504,99 @@ export class CmsService {
     id: string,
     mediaIds: readonly string[],
   ): Promise<CmsContent> {
-    const orderedIds = z.array(z.string().min(1)).max(100).parse(mediaIds);
-    if (new Set(orderedIds).size !== orderedIds.length) {
-      throw new CmsDomainError(
-        "INVALID_MEDIA",
-        "Content media must not contain duplicate assets.",
-      );
-    }
-    const item = await this.requiredContent(id);
-    await this.authorize(actor, updatePermissions(item.type), item);
-    for (const mediaId of orderedIds) {
-      const asset = await this.repository.findMedia(mediaId);
-      if (!asset || asset.status !== "available") {
+    try {
+      const orderedIds = z.array(z.string().min(1)).max(100).parse(mediaIds);
+      if (new Set(orderedIds).size !== orderedIds.length) {
         throw new CmsDomainError(
           "INVALID_MEDIA",
-          "Only available media can be associated with content.",
+          "Content media must not contain duplicate assets.",
         );
       }
-      const permissions: Permission[] = [
-        "media:update:own",
-        "media:update:club",
-        "media:update:cms",
-      ];
-      const allowed = permissions.some(
-        (permission) =>
-          evaluateAuthorization({
-            identityId: actor.userId,
-            application: "cms",
-            permission,
-            grant: actor.grant,
-            resource: {
-              ownerId: asset.ownerUserId,
-              scopes: asset.owningClubId
-                ? [{ dimension: "club", value: asset.owningClubId }]
-                : [],
+      const item = await this.requiredContent(id);
+      await this.authorize(actor, updatePermissions(item.type), item);
+      for (const mediaId of orderedIds) {
+        const asset = await this.repository.findMedia(mediaId);
+        if (!asset || asset.status !== "available") {
+          throw new CmsDomainError(
+            "INVALID_MEDIA",
+            "Only available media can be associated with content.",
+          );
+        }
+        const permissions: Permission[] = [
+          "media:update:own",
+          "media:update:club",
+          "media:update:cms",
+        ];
+        const allowed = permissions.some(
+          (permission) =>
+            evaluateAuthorization({
+              identityId: actor.userId,
+              application: "cms",
+              permission,
+              grant: actor.grant,
+              resource: {
+                ownerId: asset.ownerUserId,
+                scopes: asset.owningClubId
+                  ? [{ dimension: "club", value: asset.owningClubId }]
+                  : [],
+              },
+            }).allowed,
+        );
+        if (!allowed) {
+          await this.audit(
+            actor,
+            "authorization.denied",
+            id,
+            "denied",
+            "scope_mismatch",
+            {
+              permission: permissions.join("|"),
             },
-          }).allowed,
-      );
-      if (!allowed) {
+          );
+          throw new CmsDomainError(
+            "AUTHORIZATION_DENIED",
+            "You do not have permission to associate this media.",
+          );
+        }
+      }
+      const newRevisionNumber = item.currentRevision + 1;
+      const snapshotId = `snap_${crypto.randomUUID()}`;
+      const baseSnapshotId = item.currentSnapshotId;
+      const revisionLabel = `1.${newRevisionNumber - 1}`;
+      const updated: CmsContent = {
+        ...item,
+        featuredMediaId: orderedIds[0] ?? null,
+        currentRevision: newRevisionNumber,
+        currentSnapshotId: snapshotId,
+        currentBaseSnapshotId: baseSnapshotId,
+        state: "draft",
+        updatedAt: new Date(),
+      };
+      await this.repository.transaction(async (repository) => {
+        await repository.createRevision(updated, actor.userId, {
+          snapshotId,
+          baseSnapshotId,
+          revisionLabel,
+          status: "draft",
+        });
+        await repository.saveContent(updated);
+        await repository.replaceContentMedia(id, orderedIds);
         await this.audit(
           actor,
-          "authorization.denied",
+          "content.media.updated",
           id,
-          "denied",
-          "scope_mismatch",
-          {
-            permission: permissions.join("|"),
-          },
+          "success",
+          null,
+          { mediaCount: orderedIds.length, snapshotId, baseSnapshotId },
+          repository,
         );
-        throw new CmsDomainError(
-          "AUTHORIZATION_DENIED",
-          "You do not have permission to associate this media.",
-        );
-      }
-    }
-    const newRevisionNumber = item.currentRevision + 1;
-    const snapshotId = `snap_${crypto.randomUUID()}`;
-    const baseSnapshotId = item.currentSnapshotId;
-    const revisionLabel = `1.${newRevisionNumber - 1}`;
-    const updated: CmsContent = {
-      ...item,
-      featuredMediaId: orderedIds[0] ?? null,
-      currentRevision: newRevisionNumber,
-      currentSnapshotId: snapshotId,
-      currentBaseSnapshotId: baseSnapshotId,
-      state: "draft",
-      updatedAt: new Date(),
-    };
-    await this.repository.transaction(async (repository) => {
-      await repository.createRevision(updated, actor.userId, {
-        snapshotId,
-        baseSnapshotId,
-        revisionLabel,
-        status: "draft",
       });
-      await repository.saveContent(updated);
-      await repository.replaceContentMedia(id, orderedIds);
-      await this.audit(
-        actor,
-        "content.media.updated",
-        id,
-        "success",
-        null,
-        { mediaCount: orderedIds.length, snapshotId, baseSnapshotId },
-        repository,
-      );
-    });
-    return updated;
+      console.log("updated: ", updated);
+      return updated;
+    } catch (error) {
+      console.error("setContentMedia", error);
+      throw error;
+    }
   }
 
   private async transition(
@@ -1096,7 +1101,13 @@ export interface CmsObjectStorage {
     readonly mimeType: string | null;
     readonly etag: string | null;
   }>;
-  read(storageKey: string): Promise<Uint8Array>;
+  read(storageKey: string): Promise<{
+    readonly body: ReadableStream;
+    readonly byteSize: number | null;
+    readonly mimeType: string | null;
+    readonly etag: string | null;
+  }>;
+  delete?(storageKey: string): Promise<void>;
 }
 
 export interface CmsMediaAsset {
@@ -1118,6 +1129,7 @@ export interface MediaRepository {
   createMedia(asset: CmsMediaAsset): Promise<void>;
   findMedia(id: string): Promise<CmsMediaAsset | null>;
   saveMedia(asset: CmsMediaAsset): Promise<void>;
+  deleteMedia(id: string): Promise<void>;
   appendAudit(event: CmsAuditEvent): Promise<void>;
 }
 
@@ -1233,10 +1245,14 @@ export class MediaService {
     if (!asset)
       throw new CmsDomainError("CONTENT_NOT_FOUND", "Media was not found.");
     await this.authorize(actor, "media:create:own", asset);
-    if (asset.status !== "pending") {
+    if (
+      asset.status !== "pending" &&
+      asset.status !== "rejected" &&
+      asset.status !== "failed"
+    ) {
       throw new CmsDomainError(
         "INVALID_TRANSITION",
-        "Only pending media can be finalized.",
+        "Only pending, rejected, or failed media can be finalized.",
       );
     }
     try {
@@ -1249,7 +1265,21 @@ export class MediaService {
           "Stored object metadata does not match the upload request.",
         );
       }
-      const bytes = await this.storage.read(asset.storageKey);
+      const storedRead = await this.storage.read(asset.storageKey);
+      const reader = storedRead.body.getReader();
+      const chunks: Uint8Array[] = [];
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) chunks.push(value);
+      }
+      const totalLength = chunks.reduce((acc, c) => acc + c.length, 0);
+      const bytes = new Uint8Array(totalLength);
+      let offset = 0;
+      for (const chunk of chunks) {
+        bytes.set(chunk, offset);
+        offset += chunk.length;
+      }
       validateImageUpload({
         filename: asset.normalizedFilename,
         declaredMimeType: stored.mimeType,
@@ -1314,6 +1344,14 @@ export class MediaService {
     return this.storage.createDownload(asset.storageKey);
   }
 
+  async createPreviewDownload(actor: CmsActor, id: string) {
+    const asset = await this.repository.findMedia(id);
+    if (!asset)
+      throw new CmsDomainError("CONTENT_NOT_FOUND", "Media was not found.");
+    await this.authorize(actor, ["media:read:club", "media:read:cms"], asset);
+    return this.storage.createDownload(asset.storageKey);
+  }
+
   async archive(actor: CmsActor, id: string) {
     const asset = await this.repository.findMedia(id);
     if (!asset)
@@ -1359,6 +1397,173 @@ export class MediaService {
     });
     return archived;
   }
+
+  async unarchive(actor: CmsActor, id: string) {
+    const asset = await this.repository.findMedia(id);
+    if (!asset)
+      throw new CmsDomainError("CONTENT_NOT_FOUND", "Media was not found.");
+    const permissions: Permission[] = [
+      "media:archive:own",
+      "media:archive:club",
+      "media:archive:cms",
+    ];
+    let permitted = false;
+    for (const permission of permissions) {
+      const decision = evaluateAuthorization({
+        identityId: actor.userId,
+        application: "cms",
+        permission,
+        grant: actor.grant,
+        resource: {
+          ownerId: asset.ownerUserId,
+          scopes: asset.owningClubId
+            ? [{ dimension: "club", value: asset.owningClubId }]
+            : [],
+        },
+      });
+      if (decision.allowed) {
+        permitted = true;
+        break;
+      }
+    }
+    if (!permitted) await this.authorize(actor, permissions[0]!, asset);
+    const unarchived = { ...asset, status: "available" as const };
+    await this.repository.saveMedia(unarchived);
+    await this.repository.appendAudit({
+      id: crypto.randomUUID(),
+      eventType: "media.unarchived",
+      actorUserId: actor.userId,
+      sessionId: actor.sessionId ?? null,
+      resourceType: "media",
+      resourceId: id,
+      outcome: "success",
+      reasonCode: null,
+      metadata: {},
+      occurredAt: new Date(),
+    });
+    return unarchived;
+  }
+
+  async updateMetadata(
+    actor: CmsActor,
+    id: string,
+    input: { altText?: string; owningClubId?: string | null },
+  ) {
+    const asset = await this.repository.findMedia(id);
+    if (!asset)
+      throw new CmsDomainError("CONTENT_NOT_FOUND", "Media was not found.");
+    const permissions: Permission[] = [
+      "media:update:own",
+      "media:update:club",
+      "media:update:cms",
+    ];
+    let permitted = false;
+    for (const permission of permissions) {
+      const decision = evaluateAuthorization({
+        identityId: actor.userId,
+        application: "cms",
+        permission,
+        grant: actor.grant,
+        resource: {
+          ownerId: asset.ownerUserId,
+          scopes: asset.owningClubId
+            ? [{ dimension: "club", value: asset.owningClubId }]
+            : [],
+        },
+      });
+      if (decision.allowed) {
+        permitted = true;
+        break;
+      }
+    }
+    if (!permitted) await this.authorize(actor, permissions[0]!, asset);
+
+    const newAltText =
+      input.altText !== undefined
+        ? z.string().trim().min(1).max(500).parse(input.altText)
+        : asset.altText;
+    const newOwningClubId =
+      input.owningClubId !== undefined
+        ? input.owningClubId
+        : asset.owningClubId;
+
+    const updated: CmsMediaAsset = {
+      ...asset,
+      altText: newAltText,
+      owningClubId: newOwningClubId,
+    };
+    await this.repository.saveMedia(updated);
+    await this.repository.appendAudit({
+      id: crypto.randomUUID(),
+      eventType: "media.updated",
+      actorUserId: actor.userId,
+      sessionId: actor.sessionId ?? null,
+      resourceType: "media",
+      resourceId: id,
+      outcome: "success",
+      reasonCode: null,
+      metadata: { altText: newAltText, owningClubId: newOwningClubId },
+      occurredAt: new Date(),
+    });
+    return updated;
+  }
+
+  async deleteMedia(actor: CmsActor, id: string) {
+    const asset = await this.repository.findMedia(id);
+    if (!asset)
+      throw new CmsDomainError("CONTENT_NOT_FOUND", "Media was not found.");
+    const permissions: Permission[] = [
+      "media:archive:own",
+      "media:archive:club",
+      "media:archive:cms",
+      "configuration:manage:cms",
+    ];
+    let permitted = false;
+    for (const permission of permissions) {
+      const decision = evaluateAuthorization({
+        identityId: actor.userId,
+        application: "cms",
+        permission,
+        grant: actor.grant,
+        resource: {
+          ownerId: asset.ownerUserId,
+          scopes: asset.owningClubId
+            ? [{ dimension: "club", value: asset.owningClubId }]
+            : [],
+        },
+      });
+      if (decision.allowed) {
+        permitted = true;
+        break;
+      }
+    }
+    if (!permitted && asset.ownerUserId === actor.userId) {
+      permitted = true;
+    }
+    if (!permitted) await this.authorize(actor, permissions[0]!, asset);
+
+    if (this.storage.delete) {
+      try {
+        await this.storage.delete(asset.storageKey);
+      } catch (err) {
+        console.warn("Storage deletion failed during media delete", err);
+      }
+    }
+
+    await this.repository.deleteMedia(id);
+    await this.repository.appendAudit({
+      id: crypto.randomUUID(),
+      eventType: "media.deleted",
+      actorUserId: actor.userId,
+      sessionId: actor.sessionId ?? null,
+      resourceType: "media",
+      resourceId: id,
+      outcome: "success",
+      reasonCode: null,
+      metadata: { storageKey: asset.storageKey },
+      occurredAt: new Date(),
+    });
+  }
 }
 
 export class InMemoryMediaRepository implements MediaRepository {
@@ -1372,6 +1577,9 @@ export class InMemoryMediaRepository implements MediaRepository {
   }
   async saveMedia(asset: CmsMediaAsset) {
     this.media.set(asset.id, asset);
+  }
+  async deleteMedia(id: string) {
+    this.media.delete(id);
   }
   async appendAudit(event: CmsAuditEvent) {
     this.audit.push(event);

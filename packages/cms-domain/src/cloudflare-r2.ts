@@ -1,4 +1,5 @@
 import {
+  DeleteObjectCommand,
   GetObjectCommand,
   HeadObjectCommand,
   PutObjectCommand,
@@ -78,9 +79,30 @@ export function createCloudflareR2Storage(
           Key: storageKey,
         }),
       );
-      if (!result.Body)
+
+      if (!result.Body) {
         throw new Error("R2 returned an object without a body.");
-      return result.Body.transformToByteArray();
+      }
+
+      const body =
+        typeof (result.Body as any).transformToWebStream === "function"
+          ? (result.Body as any).transformToWebStream()
+          : (result.Body as any);
+
+      return {
+        body,
+        byteSize: result.ContentLength ?? null,
+        mimeType: result.ContentType ?? null,
+        etag: result.ETag ?? null,
+      };
+    },
+    async delete(storageKey) {
+      await client.send(
+        new DeleteObjectCommand({
+          Bucket: config.CLOUDFLARE_R2_BUCKET,
+          Key: storageKey,
+        }),
+      );
     },
   };
 }

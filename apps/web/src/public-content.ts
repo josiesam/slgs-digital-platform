@@ -28,14 +28,23 @@ export const findPublicContent = createServerFn({ method: "GET" })
 
 export const getHomeContent = createServerFn({ method: "GET" }).handler(
   async () => {
-    const content = getPublicContentGateway();
-    const [announcements, news, events, galleries] = await Promise.all([
-      content.list("announcement", 3),
-      content.list("article", 3),
-      content.list("event", 3),
-      content.list("gallery", 1),
-    ]);
-    return { announcements, news, events, galleries };
+    try {
+      console.log("debugging getHOmeContent");
+      const content = getPublicContentGateway();
+      console.log("debugging conent: ", content);
+      const [announcements, news, events, galleries] = await Promise.all([
+        content.list("announcement", 3),
+        content.list("article", 3),
+        content.list("event", 3),
+        content.list("gallery", 1),
+      ]);
+      console.log("debug: ", "dksjldj");
+
+      return { announcements, news, events, galleries };
+    } catch (error) {
+      console.error("error:", error);
+      throw error;
+    }
   },
 );
 

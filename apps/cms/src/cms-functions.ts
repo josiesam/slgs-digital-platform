@@ -275,6 +275,24 @@ export const getCmsDashboard = createServerFn({ method: "GET" }).handler(
         },
       }).allowed;
     });
+    const visibleMediaWithUrls = await Promise.all(
+      visibleMedia.map(async (item) => {
+        let url: string | null = null;
+        try {
+          const download = await getMediaService().createPreviewDownload(
+            actor,
+            item.id,
+          );
+          url = download.downloadUrl;
+        } catch {
+          url = null;
+        }
+        return {
+          ...item,
+          url,
+        };
+      }),
+    );
     const mediaAssociations = visible.length
       ? await database.db
           .select({
@@ -360,7 +378,7 @@ export const getCmsDashboard = createServerFn({ method: "GET" }).handler(
       managedClubs,
       roles,
       members,
-      media: visibleMedia,
+      media: visibleMediaWithUrls,
       audit: audit.map((event) => ({
         ...event,
         occurredAt: event.occurredAt.toISOString(),
@@ -446,21 +464,31 @@ export const getEditorialContentDetails = createServerFn({ method: "GET" })
       activeRevision: activeRevision
         ? {
             ...activeRevision,
+            snapshot: activeRevision.snapshot as Record<
+              string,
+              string | number | boolean | null
+            >,
             createdAt: activeRevision.createdAt.toISOString(),
           }
         : null,
       baseRevision: baseRevision
         ? {
             ...baseRevision,
+            snapshot: baseRevision.snapshot as Record<
+              string,
+              string | number | boolean | null
+            >,
             createdAt: baseRevision.createdAt.toISOString(),
           }
         : null,
       revisions: revisions.map((r) => ({
         ...r,
+        snapshot: r.snapshot as Record<string, string | number | boolean | null>,
         createdAt: r.createdAt.toISOString(),
       })),
       dependentRevisions: dependentRevisions.map((r) => ({
         ...r,
+        snapshot: r.snapshot as Record<string, string | number | boolean | null>,
         createdAt: r.createdAt.toISOString(),
       })),
       workflow: workflowEvents.map((w) => ({
@@ -746,6 +774,41 @@ export const archiveCmsMedia = createServerFn({ method: "POST" })
     const { actor } = await requestIdentity();
     const asset = await getMediaService().archive(actor, data.id);
     return { id: asset.id, status: asset.status };
+  });
+
+export const unarchiveCmsMedia = createServerFn({ method: "POST" })
+  .validator((input) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data }) => {
+    const { actor } = await requestIdentity();
+    const asset = await getMediaService().unarchive(actor, data.id);
+    return { id: asset.id, status: asset.status };
+  });
+
+export const updateCmsMedia = createServerFn({ method: "POST" })
+  .validator((input) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        altText: z.string().trim().min(1).max(500).optional(),
+        owningClubId: z.string().nullable().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { actor } = await requestIdentity();
+    const asset = await getMediaService().updateMetadata(actor, data.id, {
+      altText: data.altText,
+      owningClubId: data.owningClubId,
+    });
+    return { id: asset.id, altText: asset.altText, owningClubId: asset.owningClubId };
+  });
+
+export const deleteCmsMedia = createServerFn({ method: "POST" })
+  .validator((input) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data }) => {
+    const { actor } = await requestIdentity();
+    await getMediaService().deleteMedia(actor, data.id);
+    return { success: true, id: data.id };
   });
 
 export type CmsDashboardData = Awaited<ReturnType<typeof getCmsDashboard>>;

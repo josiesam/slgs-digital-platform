@@ -19,7 +19,9 @@ export const Route = createFileRoute(
 
 function EditorialContentDetailsPage() {
   const { status, contentId } = Route.useParams();
-  const data = Route.useLoaderData();
+  const data = Route.useLoaderData() as Awaited<
+    ReturnType<typeof getEditorialContentDetails>
+  >;
   const transitionFn = useServerFn(transitionCmsContent);
   const updateContentFn = useServerFn(updateCmsContent);
   const navigate = useNavigate();
