@@ -6,8 +6,15 @@ export interface SessionIdentity {
   readonly grants: ReadonlyMap<Application, ApplicationGrant>;
 }
 
+export interface ReadOptions {
+  readonly bypassCache?: boolean;
+}
+
 export interface SessionReader {
-  read(request: Request): Promise<SessionIdentity | null>;
+  read(request: Request, options?: ReadOptions): Promise<SessionIdentity | null>;
+  invalidateSession(sessionId: string): void;
+  invalidateUser(userId: string): void;
+  clearCache(): void;
 }
 
 export class AuthenticationRequiredError extends Error {
@@ -22,8 +29,9 @@ export class AuthenticationRequiredError extends Error {
 export async function requireIdentity(
   sessions: SessionReader,
   request: Request,
+  options?: ReadOptions,
 ): Promise<SessionIdentity> {
-  const identity = await sessions.read(request);
+  const identity = await sessions.read(request, options);
 
   if (!identity) {
     throw new AuthenticationRequiredError();

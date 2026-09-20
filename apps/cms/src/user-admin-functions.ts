@@ -202,6 +202,7 @@ export const changeCmsUserStatus = createServerFn({ method: "POST" })
       reasonCode: data.reason,
       actor,
     });
+    sessions.invalidateUser(data.userId);
     return { success: true };
   });
 
@@ -220,6 +221,7 @@ export const revokeCmsSessions = createServerFn({ method: "POST" })
       reasonCode: data.reason,
       actor: await requestIdentity(),
     });
+    sessions.invalidateUser(data.userId);
     return { success: true };
   });
 
@@ -240,6 +242,7 @@ export const revokeCmsRoleAssignment = createServerFn({ method: "POST" })
       assignmentId: data.assignmentId,
       reason: data.reason,
     });
+    sessions.clearCache();
     return { success: true };
   });
 
@@ -254,16 +257,18 @@ export const assignCmsUserRole = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data }) => ({
-    id: await assignRole(database.db, {
+  .handler(async ({ data }) => {
+    const id = await assignRole(database.db, {
       actor: await requestIdentity(),
       application: "cms",
       targetUserId: data.targetUserId,
       roleId: data.roleId,
       scopes: data.scopes,
       reason: data.reason,
-    }),
-  }));
+    });
+    sessions.invalidateUser(data.targetUserId);
+    return { id };
+  });
 
 export const getCmsUserLifecycleHistory = createServerFn({ method: "GET" })
   .validator((input) => z.object({ userId: z.string().min(1) }).parse(input))

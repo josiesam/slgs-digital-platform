@@ -117,6 +117,8 @@ export const updateSignedInUserProfile = createServerFn({ method: "POST" })
       occurredAt: now,
     });
 
+    sessions.invalidateUser(identity.userId);
+
     return { success: true, name: data.name };
   });
 
@@ -178,6 +180,8 @@ export const changeSignedInUserPassword = createServerFn({ method: "POST" })
       metadata: {},
       occurredAt: now,
     });
+
+    sessions.invalidateUser(identity.userId);
 
     return { success: true };
   });

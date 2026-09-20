@@ -653,16 +653,16 @@ export const assignCmsRole = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { identity } = await requestIdentity();
-    return {
-      id: await assignRole(database.db, {
-        actor: identity,
-        application: "cms",
-        targetUserId: data.targetUserId,
-        roleId: data.roleId,
-        scopes: data.clubId ? [{ dimension: "club", value: data.clubId }] : [],
-        reason: data.reason,
-      }),
-    };
+    const id = await assignRole(database.db, {
+      actor: identity,
+      application: "cms",
+      targetUserId: data.targetUserId,
+      roleId: data.roleId,
+      scopes: data.clubId ? [{ dimension: "club", value: data.clubId }] : [],
+      reason: data.reason,
+    });
+    sessions.invalidateUser(data.targetUserId);
+    return { id };
   });
 
 export const updateCmsContent = createServerFn({ method: "POST" })

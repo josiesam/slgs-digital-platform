@@ -34,8 +34,13 @@ export const auth = createSlgsAuth({
   emailSender: createResendEmailSender(process.env),
 });
 
+const cacheTtlMs = process.env.CMS_SESSION_CACHE_TTL_MS
+  ? Number(process.env.CMS_SESSION_CACHE_TTL_MS)
+  : 300000; // 5 minutes default
+
 export const sessions = createApplicationSessionReader({
   application: "cms",
   auth,
   database: database.db,
+  cacheTtlMs,
 });

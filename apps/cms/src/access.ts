@@ -13,3 +13,17 @@ export const getCurrentCmsIdentity = createServerFn({ method: "GET" }).handler(
     return { userId: identity.userId };
   },
 );
+
+export const getOptionalCmsIdentity = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const request = new Request("http://internal.slgs/cms-session", {
+      headers: getRequestHeaders(),
+    });
+    try {
+      const identity = await requireIdentity(sessions, request);
+      return { userId: identity.userId };
+    } catch {
+      return null;
+    }
+  },
+);

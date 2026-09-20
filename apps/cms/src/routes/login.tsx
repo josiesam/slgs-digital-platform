@@ -1,6 +1,6 @@
 import { createAuthClient } from "better-auth/react";
 import { useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import {
   Button,
@@ -11,10 +11,21 @@ import {
   PasswordInput,
 } from "@slgs/ui";
 import z from "zod";
+import { getOptionalCmsIdentity } from "../access";
 
 const authClient = createAuthClient();
 
-export const Route = createFileRoute("/login")({ component: LoginPage });
+export const Route = createFileRoute("/login")({
+  beforeLoad: async () => {
+    const identity = await getOptionalCmsIdentity();
+    if (identity) {
+      throw redirect({
+        to: "/dashboard",
+      });
+    }
+  },
+  component: LoginPage,
+});
 
 function LoginPage() {
   const navigate = useNavigate();
