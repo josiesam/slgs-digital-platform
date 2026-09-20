@@ -24,7 +24,6 @@ export function EditorialKanbanView({
   readonly dashboard: CmsDashboardData;
   readonly activeColumn?: "drafts" | "review" | "approval" | "published";
 }) {
-  console.log("dashboard: ", dashboard);
   const router = useRouter();
   const createContentFn = useServerFn(createCmsContent);
 

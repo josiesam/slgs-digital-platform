@@ -591,7 +591,6 @@ export class CmsService {
           repository,
         );
       });
-      console.log("updated: ", updated);
       return updated;
     } catch (error) {
       console.error("setContentMedia", error);

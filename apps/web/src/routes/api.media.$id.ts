@@ -12,7 +12,6 @@ export const Route = createFileRoute("/api/media/$id")({
               status: 404,
             });
           }
-          console.log("results: ", result);
           return new Response(result.body, {
             headers: {
               "Content-Type": result.mimeType,

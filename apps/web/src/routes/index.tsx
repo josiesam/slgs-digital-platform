@@ -48,7 +48,6 @@ export const Route = createFileRoute("/")({
 });
 function HomePage() {
   const content = Route.useLoaderData();
-  console.log("env: ", JSON.stringify(process.env));
 
   return (
     <>

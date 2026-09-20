@@ -36,7 +36,6 @@ export const getHomeContent = createServerFn({ method: "GET" }).handler(
         content.list("event", 3),
         content.list("gallery", 1),
       ]);
-      console.log("debug: ", "dksjldj");
 
       return { announcements, news, events, galleries };
     } catch (error) {
