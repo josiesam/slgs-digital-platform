@@ -29,9 +29,7 @@ export const findPublicContent = createServerFn({ method: "GET" })
 export const getHomeContent = createServerFn({ method: "GET" }).handler(
   async () => {
     try {
-      console.log("debugging getHOmeContent");
       const content = getPublicContentGateway();
-      console.log("debugging conent: ", content);
       const [announcements, news, events, galleries] = await Promise.all([
         content.list("announcement", 3),
         content.list("article", 3),

@@ -16,6 +16,7 @@
     "@slgs/cms-domain": "workspace:*",
     "@slgs/db": "workspace:*",
     "@slgs/permissions": "workspace:*",
+    "@slgs/public-content": "workspace:*",
     "@slgs/ui": "workspace:*",
     "@tabler/icons-react": "^3.46.0",
     "@tanstack/react-form": "^1.33.5",

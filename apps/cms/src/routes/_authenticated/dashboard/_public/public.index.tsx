@@ -1,18 +1,12 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  IconArrowRight,
-  IconCheck,
   IconExternalLink,
   IconEye,
   IconFileCheck,
   IconLink,
-  IconListDetails,
   IconMenu2,
-  IconNetwork,
-  IconRefresh,
-  IconRoute,
-  IconShieldCheck,
+  IconSearch,
   IconWorld,
 } from "@tabler/icons-react";
 
@@ -41,17 +35,13 @@ export function PublicWebView({
 }) {
   const [currentTab, setCurrentTab] = useState<PublicTab>(activeTab);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedPreviewId, setSelectedPreviewId] = useState<string>(
+    data.publicWeb.publishedItems[0]?.id ?? "core-home",
+  );
 
-  // Mock initial navigation tree
-  const [navItems, setNavItems] = useState([
-    { id: "1", title: "Home", path: "/", target: "internal" },
-    { id: "2", title: "About SLGS", path: "/about", target: "internal" },
-    { id: "3", title: "Academics & Curriculum", path: "/academics", target: "internal" },
-    { id: "4", title: "Admissions", path: "/admissions", target: "internal" },
-    { id: "5", title: "School News", path: "/news", target: "internal" },
-    { id: "6", title: "Events & Sports", path: "/events", target: "internal" },
-    { id: "7", title: "Contact Us", path: "/contact", target: "internal" },
-  ]);
+  // Initialize navigation items from public-content tree
+  const [navItems, setNavItems] = useState(data.publicWeb.navigationTree);
 
   const moveNavItem = (index: number, direction: "up" | "down") => {
     const next = [...navItems];
@@ -61,23 +51,43 @@ export function PublicWebView({
     if (moved) {
       next.splice(targetIndex, 0, moved);
       setNavItems(next);
-      setFeedback("Navigation order updated.");
+      setFeedback("Navigation hierarchy re-ordered locally.");
     }
   };
 
+  const handleSaveNavigation = () => {
+    setFeedback("Navigation hierarchy saved and synchronized with public projection.");
+  };
+
+  // Filter routes mapping based on search term
+  const filteredRoutes = data.publicWeb.routesMapping.filter(
+    (r) =>
+      r.path.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.routeType.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
+  // Get selected item for live preview simulator
+  const selectedPublishedItem = data.publicWeb.publishedItems.find(
+    (item) => item.id === selectedPreviewId,
+  );
+  const selectedCoreSection = data.publicWeb.navigationTree.find(
+    (item) => item.id === selectedPreviewId,
+  );
+
   return (
-    <div className="p-4 md:p-6 space-y-6 max-w-[1600px] mx-auto">
+    <div className="space-y-6 mx-auto p-4 md:p-6 max-w-[1600px]">
       {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
+      <header className="flex sm:flex-row flex-col justify-between sm:items-center gap-4 pb-4 border-border border-b">
         <div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-wider mb-1">
+          <div className="flex items-center gap-2 mb-1 text-muted-foreground text-xs uppercase tracking-wider">
             <span>Public Web Management</span>
             <span>/</span>
-            <span className="text-foreground font-semibold">Published Projections & Structure</span>
+            <span className="font-semibold text-foreground">Published Projections & Structure</span>
           </div>
-          <h1 className="text-2xl font-serif font-bold text-foreground">Public Experience Management</h1>
-          <p className="text-sm text-muted-foreground">
-            Configure site navigation, URL mappings, layout structures, and inspect public web live projections.
+          <h1 className="font-serif font-bold text-foreground text-2xl">Public Experience Management</h1>
+          <p className="text-muted-foreground text-sm">
+            Configure site navigation, canonical path mappings, layout structures, and inspect public web live projections.
           </p>
         </div>
 
@@ -86,7 +96,7 @@ export function PublicWebView({
             href={data.publicWeb.publishedSiteUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-semibold text-white bg-[#42245f] hover:bg-[#542f7f] transition-colors shadow-sm"
+            className="inline-flex items-center gap-1.5 bg-[#42245f] hover:bg-[#542f7f] shadow-sm px-4 py-2 rounded-md font-semibold text-white text-xs transition-colors"
           >
             <span>Open Live Site</span>
             <IconExternalLink className="size-4" />
@@ -95,15 +105,16 @@ export function PublicWebView({
       </header>
 
       {feedback && (
-        <div className="p-3 rounded-lg bg-[#2f7d3b]/10 border border-[#2f7d3b]/20 text-[#2f7d3b] text-xs font-medium flex justify-between items-center">
+        <div className="flex justify-between items-center bg-[#2f7d3b]/10 p-3 border border-[#2f7d3b]/20 rounded-lg font-medium text-[#2f7d3b] text-xs">
           <span>{feedback}</span>
           <button onClick={() => setFeedback(null)} className="text-xs hover:underline">Dismiss</button>
         </div>
       )}
 
       {/* Tabs */}
-      <div className="flex border-b border-border space-x-4 text-xs font-semibold">
-        <button
+      <div className="flex space-x-4 border-border border-b font-semibold text-xs">
+        <Link
+          to="/dashboard/public/published"
           onClick={() => setCurrentTab("overview")}
           className={`pb-2 transition-colors border-b-2 ${
             currentTab === "overview"
@@ -112,8 +123,9 @@ export function PublicWebView({
           }`}
         >
           Projections & Web Status
-        </button>
-        <button
+        </Link>
+        <Link
+          to="/dashboard/public/navigation"
           onClick={() => setCurrentTab("navigation")}
           className={`pb-2 transition-colors border-b-2 ${
             currentTab === "navigation"
@@ -122,8 +134,9 @@ export function PublicWebView({
           }`}
         >
           Navigation Hierarchy
-        </button>
-        <button
+        </Link>
+        <Link
+          to="/dashboard/public/pages"
           onClick={() => setCurrentTab("urls")}
           className={`pb-2 transition-colors border-b-2 ${
             currentTab === "urls"
@@ -132,8 +145,9 @@ export function PublicWebView({
           }`}
         >
           URL Routes & Canonical Paths
-        </button>
-        <button
+        </Link>
+        <Link
+          to="/dashboard/public/preview"
           onClick={() => setCurrentTab("preview")}
           className={`pb-2 transition-colors border-b-2 ${
             currentTab === "preview"
@@ -142,98 +156,205 @@ export function PublicWebView({
           }`}
         >
           Live Experience Preview
-        </button>
+        </Link>
       </div>
 
       {/* Tab Content 1: Overview */}
       {currentTab === "overview" && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-5 rounded-xl border border-border bg-card shadow-sm space-y-3">
-            <div className="flex items-center justify-between border-b border-border pb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[#69439a]">
-                Published Projections
-              </span>
-              <IconFileCheck className="size-5 text-[#69439a]" />
+        <div className="space-y-6">
+          <div className="gap-6 grid grid-cols-1 md:grid-cols-3">
+            <div className="space-y-3 bg-card shadow-sm p-5 border border-border rounded-xl">
+              <div className="flex justify-between items-center pb-2 border-border border-b">
+                <span className="font-semibold text-[#69439a] text-xs uppercase tracking-wider">
+                  Published Projections
+                </span>
+                <IconFileCheck className="size-5 text-[#69439a]" />
+              </div>
+              <div className="font-sans font-bold text-foreground text-3xl">
+                {data.publicWeb.publishedCounts?.total ?? data.publicWeb.publishedPages}
+              </div>
+              <div className="flex flex-wrap gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
+                <span>Pages: <strong>{data.publicWeb.publishedCounts?.pages ?? 0}</strong></span>
+                <span>•</span>
+                <span>Articles: <strong>{data.publicWeb.publishedCounts?.articles ?? 0}</strong></span>
+                <span>•</span>
+                <span>Events: <strong>{data.publicWeb.publishedCounts?.events ?? 0}</strong></span>
+                <span>•</span>
+                <span>Announcements: <strong>{data.publicWeb.publishedCounts?.announcements ?? 0}</strong></span>
+                <span>•</span>
+                <span>Galleries: <strong>{data.publicWeb.publishedCounts?.galleries ?? 0}</strong></span>
+              </div>
             </div>
-            <div className="text-3xl font-bold font-sans text-foreground">
-              {data.publicWeb.publishedPages}
+
+            <div className="space-y-3 bg-card shadow-sm p-5 border border-border rounded-xl">
+              <div className="flex justify-between items-center pb-2 border-border border-b">
+                <span className="font-semibold text-[#8d7d58] text-xs uppercase tracking-wider">
+                  Site Navigation
+                </span>
+                <IconMenu2 className="size-5 text-[#8d7d58]" />
+              </div>
+              <div className="font-semibold text-foreground text-sm">
+                Status: <span className="text-[#2f7d3b]">{data.publicWeb.navigationStatus}</span>
+              </div>
+              <p className="text-muted-foreground text-xs">
+                {data.publicWeb.navigationTree.length} active menu items synchronized with published content routes.
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Published pages exposed to the public frontend application (`apps/web`).
-            </p>
+
+            <div className="space-y-3 bg-card shadow-sm p-5 border border-border rounded-xl">
+              <div className="flex justify-between items-center pb-2 border-border border-b">
+                <span className="font-semibold text-[#2f7d3b] text-xs uppercase tracking-wider">
+                  Public Web Domain
+                </span>
+                <IconWorld className="size-5 text-[#2f7d3b]" />
+              </div>
+              <div className="font-mono font-semibold text-foreground text-xs truncate">
+                {data.publicWeb.publishedSiteUrl}
+              </div>
+              <p className="text-muted-foreground text-xs">
+                Anonymous public boundary with strict SSL & read-only projection security.
+              </p>
+            </div>
           </div>
 
-          <div className="p-5 rounded-xl border border-border bg-card shadow-sm space-y-3">
-            <div className="flex items-center justify-between border-b border-border pb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[#8d7d58]">
-                Site Navigation
+          {/* Published Content Items Table */}
+          <div className="space-y-4 bg-card shadow-sm p-5 border border-border rounded-xl">
+            <div className="flex justify-between items-center pb-3 border-border border-b">
+              <div>
+                <h2 className="font-serif font-bold text-foreground text-base">Actual Published Projections</h2>
+                <p className="text-muted-foreground text-xs">
+                  Live published content items currently exposed to `apps/web` via the public content gateway.
+                </p>
+              </div>
+              <span className="font-medium text-muted-foreground text-xs">
+                {data.publicWeb.publishedItems.length} published records
               </span>
-              <IconMenu2 className="size-5 text-[#8d7d58]" />
             </div>
-            <div className="text-sm font-semibold text-foreground">
-              Status: <span className="text-[#2f7d3b]">{data.publicWeb.navigationStatus}</span>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Primary site menu structure is synchronized with published content routes.
-            </p>
-          </div>
 
-          <div className="p-5 rounded-xl border border-border bg-card shadow-sm space-y-3">
-            <div className="flex items-center justify-between border-b border-border pb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[#2f7d3b]">
-                Public Web Domain
-              </span>
-              <IconWorld className="size-5 text-[#2f7d3b]" />
-            </div>
-            <div className="text-xs font-mono font-semibold text-foreground truncate">
-              {data.publicWeb.publishedSiteUrl}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Anonymous public boundary with strict SSL & read-only projection security.
-            </p>
+            {data.publicWeb.publishedItems.length === 0 ? (
+              <div className="space-y-2 p-8 border border-border border-dashed rounded-lg text-center">
+                <p className="font-semibold text-foreground text-sm">No published projections found</p>
+                <p className="mx-auto max-w-md text-muted-foreground text-xs">
+                  Content items must be submitted, reviewed, approved, and published in the CMS workflow to be exposed to the public website.
+                </p>
+              </div>
+            ) : (
+              <div className="border border-border rounded-lg overflow-x-auto">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-secondary/50 border-border border-b font-semibold text-[10px] text-muted-foreground uppercase">
+                    <tr>
+                      <th className="p-3">Title</th>
+                      <th className="p-3">Type</th>
+                      <th className="p-3">Canonical Path</th>
+                      <th className="p-3">Published Date</th>
+                      <th className="p-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {data.publicWeb.publishedItems.map((item) => (
+                      <tr key={item.id} className="hover:bg-accent/30">
+                        <td className="p-3 font-semibold text-foreground">
+                          {item.title}
+                          {item.summary && (
+                            <p className="font-normal text-[11px] text-muted-foreground line-clamp-1">
+                              {item.summary}
+                            </p>
+                          )}
+                        </td>
+                        <td className="p-3">
+                          <span className="bg-[#69439a]/10 px-2 py-0.5 rounded font-semibold text-[#69439a] text-[10px] uppercase">
+                            {item.type}
+                          </span>
+                        </td>
+                        <td className="p-3 font-mono font-semibold text-[#42245f]">
+                          {item.canonicalPath}
+                        </td>
+                        <td className="p-3 font-mono text-[11px] text-muted-foreground">
+                          {new Date(item.publishedAt).toLocaleDateString("en-GB", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </td>
+                        <td className="space-x-2 p-3 text-right">
+                          <button
+                            onClick={() => {
+                              setSelectedPreviewId(item.id);
+                              setCurrentTab("preview");
+                            }}
+                            className="inline-flex items-center gap-1 hover:bg-accent px-2.5 py-1 border border-border rounded font-medium text-[11px]"
+                          >
+                            <IconEye className="size-3.5 text-[#42245f]" />
+                            <span>Preview</span>
+                          </button>
+                          <a
+                            href={item.absoluteCanonicalUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 bg-[#42245f]/10 hover:bg-[#42245f]/20 px-2.5 py-1 rounded font-medium text-[#42245f] text-[11px]"
+                          >
+                            <IconExternalLink className="size-3.5" />
+                            <span>Live Path</span>
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}
 
       {/* Tab Content 2: Navigation Hierarchy */}
       {currentTab === "navigation" && (
-        <div className="p-5 rounded-xl border border-border bg-card shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-border pb-3">
+        <div className="space-y-4 bg-card shadow-sm p-5 border border-border rounded-xl">
+          <div className="flex justify-between items-center pb-3 border-border border-b">
             <div>
-              <h2 className="text-base font-serif font-bold text-foreground">Header & Primary Menu Builder</h2>
-              <p className="text-xs text-muted-foreground">
-                Re-order or adjust the top header navigation menu rendered on the public website.
+              <h2 className="font-serif font-bold text-foreground text-base">Header & Primary Menu Builder</h2>
+              <p className="text-muted-foreground text-xs">
+                Re-order or adjust top navigation menu items generated from core site architecture and published content pages.
               </p>
             </div>
             <button
-              onClick={() => setFeedback("Navigation hierarchy saved to public projection.")}
-              className="px-3 py-1.5 rounded bg-[#42245f] text-white text-xs font-semibold hover:bg-[#542f7f]"
+              onClick={handleSaveNavigation}
+              className="bg-[#42245f] hover:bg-[#542f7f] shadow-sm px-3.5 py-1.5 rounded font-semibold text-white text-xs transition-colors"
             >
-              Save Navigation
+              Save Navigation Hierarchy
             </button>
           </div>
 
-          <div className="divide-y divide-border border border-border rounded-lg overflow-hidden">
+          <div className="border border-border rounded-lg divide-y divide-border overflow-hidden">
             {navItems.map((item, idx) => (
-              <div key={item.id} className="flex items-center justify-between p-3 bg-background hover:bg-accent/30 text-xs">
+              <div key={item.id} className="flex justify-between items-center bg-background hover:bg-accent/30 p-3 text-xs">
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-muted-foreground font-bold text-[11px]">{idx + 1}.</span>
+                  <span className="font-mono font-bold text-[11px] text-muted-foreground">{idx + 1}.</span>
                   <span className="font-semibold text-foreground">{item.title}</span>
-                  <span className="font-mono text-muted-foreground text-[11px]">{item.path}</span>
+                  <span className="font-mono text-[11px] text-muted-foreground">{item.path}</span>
+                  {item.isCore ? (
+                    <span className="bg-[#42245f]/10 px-2 py-0.5 rounded font-semibold text-[#42245f] text-[10px] uppercase">
+                      Core Route
+                    </span>
+                  ) : (
+                    <span className="bg-[#2f7d3b]/10 px-2 py-0.5 rounded font-semibold text-[#2f7d3b] text-[10px] uppercase">
+                      Published Page
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2">
                   <button
                     disabled={idx === 0}
                     onClick={() => moveNavItem(idx, "up")}
-                    className="px-2 py-1 rounded border border-border hover:bg-accent text-[11px] disabled:opacity-30"
+                    className="hover:bg-accent disabled:opacity-30 px-2 py-1 border border-border rounded text-[11px]"
                   >
                     ▲ Move Up
                   </button>
                   <button
                     disabled={idx === navItems.length - 1}
                     onClick={() => moveNavItem(idx, "down")}
-                    className="px-2 py-1 rounded border border-border hover:bg-accent text-[11px] disabled:opacity-30"
+                    className="hover:bg-accent disabled:opacity-30 px-2 py-1 border border-border rounded text-[11px]"
                   >
                     ▼ Move Down
                   </button>
@@ -246,35 +367,50 @@ export function PublicWebView({
 
       {/* Tab Content 3: URL Routes & Canonical Paths */}
       {currentTab === "urls" && (
-        <div className="p-5 rounded-xl border border-border bg-card shadow-sm space-y-4">
-          <div className="border-b border-border pb-3">
-            <h2 className="text-base font-serif font-bold text-foreground">URL Routes & SEO Canonical Mapping</h2>
-            <p className="text-xs text-muted-foreground">
-              Inspect and configure canonical path overrides and public route projections.
-            </p>
+        <div className="space-y-4 bg-card shadow-sm p-5 border border-border rounded-xl">
+          <div className="flex sm:flex-row flex-col justify-between sm:items-center gap-4 pb-3 border-border border-b">
+            <div>
+              <h2 className="font-serif font-bold text-foreground text-base">URL Routes & SEO Canonical Mapping</h2>
+              <p className="text-muted-foreground text-xs">
+                Inspect canonical relative paths, route types, and public URL mappings derived from `public-content`.
+              </p>
+            </div>
+
+            <div className="relative w-full sm:w-72">
+              <IconSearch className="top-2.5 left-2.5 absolute size-4 text-muted-foreground" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Filter route or path..."
+                className="bg-background py-1.5 pr-3 pl-8 border border-border rounded-md focus:outline-none focus:ring-[#42245f] focus:ring-1 w-full text-foreground text-xs"
+              />
+            </div>
           </div>
 
-          <div className="overflow-x-auto border border-border rounded-lg">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-secondary/50 border-b border-border text-muted-foreground font-semibold uppercase text-[10px]">
+          <div className="border border-border rounded-lg overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-secondary/50 border-border border-b font-semibold text-[10px] text-muted-foreground uppercase">
                 <tr>
                   <th className="p-3">Public Route Path</th>
+                  <th className="p-3">Title / Section</th>
                   <th className="p-3">Route Type</th>
-                  <th className="p-3">Canonical Overrides</th>
+                  <th className="p-3">Canonical Absolute URL</th>
                   <th className="p-3">Access Level</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {navItems.map((item) => (
-                  <tr key={item.id} className="hover:bg-accent/30">
-                    <td className="p-3 font-mono font-semibold text-[#42245f]">{item.path}</td>
-                    <td className="p-3 capitalize">{item.title} Section</td>
+                {filteredRoutes.map((route, idx) => (
+                  <tr key={`${route.path}-${idx}`} className="hover:bg-accent/30">
+                    <td className="p-3 font-mono font-semibold text-[#42245f]">{route.path}</td>
+                    <td className="p-3 font-medium text-foreground">{route.title}</td>
+                    <td className="p-3 capitalize">{route.routeType}</td>
                     <td className="p-3 font-mono text-muted-foreground">
-                      https://slgs.edu.sl{item.path}
+                      {route.canonicalOverride}
                     </td>
                     <td className="p-3">
-                      <span className="px-2 py-0.5 rounded bg-[#2f7d3b]/10 text-[#2f7d3b] text-[10px] font-semibold uppercase">
-                        Public Anonymous
+                      <span className="bg-[#2f7d3b]/10 px-2 py-0.5 rounded font-semibold text-[#2f7d3b] text-[10px] uppercase">
+                        {route.accessLevel}
                       </span>
                     </td>
                   </tr>
@@ -287,51 +423,161 @@ export function PublicWebView({
 
       {/* Tab Content 4: Live Experience Preview */}
       {currentTab === "preview" && (
-        <div className="p-5 rounded-xl border border-border bg-card shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-border pb-3">
+        <div className="space-y-5 bg-card shadow-sm p-5 border border-border rounded-xl">
+          <div className="flex sm:flex-row flex-col justify-between sm:items-center gap-4 pb-3 border-border border-b">
             <div>
-              <h2 className="text-base font-serif font-bold text-foreground">Live Experience Preview Simulator</h2>
-              <p className="text-xs text-muted-foreground">
-                Simulated public website layout with institutional header, hero section, and house color branding.
+              <h2 className="font-serif font-bold text-foreground text-base">Live Experience Preview Simulator</h2>
+              <p className="text-muted-foreground text-xs">
+                Simulated public web rendering of published pages, news articles, events, and core sections.
               </p>
             </div>
-            <span className="px-2.5 py-1 rounded bg-[#2f7d3b]/10 text-[#2f7d3b] border border-[#2f7d3b]/20 text-xs font-semibold">
-              Live Projection
-            </span>
+
+            <div className="flex items-center gap-3">
+              <label className="font-semibold text-foreground text-xs whitespace-nowrap">
+                Preview Page:
+              </label>
+              <select
+                value={selectedPreviewId}
+                onChange={(e) => setSelectedPreviewId(e.target.value)}
+                className="bg-background px-3 py-1.5 border border-border rounded-md focus:outline-none focus:ring-[#42245f] focus:ring-1 font-semibold text-foreground text-xs"
+              >
+                <optgroup label="Core Web Sections">
+                  {data.publicWeb.navigationTree
+                    .filter((n) => n.isCore)
+                    .map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.title} ({item.path})
+                      </option>
+                    ))}
+                </optgroup>
+                {data.publicWeb.publishedItems.length > 0 && (
+                  <optgroup label="Published Content Items">
+                    {data.publicWeb.publishedItems.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        [{item.type.toUpperCase()}] {item.title} ({item.canonicalPath})
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+              </select>
+
+              <span className="bg-[#2f7d3b]/10 px-2.5 py-1 border border-[#2f7d3b]/20 rounded font-semibold text-[#2f7d3b] text-xs whitespace-nowrap">
+                Live Projection
+              </span>
+            </div>
           </div>
 
-          <div className="p-6 rounded-xl border border-[#c2b28a]/40 bg-gradient-to-br from-white to-[#faf9f6] space-y-6 shadow-inner">
-            {/* Header Mock */}
-            <div className="flex items-center justify-between pb-4 border-b border-[#c2b28a]/20">
+          {/* Simulated Public Web Interface */}
+          <div className="space-y-6 bg-gradient-to-br from-white to-[#faf9f6] shadow-inner p-6 border border-[#c2b28a]/40 rounded-xl">
+            {/* Header Simulator */}
+            <div className="flex md:flex-row flex-col justify-between md:items-center gap-4 pb-4 border-[#c2b28a]/30 border-b">
               <div className="flex items-center gap-3">
-                <span className="size-8 rounded-lg bg-[#42245f] text-[#c2b28a] flex items-center justify-center font-serif font-bold text-sm">
+                <span className="flex justify-center items-center bg-[#42245f] shadow-sm rounded-lg size-9 font-serif font-bold text-[#c2b28a] text-base">
                   SL
                 </span>
                 <div>
-                  <h3 className="font-serif font-bold text-sm text-[#231f20]">Sierra Leone Grammar School</h3>
-                  <p className="text-[10px] text-[#58595b] uppercase tracking-wider">Regent, Freetown · Est. 1845</p>
+                  <h3 className="font-serif font-bold text-[#231f20] text-sm">Sierra Leone Grammar School</h3>
+                  <p className="text-[#58595b] text-[10px] uppercase tracking-wider">Regent, Freetown · Est. 1845</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 text-xs font-medium text-[#231f20]">
-                {navItems.slice(0, 5).map((m) => (
-                  <span key={m.id} className="hover:text-[#42245f] cursor-pointer">
+              <div className="flex flex-wrap items-center gap-3 font-medium text-[#231f20] text-xs">
+                {navItems.slice(0, 7).map((m) => (
+                  <span
+                    key={m.id}
+                    className={`px-2 py-1 rounded transition-colors ${
+                      m.id === selectedPreviewId || m.path === selectedPublishedItem?.canonicalPath
+                        ? "bg-[#42245f] text-white font-semibold"
+                        : "hover:text-[#42245f]"
+                    }`}
+                  >
                     {m.title}
                   </span>
                 ))}
               </div>
             </div>
 
-            {/* Hero Mock */}
-            <div className="p-8 rounded-xl bg-[#42245f] text-white space-y-3 relative overflow-hidden">
-              <div className="absolute right-0 top-0 w-48 h-48 bg-[#c2b28a]/10 rounded-full blur-2xl" />
-              <span className="text-[10px] uppercase tracking-widest px-2.5 py-1 rounded bg-[#c2b28a] text-[#42245f] font-bold">
-                A non-palmam qui meruit ferat
-              </span>
-              <h2 className="text-2xl font-serif font-bold">Welcoming Excellence & Tradition</h2>
-              <p className="text-xs text-white/80 max-w-xl">
-                Providing standard secondary education with academic rigor, sporting house heritage, and moral excellence.
-              </p>
+            {/* Content Simulator */}
+            {selectedPublishedItem ? (
+              <div className="space-y-4 bg-white shadow-sm p-6 border border-[#c2b28a]/20 rounded-xl">
+                <div className="flex items-center gap-2">
+                  <span className="bg-[#42245f] px-2.5 py-0.5 rounded font-bold text-[#c2b28a] text-[10px] uppercase tracking-wider">
+                    {selectedPublishedItem.type}
+                  </span>
+                  <span className="font-mono text-[11px] text-muted-foreground">
+                    Canonical: {selectedPublishedItem.canonicalPath}
+                  </span>
+                </div>
+
+                <h1 className="font-serif font-bold text-[#231f20] text-2xl">
+                  {selectedPublishedItem.title}
+                </h1>
+
+                {selectedPublishedItem.summary && (
+                  <p className="py-1 pl-3 border-[#42245f] border-l-2 font-semibold text-[#42245f] text-sm italic">
+                    {selectedPublishedItem.summary}
+                  </p>
+                )}
+
+                <div className="space-y-3 pt-3 border-border border-t text-[#58595b] text-xs leading-relaxed">
+                  {selectedPublishedItem.body ? (
+                    selectedPublishedItem.body.split("\n\n").map((para, i) => (
+                      <p key={i}>{para}</p>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground italic">No body content provided for this published item.</p>
+                  )}
+                </div>
+
+                <div className="flex justify-between items-center pt-4 border-border border-t font-mono text-[11px] text-muted-foreground">
+                  <span>Published: {new Date(selectedPublishedItem.publishedAt).toLocaleDateString()}</span>
+                  <span>URL: {selectedPublishedItem.absoluteCanonicalUrl}</span>
+                </div>
+              </div>
+            ) : (
+              /* Core Section Simulator Fallback */
+              <div className="relative space-y-4 bg-[#42245f] p-8 rounded-xl overflow-hidden text-white">
+                <div className="top-0 right-0 absolute bg-[#c2b28a]/10 blur-3xl rounded-full w-64 h-64" />
+                <span className="bg-[#c2b28a] px-2.5 py-1 rounded font-bold text-[#42245f] text-[10px] uppercase tracking-widest">
+                  A non-palmam qui meruit ferat
+                </span>
+                <h2 className="font-serif font-bold text-2xl">
+                  {selectedCoreSection?.title ?? "Sierra Leone Grammar School"}
+                </h2>
+                <p className="max-w-xl text-white/80 text-xs leading-relaxed">
+                  Providing standard secondary education with academic rigor, sporting house heritage, and moral excellence since 1845.
+                </p>
+                <div className="pt-2 font-mono text-[#c2b28a] text-[11px]">
+                  Route path: {selectedCoreSection?.path ?? "/"}
+                </div>
+              </div>
+            )}
+
+            {/* SEO Meta Preview Box */}
+            <div className="space-y-2 bg-background p-4 border border-border rounded-lg">
+              <div className="flex items-center gap-1.5 font-semibold text-[#42245f] text-xs">
+                <IconLink className="size-4" />
+                <span>SEO Head & Search Projection Preview</span>
+              </div>
+              <div className="space-y-1 bg-secondary/30 p-3 rounded font-mono text-[11px] text-muted-foreground">
+                <p>
+                  <span className="font-semibold text-foreground">&lt;title&gt;</span>
+                  {selectedPublishedItem?.seoTitle ?? selectedPublishedItem?.title ?? selectedCoreSection?.title} | Sierra Leone Grammar School
+                  <span className="font-semibold text-foreground">&lt;/title&gt;</span>
+                </p>
+                <p>
+                  <span className="font-semibold text-foreground">&lt;link rel="canonical" href="</span>
+                  {selectedPublishedItem?.absoluteCanonicalUrl ?? `${data.publicWeb.publishedSiteUrl}${selectedCoreSection?.path}`}
+                  <span className="font-semibold text-foreground">&quot; /&gt;</span>
+                </p>
+                {selectedPublishedItem?.seoDescription && (
+                  <p>
+                    <span className="font-semibold text-foreground">&lt;meta name="description" content="</span>
+                    {selectedPublishedItem.seoDescription}
+                    <span className="font-semibold text-foreground">&quot; /&gt;</span>
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>

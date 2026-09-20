@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
 
     define: {
       "import.meta.env.PUBLIC_SITE_URL": JSON.stringify(
-        environment.PUBLIC_SITE_URL ?? "http://slgs.edu.sl",
+        environment.PUBLIC_SITE_URL ?? "http://localhost:3001",
       ),
     },
 

@@ -4,7 +4,7 @@ export const Route = createFileRoute("/robots.txt")({
     handlers: {
       GET: () => {
         const origin = (
-          process.env.PUBLIC_SITE_URL ?? "http://slgs.edu.sl"
+          process.env.PUBLIC_SITE_URL ?? "http://localhost:3001"
         ).replace(/\/$/, "");
         return new Response(
           `User-agent: *\nAllow: /\nDisallow: /_server/\nSitemap: ${origin}/sitemap.xml\n`,
