@@ -23,7 +23,8 @@ export const Route = createFileRoute("/api/media/$id")({
               "Cache-Control": "public, max-age=31536000, immutable",
             },
           });
-        } catch {
+        } catch (error) {
+          console.error("Media storage retrieval error:", error);
           return new Response("Media storage retrieval error", { status: 500 });
         }
       },
