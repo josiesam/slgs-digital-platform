@@ -5,14 +5,8 @@
   "tasks": {
     "build": {
       "outputs": [
+        ".output/**",
         ".vercel/output/**"
-      ],
-      "env": [
-        "PUBLIC_SITE_URL",
-        "DATABASE_URL",
-        "WEB_DATABASE_URL",
-        "CLOUDFLARE_R2_READ_ACCESS_KEY_ID",
-        "CLOUDFLARE_R2_READ_SECRET_ACCESS_KEY"
       ]
     }
   }
