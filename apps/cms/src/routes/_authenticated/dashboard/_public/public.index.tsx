@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+  IconDeviceDesktop,
+  IconDeviceMobile,
+  IconDeviceTablet,
   IconExternalLink,
   IconEye,
   IconFileCheck,
   IconLink,
   IconMenu2,
+  IconRefresh,
   IconSearch,
   IconWorld,
 } from "@tabler/icons-react";
@@ -39,6 +43,8 @@ export function PublicWebView({
   const [selectedPreviewId, setSelectedPreviewId] = useState<string>(
     data.publicWeb.publishedItems[0]?.id ?? "core-home",
   );
+  const [viewportMode, setViewportMode] = useState<"desktop" | "tablet" | "mobile">("desktop");
+  const [iframeKey, setIframeKey] = useState(0);
 
   // Initialize navigation items from public-content tree
   const [navItems, setNavItems] = useState(data.publicWeb.navigationTree);
@@ -74,6 +80,21 @@ export function PublicWebView({
   const selectedCoreSection = data.publicWeb.navigationTree.find(
     (item) => item.id === selectedPreviewId,
   );
+
+  const previewPath = selectedPublishedItem
+    ? selectedPublishedItem.canonicalPath
+    : selectedCoreSection
+      ? selectedCoreSection.path
+      : "/";
+
+  const fullPreviewUrl = `${data.publicWeb.publishedSiteUrl.replace(/\/$/, "")}${previewPath}`;
+
+  const viewportWidthClass =
+    viewportMode === "mobile"
+      ? "w-[375px]"
+      : viewportMode === "tablet"
+        ? "w-[768px]"
+        : "w-full";
 
   return (
     <div className="space-y-6 mx-auto p-4 md:p-6 max-w-[1600px]">
@@ -403,7 +424,7 @@ export function PublicWebView({
                 {filteredRoutes.map((route, idx) => (
                   <tr key={`${route.path}-${idx}`} className="hover:bg-accent/30">
                     <td className="p-3 font-mono font-semibold text-[#42245f]">{route.path}</td>
-                    <td className="p-3 font-medium text-foreground">{route.title}</td>
+                    <td className="font-medium text-foreground p-3">{route.title}</td>
                     <td className="p-3 capitalize">{route.routeType}</td>
                     <td className="p-3 font-mono text-muted-foreground">
                       {route.canonicalOverride}
@@ -421,21 +442,60 @@ export function PublicWebView({
         </div>
       )}
 
-      {/* Tab Content 4: Live Experience Preview */}
+      {/* Tab Content 4: Live Experience Preview Simulator via Responsive Iframe */}
       {currentTab === "preview" && (
-        <div className="space-y-5 bg-card shadow-sm p-5 border border-border rounded-xl">
-          <div className="flex sm:flex-row flex-col justify-between sm:items-center gap-4 pb-3 border-border border-b">
+        <div className="space-y-4 bg-card shadow-sm p-5 border border-border rounded-xl">
+          {/* Top Bar: Controls */}
+          <div className="flex lg:flex-row flex-col justify-between lg:items-center gap-4 pb-3 border-border border-b">
             <div>
-              <h2 className="font-serif font-bold text-foreground text-base">Live Experience Preview Simulator</h2>
+              <h2 className="font-serif font-bold text-foreground text-base">Live Site Preview Simulator</h2>
               <p className="text-muted-foreground text-xs">
-                Simulated public web rendering of published pages, news articles, events, and core sections.
+                Real-time responsive iframe preview loading actual public web routes from <span className="font-mono font-semibold text-foreground">{data.publicWeb.publishedSiteUrl}</span>.
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
-              <label className="font-semibold text-foreground text-xs whitespace-nowrap">
-                Preview Page:
-              </label>
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Device Viewport Mode Toggles */}
+              <div className="flex items-center bg-secondary/50 p-1 border border-border rounded-lg font-semibold text-xs">
+                <button
+                  onClick={() => setViewportMode("desktop")}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded transition-colors ${
+                    viewportMode === "desktop"
+                      ? "bg-[#42245f] text-white shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="Desktop Viewport (100%)"
+                >
+                  <IconDeviceDesktop className="size-4" />
+                  <span>Desktop</span>
+                </button>
+                <button
+                  onClick={() => setViewportMode("tablet")}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded transition-colors ${
+                    viewportMode === "tablet"
+                      ? "bg-[#42245f] text-white shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="Tablet Viewport (768px)"
+                >
+                  <IconDeviceTablet className="size-4" />
+                  <span>Tablet</span>
+                </button>
+                <button
+                  onClick={() => setViewportMode("mobile")}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded transition-colors ${
+                    viewportMode === "mobile"
+                      ? "bg-[#42245f] text-white shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="Mobile Viewport (375px)"
+                >
+                  <IconDeviceMobile className="size-4" />
+                  <span>Mobile</span>
+                </button>
+              </div>
+
+              {/* Page Selector */}
               <select
                 value={selectedPreviewId}
                 onChange={(e) => setSelectedPreviewId(e.target.value)}
@@ -461,123 +521,80 @@ export function PublicWebView({
                 )}
               </select>
 
-              <span className="bg-[#2f7d3b]/10 px-2.5 py-1 border border-[#2f7d3b]/20 rounded font-semibold text-[#2f7d3b] text-xs whitespace-nowrap">
-                Live Projection
-              </span>
+              {/* Refresh iFrame */}
+              <button
+                onClick={() => setIframeKey((prev) => prev + 1)}
+                className="hover:bg-accent p-1.5 border border-border rounded-md text-foreground transition-colors"
+                title="Reload Preview iFrame"
+              >
+                <IconRefresh className="size-4 text-muted-foreground" />
+              </button>
+
+              <a
+                href={fullPreviewUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 bg-[#42245f]/10 hover:bg-[#42245f]/20 px-2.5 py-1.5 rounded-md font-semibold text-[#42245f] text-xs transition-colors"
+              >
+                <IconExternalLink className="size-3.5" />
+                <span>Open Target Path</span>
+              </a>
             </div>
           </div>
 
-          {/* Simulated Public Web Interface */}
-          <div className="space-y-6 bg-gradient-to-br from-white to-[#faf9f6] shadow-inner p-6 border border-[#c2b28a]/40 rounded-xl">
-            {/* Header Simulator */}
-            <div className="flex md:flex-row flex-col justify-between md:items-center gap-4 pb-4 border-[#c2b28a]/30 border-b">
-              <div className="flex items-center gap-3">
-                <span className="flex justify-center items-center bg-[#42245f] shadow-sm rounded-lg size-9 font-serif font-bold text-[#c2b28a] text-base">
-                  SL
-                </span>
-                <div>
-                  <h3 className="font-serif font-bold text-[#231f20] text-sm">Sierra Leone Grammar School</h3>
-                  <p className="text-[#58595b] text-[10px] uppercase tracking-wider">Regent, Freetown · Est. 1845</p>
-                </div>
+          {/* Browser Frame & iFrame Container */}
+          <div className="flex flex-col items-center bg-secondary/30 p-4 border border-border rounded-xl">
+            {/* Browser Window Header */}
+            <div className={`flex justify-between items-center bg-[#231f20] px-4 py-2 rounded-t-xl text-white text-xs ${viewportWidthClass} transition-all duration-300`}>
+              <div className="flex items-center gap-2">
+                <span className="bg-[#ff5f56] rounded-full size-3" />
+                <span className="bg-[#ffbd2e] rounded-full size-3" />
+                <span className="bg-[#27c93f] rounded-full size-3" />
               </div>
-
-              <div className="flex flex-wrap items-center gap-3 font-medium text-[#231f20] text-xs">
-                {navItems.slice(0, 7).map((m) => (
-                  <span
-                    key={m.id}
-                    className={`px-2 py-1 rounded transition-colors ${
-                      m.id === selectedPreviewId || m.path === selectedPublishedItem?.canonicalPath
-                        ? "bg-[#42245f] text-white font-semibold"
-                        : "hover:text-[#42245f]"
-                    }`}
-                  >
-                    {m.title}
-                  </span>
-                ))}
+              <div className="flex items-center gap-1 bg-[#3a3536] px-3 py-1 rounded-md max-w-lg font-mono text-[11px] text-white/90 truncate">
+                <IconWorld className="size-3.5 text-[#c2b28a]" />
+                <span className="truncate">{fullPreviewUrl}</span>
+              </div>
+              <div className="font-mono text-[10px] text-white/60">
+                {viewportMode === "mobile" ? "375px" : viewportMode === "tablet" ? "768px" : "100%"}
               </div>
             </div>
 
-            {/* Content Simulator */}
-            {selectedPublishedItem ? (
-              <div className="space-y-4 bg-white shadow-sm p-6 border border-[#c2b28a]/20 rounded-xl">
-                <div className="flex items-center gap-2">
-                  <span className="bg-[#42245f] px-2.5 py-0.5 rounded font-bold text-[#c2b28a] text-[10px] uppercase tracking-wider">
-                    {selectedPublishedItem.type}
-                  </span>
-                  <span className="font-mono text-[11px] text-muted-foreground">
-                    Canonical: {selectedPublishedItem.canonicalPath}
-                  </span>
-                </div>
+            {/* iFrame Wrapper */}
+            <div className={`bg-white shadow-2xl border border-[#231f20]/20 rounded-b-xl overflow-hidden h-[680px] ${viewportWidthClass} transition-all duration-300`}>
+              <iframe
+                key={iframeKey}
+                src={fullPreviewUrl}
+                title="Public Web Live Preview"
+                className="border-0 w-full h-full"
+              />
+            </div>
+          </div>
 
-                <h1 className="font-serif font-bold text-[#231f20] text-2xl">
-                  {selectedPublishedItem.title}
-                </h1>
-
-                {selectedPublishedItem.summary && (
-                  <p className="py-1 pl-3 border-[#42245f] border-l-2 font-semibold text-[#42245f] text-sm italic">
-                    {selectedPublishedItem.summary}
-                  </p>
-                )}
-
-                <div className="space-y-3 pt-3 border-border border-t text-[#58595b] text-xs leading-relaxed">
-                  {selectedPublishedItem.body ? (
-                    selectedPublishedItem.body.split("\n\n").map((para, i) => (
-                      <p key={i}>{para}</p>
-                    ))
-                  ) : (
-                    <p className="text-muted-foreground italic">No body content provided for this published item.</p>
-                  )}
-                </div>
-
-                <div className="flex justify-between items-center pt-4 border-border border-t font-mono text-[11px] text-muted-foreground">
-                  <span>Published: {new Date(selectedPublishedItem.publishedAt).toLocaleDateString()}</span>
-                  <span>URL: {selectedPublishedItem.absoluteCanonicalUrl}</span>
-                </div>
-              </div>
-            ) : (
-              /* Core Section Simulator Fallback */
-              <div className="relative space-y-4 bg-[#42245f] p-8 rounded-xl overflow-hidden text-white">
-                <div className="top-0 right-0 absolute bg-[#c2b28a]/10 blur-3xl rounded-full w-64 h-64" />
-                <span className="bg-[#c2b28a] px-2.5 py-1 rounded font-bold text-[#42245f] text-[10px] uppercase tracking-widest">
-                  A non-palmam qui meruit ferat
-                </span>
-                <h2 className="font-serif font-bold text-2xl">
-                  {selectedCoreSection?.title ?? "Sierra Leone Grammar School"}
-                </h2>
-                <p className="max-w-xl text-white/80 text-xs leading-relaxed">
-                  Providing standard secondary education with academic rigor, sporting house heritage, and moral excellence since 1845.
-                </p>
-                <div className="pt-2 font-mono text-[#c2b28a] text-[11px]">
-                  Route path: {selectedCoreSection?.path ?? "/"}
-                </div>
-              </div>
-            )}
-
-            {/* SEO Meta Preview Box */}
-            <div className="space-y-2 bg-background p-4 border border-border rounded-lg">
-              <div className="flex items-center gap-1.5 font-semibold text-[#42245f] text-xs">
-                <IconLink className="size-4" />
-                <span>SEO Head & Search Projection Preview</span>
-              </div>
-              <div className="space-y-1 bg-secondary/30 p-3 rounded font-mono text-[11px] text-muted-foreground">
+          {/* SEO Meta Preview Box */}
+          <div className="space-y-2 bg-background p-4 border border-border rounded-lg">
+            <div className="flex items-center gap-1.5 font-semibold text-[#42245f] text-xs">
+              <IconLink className="size-4" />
+              <span>SEO Head & Search Projection Preview</span>
+            </div>
+            <div className="space-y-1 bg-secondary/30 p-3 rounded font-mono text-[11px] text-muted-foreground">
+              <p>
+                <span className="font-semibold text-foreground">&lt;title&gt;</span>
+                {selectedPublishedItem?.seoTitle ?? selectedPublishedItem?.title ?? selectedCoreSection?.title} | Sierra Leone Grammar School
+                <span className="font-semibold text-foreground">&lt;/title&gt;</span>
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">&lt;link rel="canonical" href="</span>
+                {selectedPublishedItem?.absoluteCanonicalUrl ?? fullPreviewUrl}
+                <span className="font-semibold text-foreground">&quot; /&gt;</span>
+              </p>
+              {selectedPublishedItem?.seoDescription && (
                 <p>
-                  <span className="font-semibold text-foreground">&lt;title&gt;</span>
-                  {selectedPublishedItem?.seoTitle ?? selectedPublishedItem?.title ?? selectedCoreSection?.title} | Sierra Leone Grammar School
-                  <span className="font-semibold text-foreground">&lt;/title&gt;</span>
-                </p>
-                <p>
-                  <span className="font-semibold text-foreground">&lt;link rel="canonical" href="</span>
-                  {selectedPublishedItem?.absoluteCanonicalUrl ?? `${data.publicWeb.publishedSiteUrl}${selectedCoreSection?.path}`}
+                  <span className="font-semibold text-foreground">&lt;meta name="description" content="</span>
+                  {selectedPublishedItem.seoDescription}
                   <span className="font-semibold text-foreground">&quot; /&gt;</span>
                 </p>
-                {selectedPublishedItem?.seoDescription && (
-                  <p>
-                    <span className="font-semibold text-foreground">&lt;meta name="description" content="</span>
-                    {selectedPublishedItem.seoDescription}
-                    <span className="font-semibold text-foreground">&quot; /&gt;</span>
-                  </p>
-                )}
-              </div>
+              )}
             </div>
           </div>
         </div>

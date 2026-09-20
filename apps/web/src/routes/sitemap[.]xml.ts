@@ -18,7 +18,7 @@ export const Route = createFileRoute("/sitemap.xml")({
     handlers: {
       GET: async () => {
         const origin = (
-          process.env.PUBLIC_SITE_URL ?? "http://localhost:3001"
+          process.env.PUBLIC_SITE_URL ?? "http://slgs.edu.sl"
         ).replace(/\/$/, "");
         const content = await getSitemapContent();
         const fixed = [

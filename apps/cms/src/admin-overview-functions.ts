@@ -164,7 +164,7 @@ export const getCmsAdminOverview = createServerFn({ method: "GET" }).handler(
     }
 
     const publishedSiteUrl =
-      process.env.PUBLIC_SITE_URL ?? "http://localhost:3001";
+      process.env.PUBLIC_SITE_URL ?? "http://slgs.edu.sl";
 
     // Filter published content items safely
     const publishedItemsRaw = content.filter(
