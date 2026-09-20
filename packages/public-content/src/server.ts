@@ -98,7 +98,9 @@ export function createPublicContentGateway(
         if (environment) {
           try {
             url = await generatePresignedReadUrl(environment, m.storageKey);
-          } catch {
+          } catch (error) {
+            console.log("generatePresignedReadUrl", error);
+            throw error;
             // Fallback to proxy route if presigning is unavailable
           }
         }
