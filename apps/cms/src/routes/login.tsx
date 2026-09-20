@@ -30,6 +30,7 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit({
     value,
@@ -37,10 +38,12 @@ function LoginPage() {
     value: { email: string; password: string };
   }) {
     setMessage("");
+    setIsLoading(true);
     const result = await authClient.signIn.email({
       email: value.email,
       password: value.password,
     });
+    setIsLoading(false);
     if (result.error) {
       setMessage("Sign-in was not accepted.");
       return;
@@ -49,7 +52,12 @@ function LoginPage() {
   }
 
   return (
-    <LoginForm application="CMS" message={message} onSubmit={handleSubmit} />
+    <LoginForm
+      application="CMS"
+      message={message}
+      onSubmit={handleSubmit}
+      isLoading={isLoading}
+    />
   );
 }
 
@@ -64,6 +72,7 @@ export function LoginForm(props: {
   onSubmit: (props: {
     value: { email: string; password: string };
   }) => void | Promise<void>;
+  isLoading?: boolean;
 }) {
   const form = useForm({
     defaultValues: {
@@ -143,8 +152,9 @@ export function LoginForm(props: {
           <Button
             className="rounded-md bg-primary px-4 py-2 text-primary-foreground"
             type="submit"
+            disabled={props.isLoading}
           >
-            Sign in
+            {props.isLoading ? "Signing in..." : "Sign in"}
           </Button>
         </form>
       </main>
