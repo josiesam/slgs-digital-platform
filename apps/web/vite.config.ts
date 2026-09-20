@@ -21,6 +21,12 @@ export default defineConfig(({ mode }) => {
       "import.meta.env.PUBLIC_SITE_URL": JSON.stringify(
         environment.PUBLIC_SITE_URL ?? "http://slgs.edu.sl",
       ),
+      "import.meta.env.CLOUDFLARE_R2_READ_ACCESS_KEY_ID": JSON.stringify(
+        environment.CLOUDFLARE_R2_READ_ACCESS_KEY_ID,
+      ),
+      "import.meta.env.CLOUDFLARE_R2_READ_SECRET_ACCESS_KEY": JSON.stringify(
+        environment.CLOUDFLARE_R2_READ_SECRET_ACCESS_KEY,
+      ),
     },
 
     plugins: [tanstackStart(), nitro(), tailwindcss(), react()],
