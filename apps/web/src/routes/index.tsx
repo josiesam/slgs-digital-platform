@@ -48,6 +48,8 @@ export const Route = createFileRoute("/")({
 });
 function HomePage() {
   const content = Route.useLoaderData();
+  console.log("env: ", process.env);
+
   return (
     <>
       <section className="home-hero">
