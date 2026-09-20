@@ -8,6 +8,6 @@ let cachedGateway: PublicContentGateway | undefined;
 
 export function getPublicContentGateway(): PublicContentGateway {
   return (cachedGateway ??= withPublicContentCache(
-    createPublicContentFromEnvironment(import.meta.env),
+    createPublicContentFromEnvironment(process.env),
   ));
 }
