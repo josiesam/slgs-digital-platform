@@ -134,54 +134,6 @@ export function PublicWebView({
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex space-x-4 border-border border-b font-semibold text-xs">
-        <Link
-          to="/dashboard/public/published"
-          onClick={() => setCurrentTab("overview")}
-          className={`pb-2 transition-colors border-b-2 ${
-            currentTab === "overview"
-              ? "border-[#42245f] text-[#42245f]"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Projections & Web Status
-        </Link>
-        <Link
-          to="/dashboard/public/navigation"
-          onClick={() => setCurrentTab("navigation")}
-          className={`pb-2 transition-colors border-b-2 ${
-            currentTab === "navigation"
-              ? "border-[#42245f] text-[#42245f]"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Navigation Hierarchy
-        </Link>
-        <Link
-          to="/dashboard/public/pages"
-          onClick={() => setCurrentTab("urls")}
-          className={`pb-2 transition-colors border-b-2 ${
-            currentTab === "urls"
-              ? "border-[#42245f] text-[#42245f]"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          URL Routes & Canonical Paths
-        </Link>
-        <Link
-          to="/dashboard/public/preview"
-          onClick={() => setCurrentTab("preview")}
-          className={`pb-2 transition-colors border-b-2 ${
-            currentTab === "preview"
-              ? "border-[#42245f] text-[#42245f]"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Live Experience Preview
-        </Link>
-      </div>
-
       {/* Tab Content 1: Overview */}
       {currentTab === "overview" && (
         <div className="space-y-6">
@@ -483,7 +435,7 @@ export function PublicWebView({
                     <td className="p-3 font-mono font-semibold text-[#42245f]">
                       {route.path}
                     </td>
-                    <td className="font-medium text-foreground p-3">
+                    <td className="p-3 font-medium text-foreground">
                       {route.title}
                     </td>
                     <td className="p-3 capitalize">{route.routeType}</td>

@@ -58,6 +58,7 @@ export const getCmsAdminOverview = createServerFn({ method: "GET" }).handler(
             canonicalPath: contentItem.canonicalPath,
             state: contentItem.state,
             publishedAt: contentItem.publishedAt,
+            verifiedVersion: contentItem.verifiedVersion,
             authorUserId: contentItem.authorUserId,
             owningClubId: contentItem.owningClubId,
             updatedAt: contentItem.updatedAt,
@@ -166,12 +167,13 @@ export const getCmsAdminOverview = createServerFn({ method: "GET" }).handler(
     const publishedSiteUrl =
       process.env.PUBLIC_SITE_URL ?? "http://slgs.edu.sl";
 
-    // Filter published content items safely
+    // Filter published content items safely (items with a verified publication version)
     const publishedItemsRaw = content.filter(
       (item) =>
-        item.state === "published" &&
         item.publishedAt !== null &&
-        item.publishedAt !== undefined,
+        item.publishedAt !== undefined &&
+        item.verifiedVersion !== null &&
+        item.verifiedVersion !== undefined,
     );
 
     const publishedItems = publishedItemsRaw.map((item) => {

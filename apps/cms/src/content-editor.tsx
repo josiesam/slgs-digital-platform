@@ -131,3 +131,57 @@ export function DraftEditor({
     </form>
   );
 }
+export function DraftReview({
+  content,
+  pending,
+  onSave,
+}: {
+  readonly content: EditableCmsContent;
+  readonly pending: boolean;
+  readonly onSave: (event: FormEvent<HTMLFormElement>) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="gap-4 grid grid-cols-2 text-sm">
+        <div>
+          <span className="font-medium text-muted-foreground">Type:</span>{" "}
+          <span className="font-semibold text-foreground capitalize">
+            {content.type}
+          </span>
+        </div>
+        <div>
+          <span className="font-medium text-muted-foreground">Slug:</span>{" "}
+          <span className="font-mono text-foreground">{content.slug}</span>
+        </div>
+        <div className="col-span-2">
+          <span className="font-medium text-muted-foreground">
+            Canonical Path:
+          </span>{" "}
+          <span className="font-mono text-foreground">
+            {content.canonicalPath}
+          </span>
+        </div>
+      </div>
+
+      {content.summary && (
+        <div>
+          <span className="block mb-1 font-medium text-muted-foreground text-xs">
+            Summary
+          </span>
+          <div className="bg-muted/50 p-3 rounded-md text-foreground text-sm">
+            {content.summary}
+          </div>
+        </div>
+      )}
+
+      <div>
+        <span className="block mb-1 font-medium text-muted-foreground text-xs">
+          Body Content
+        </span>
+        <div className="bg-muted/30 p-4 border border-border/50 rounded-md min-h-30 text-foreground text-sm whitespace-pre-wrap">
+          {content.body || "(Empty body)"}
+        </div>
+      </div>
+    </div>
+  );
+}

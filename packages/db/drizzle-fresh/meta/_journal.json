@@ -43,6 +43,13 @@
       "when": 1789805302541,
       "tag": "0005_current-schema-baseline",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789907546459,
+      "tag": "0006_current-schema-baseline",
+      "breakpoints": true
     }
   ]
 }

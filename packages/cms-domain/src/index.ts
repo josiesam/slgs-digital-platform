@@ -659,7 +659,6 @@ export class CmsService {
     let verifiedVersion = item.verifiedVersion;
 
     if (options.to === "published") {
-      // Calculate next verified publication version number
       const highestVersion = revisions.reduce((max, r) => {
         return r.verifiedVersionNumber && r.verifiedVersionNumber > max
           ? r.verifiedVersionNumber
@@ -668,8 +667,48 @@ export class CmsService {
       verifiedVersion = highestVersion + 1;
     }
 
+    const isUnpublishing =
+      options.eventType === "content.published"
+        ? false
+        : options.eventType === "content.unpublished";
+    const snapshotContent: Record<string, any> = {};
+    if (options.to === "published" && activeRevisionRecord?.snapshot) {
+      const snap = activeRevisionRecord.snapshot;
+      if (typeof snap.title === "string") snapshotContent.title = snap.title;
+      if (typeof snap.slug === "string") snapshotContent.slug = snap.slug;
+      if (typeof snap.summary === "string" || snap.summary === null)
+        snapshotContent.summary = snap.summary;
+      if (typeof snap.body === "string") snapshotContent.body = snap.body;
+      if (typeof snap.seoTitle === "string" || snap.seoTitle === null)
+        snapshotContent.seoTitle = snap.seoTitle;
+      if (
+        typeof snap.seoDescription === "string" ||
+        snap.seoDescription === null
+      )
+        snapshotContent.seoDescription = snap.seoDescription;
+      if (typeof snap.canonicalPath === "string" || snap.canonicalPath === null)
+        snapshotContent.canonicalPath = snap.canonicalPath;
+      if (
+        typeof snap.featuredMediaId === "string" ||
+        snap.featuredMediaId === null
+      )
+        snapshotContent.featuredMediaId = snap.featuredMediaId;
+      if (snap.eventStartAt)
+        snapshotContent.eventStartAt = new Date(snap.eventStartAt as string);
+      if (snap.eventEndAt)
+        snapshotContent.eventEndAt = new Date(snap.eventEndAt as string);
+      if (typeof snap.eventLocation === "string" || snap.eventLocation === null)
+        snapshotContent.eventLocation = snap.eventLocation;
+      if (
+        typeof snap.eventOrganiser === "string" ||
+        snap.eventOrganiser === null
+      )
+        snapshotContent.eventOrganiser = snap.eventOrganiser;
+    }
+
     const updated: CmsContent = {
       ...item,
+      ...snapshotContent,
       state: options.to,
       verifiedVersion,
       submittedAt: options.to === "submitted" ? now : item.submittedAt,
@@ -683,8 +722,18 @@ export class CmsService {
           : item.reviewedBy,
       approvedAt: options.to === "approved" ? now : item.approvedAt,
       approvedBy: options.to === "approved" ? actor.userId : item.approvedBy,
-      publishedAt: options.to === "published" ? now : item.publishedAt,
-      publishedBy: options.to === "published" ? actor.userId : item.publishedBy,
+      publishedAt:
+        options.to === "published"
+          ? now
+          : isUnpublishing
+            ? null
+            : item.publishedAt,
+      publishedBy:
+        options.to === "published"
+          ? actor.userId
+          : isUnpublishing
+            ? null
+            : item.publishedBy,
       updatedAt: now,
     };
 
@@ -1447,7 +1496,11 @@ export class MediaService {
   async updateMetadata(
     actor: CmsActor,
     id: string,
-    input: { altText?: string; owningClubId?: string | null; filename?: string },
+    input: {
+      altText?: string;
+      owningClubId?: string | null;
+      filename?: string;
+    },
   ) {
     const asset = await this.repository.findMedia(id);
     if (!asset)

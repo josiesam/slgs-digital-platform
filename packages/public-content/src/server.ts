@@ -1,4 +1,4 @@
-import { asc, desc, eq, inArray } from "drizzle-orm";
+import { asc, desc, eq, inArray, or } from "drizzle-orm";
 import { z } from "zod";
 import { createCloudflareR2Storage } from "@slgs/cms-domain";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
@@ -55,12 +55,14 @@ function serialize(
     seoTitle: row.seoTitle,
     seoDescription: row.seoDescription,
     canonicalPath: row.canonicalPath ?? defaultCanonicalPath(kind, row.slug),
-    publishedAt: row.publishedAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString(),
+    publishedAt: new Date(row.publishedAt as any).toISOString(),
+    updatedAt: new Date(row.updatedAt as any).toISOString(),
     event: eventRow
       ? {
-          startAt: eventRow.startAt!.toISOString(),
-          endAt: eventRow.endAt?.toISOString() ?? null,
+          startAt: new Date(eventRow.startAt as any).toISOString(),
+          endAt: eventRow.endAt
+            ? new Date(eventRow.endAt as any).toISOString()
+            : null,
           location: eventRow.location,
           organiser: eventRow.organiser,
         }
@@ -153,12 +155,21 @@ export function createPublicContentGateway(
         .max(200)
         .parse(slug);
 
+      const pathWithLeadingSlash = parsedSlug.startsWith("/")
+        ? parsedSlug
+        : `/${parsedSlug}`;
       let item: PublicContentItem | null = null;
       if (kind === "event") {
         const [row] = await database.db
           .select()
           .from(publicEvent)
-          .where(eq(publicEvent.slug, parsedSlug))
+          .where(
+            or(
+              eq(publicEvent.slug, parsedSlug),
+              eq(publicEvent.canonicalPath, parsedSlug),
+              eq(publicEvent.canonicalPath, pathWithLeadingSlash),
+            ),
+          )
           .limit(1);
         if (row) item = serialize(row, kind);
       } else {
@@ -166,7 +177,13 @@ export function createPublicContentGateway(
         const [row] = await database.db
           .select()
           .from(view)
-          .where(eq(view.slug, parsedSlug))
+          .where(
+            or(
+              eq(view.slug, parsedSlug),
+              eq(view.canonicalPath, parsedSlug),
+              eq(view.canonicalPath, pathWithLeadingSlash),
+            ),
+          )
           .limit(1);
         if (row) item = serialize(row, kind);
       }

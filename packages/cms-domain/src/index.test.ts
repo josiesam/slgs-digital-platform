@@ -142,12 +142,44 @@ describe("CMS workflow service", () => {
       "content:publish:approved",
       "content:unpublish:published",
     ]);
-    expect((await service.publish(publisher, submitted.id)).state).toBe(
-      "published",
+    const publishedItem = await service.publish(publisher, submitted.id);
+    expect(publishedItem.state).toBe("published");
+    expect(publishedItem.verifiedVersion).toBe(1);
+    expect(publishedItem.publishedAt).not.toBeNull();
+
+    // Editing published content creates a draft revision snapshot without clearing publishedAt/verifiedVersion
+    const editedDraft = await service.updateContent(
+      articleAuthor,
+      publishedItem.id,
+      {
+        title: "Updated Title Draft",
+        body: "Updated Body Draft",
+      },
     );
-    expect((await service.unpublish(publisher, submitted.id)).state).toBe(
-      "approved",
+    expect(editedDraft.state).toBe("draft");
+    expect(editedDraft.currentRevision).toBe(2);
+    expect(editedDraft.verifiedVersion).toBe(1);
+    expect(editedDraft.publishedAt).not.toBeNull();
+
+    // Workflow progression of revision 2
+    await service.submit(articleAuthor, publishedItem.id);
+    await service.startReview(reviewer, publishedItem.id);
+    await service.completeReview(
+      reviewer,
+      publishedItem.id,
+      "Second revision reviewed",
     );
+    await service.approve(approver, publishedItem.id);
+    const rePublished = await service.publish(publisher, publishedItem.id);
+
+    expect(rePublished.state).toBe("published");
+    expect(rePublished.verifiedVersion).toBe(2);
+    expect(rePublished.title).toBe("Updated Title Draft");
+
+    // Unpublishing clears publishedAt
+    const unpublished = await service.unpublish(publisher, submitted.id);
+    expect(unpublished.state).toBe("approved");
+    expect(unpublished.publishedAt).toBeNull();
   });
 
   it("supports rejection and resubmission without allowing state bypass", async () => {
@@ -344,9 +376,13 @@ describe("CMS workflow service", () => {
     const service = new CmsService(repository);
 
     expect(defaultCanonicalPath("article", "my-story")).toBe("/news/my-story");
-    expect(defaultCanonicalPath("event", "sports-day")).toBe("/events/sports-day");
+    expect(defaultCanonicalPath("event", "sports-day")).toBe(
+      "/events/sports-day",
+    );
     expect(defaultCanonicalPath("gallery", "photos")).toBe("/gallery/photos");
-    expect(defaultCanonicalPath("announcement", "notice")).toBe("/announcements/notice");
+    expect(defaultCanonicalPath("announcement", "notice")).toBe(
+      "/announcements/notice",
+    );
     expect(defaultCanonicalPath("page", "about")).toBe("/about");
 
     const created = await service.createContent(articleAuthor, {
@@ -397,9 +433,13 @@ describe("single base snapshot + requires_rebase workflow model", () => {
     const baseContent = await createArticle(service);
     const rev1SnapshotId = baseContent.currentSnapshotId!;
 
-    const baseUpdated = await service.updateContent(articleAuthor, baseContent.id, {
-      title: "Base Revision 1.3",
-    });
+    const baseUpdated = await service.updateContent(
+      articleAuthor,
+      baseContent.id,
+      {
+        title: "Base Revision 1.3",
+      },
+    );
     const baseSnapshotId = baseUpdated.currentSnapshotId!;
 
     // Create a dependent content item linked to baseSnapshotId
@@ -429,7 +469,11 @@ describe("single base snapshot + requires_rebase workflow model", () => {
       "content:reject:assigned",
     ]);
     await service.startReview(reviewer, baseContent.id);
-    const rejected = await service.reject(reviewer, baseContent.id, "Fact check failed");
+    const rejected = await service.reject(
+      reviewer,
+      baseContent.id,
+      "Fact check failed",
+    );
 
     expect(rejected.state).toBe("rejected");
 
@@ -515,12 +559,21 @@ describe("single base snapshot + requires_rebase workflow model", () => {
 
     const created = await createArticle(service);
     await service.submit(articleAuthor, created.id);
-    const reviewer = actor("reviewer", ["content:read:assigned", "content:review:assigned"]);
+    const reviewer = actor("reviewer", [
+      "content:read:assigned",
+      "content:review:assigned",
+    ]);
     await service.startReview(reviewer, created.id);
     await service.completeReview(reviewer, created.id, "Reviewed");
-    const approver = actor("approver", ["content:read:assigned", "content:approve:assigned"]);
+    const approver = actor("approver", [
+      "content:read:assigned",
+      "content:approve:assigned",
+    ]);
     await service.approve(approver, created.id);
-    const publisher = actor("publisher", ["content:read:approved", "content:publish:approved"]);
+    const publisher = actor("publisher", [
+      "content:read:approved",
+      "content:publish:approved",
+    ]);
     const published = await service.publish(publisher, created.id);
 
     expect(published.state).toBe("published");
@@ -540,12 +593,16 @@ describe("single base snapshot + requires_rebase workflow model", () => {
     expect(revisions).toHaveLength(2);
 
     // Base snapshot (S1) retains published status and verified version 1
-    const baseRev = revisions.find((r) => r.snapshotId === published.currentSnapshotId);
+    const baseRev = revisions.find(
+      (r) => r.snapshotId === published.currentSnapshotId,
+    );
     expect(baseRev?.status).toBe("published");
     expect(baseRev?.verifiedVersionNumber).toBe(1);
 
     // New revision snapshot (S2) starts at draft status
-    const newRev = revisions.find((r) => r.snapshotId === updated.currentSnapshotId);
+    const newRev = revisions.find(
+      (r) => r.snapshotId === updated.currentSnapshotId,
+    );
     expect(newRev?.status).toBe("draft");
     expect(newRev?.baseSnapshotId).toBe(published.currentSnapshotId);
   });
@@ -610,7 +667,9 @@ describe("media validation", () => {
         return { byteSize: 8, mimeType: "image/png", etag: "etag" };
       },
       async read() {
-        const bytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+        const bytes = new Uint8Array([
+          0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+        ]);
         return {
           body: new ReadableStream({
             start(controller) {
@@ -664,7 +723,9 @@ describe("media validation", () => {
         return { byteSize: 8, mimeType: "image/png", etag: null };
       },
       async read() {
-        const bytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+        const bytes = new Uint8Array([
+          0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+        ]);
         return {
           body: new ReadableStream({
             start(controller) {
@@ -752,14 +813,19 @@ describe("media validation", () => {
 
   it("supports unarchiving, updating metadata, and permanently deleting media", async () => {
     const repository = new InMemoryMediaRepository();
-    const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    const png = new Uint8Array([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]);
     let deletedKey: string | null = null;
     const service = new MediaService(repository, {
       async createUpload() {
         return { uploadUrl: "https://storage.invalid", expiresAt: new Date() };
       },
       async createDownload() {
-        return { downloadUrl: "https://storage.invalid", expiresAt: new Date() };
+        return {
+          downloadUrl: "https://storage.invalid",
+          expiresAt: new Date(),
+        };
       },
       async inspect() {
         return { byteSize: 8, mimeType: "image/png", etag: "etag" };
@@ -798,7 +864,9 @@ describe("media validation", () => {
 
     // Archive and then Unarchive
     await service.archive(owner, initiated.asset.id);
-    expect((await repository.findMedia(initiated.asset.id))?.status).toBe("archived");
+    expect((await repository.findMedia(initiated.asset.id))?.status).toBe(
+      "archived",
+    );
 
     const unarchived = await service.unarchive(owner, initiated.asset.id);
     expect(unarchived.status).toBe("available");
@@ -813,22 +881,30 @@ describe("media validation", () => {
     expect(updated.normalizedFilename).toBe("new-sports-day.png");
 
     // Replace Media File
-    const replacement = await service.initiateMediaReplacement(owner, initiated.asset.id, {
-      filename: "replacement.png",
-      declaredMimeType: "image/png",
-      byteSize: 8,
-      bytes: png,
-    });
+    const replacement = await service.initiateMediaReplacement(
+      owner,
+      initiated.asset.id,
+      {
+        filename: "replacement.png",
+        declaredMimeType: "image/png",
+        byteSize: 8,
+        bytes: png,
+      },
+    );
     expect(replacement.uploadUrl).toBeDefined();
 
-    const finalizedReplacement = await service.finalizeMediaReplacement(owner, initiated.asset.id, {
-      newStorageKey: replacement.newStorageKey,
-      originalFilename: "replacement.png",
-      normalizedFilename: "replacement.png",
-      declaredMimeType: "image/png",
-      detectedMimeType: "image/png",
-      byteSize: 8,
-    });
+    const finalizedReplacement = await service.finalizeMediaReplacement(
+      owner,
+      initiated.asset.id,
+      {
+        newStorageKey: replacement.newStorageKey,
+        originalFilename: "replacement.png",
+        normalizedFilename: "replacement.png",
+        declaredMimeType: "image/png",
+        detectedMimeType: "image/png",
+        byteSize: 8,
+      },
+    );
     expect(finalizedReplacement.originalFilename).toBe("replacement.png");
     expect(finalizedReplacement.status).toBe("available");
 

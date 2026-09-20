@@ -18,7 +18,7 @@ import {
   type CmsPermission,
   type CmsDashboardData,
 } from "../../../cms-functions";
-import { DraftEditor } from "../../../content-editor";
+import { DraftEditor, DraftReview } from "../../../content-editor";
 import { GalleryMediaEditor } from "../../../gallery-media-editor";
 
 type ContentType = "page" | "article" | "event" | "announcement" | "gallery";
@@ -156,21 +156,21 @@ export function ContentIndexView({
     : "Content Repository & Drafts";
 
   return (
-    <div className="p-4 md:p-6 space-y-6 max-w-[1600px] mx-auto">
+    <div className="space-y-6 mx-auto p-4 md:p-6 max-w-[1600px]">
       {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
+      <header className="flex sm:flex-row flex-col justify-between sm:items-center gap-4 pb-4 border-border border-b">
         <div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-wider mb-1">
+          <div className="flex items-center gap-2 mb-1 text-muted-foreground text-xs uppercase tracking-wider">
             <span>Content CRUD</span>
             <span>/</span>
-            <span className="text-foreground font-semibold">
+            <span className="font-semibold text-foreground">
               {filterType ? labels[filterType] : "Draft Repository"}
             </span>
           </div>
-          <h1 className="text-2xl font-serif font-bold text-foreground">
+          <h1 className="font-serif font-bold text-foreground text-2xl">
             {titleHeader}
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Create, edit, and manage draft content items. All edits here are
             saved as draft revisions.
           </p>
@@ -179,7 +179,7 @@ export function ContentIndexView({
         {types.length > 0 && (
           <button
             onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-md text-xs font-semibold text-white bg-[#42245f] hover:bg-[#542f7f] transition-colors shadow-sm"
+            className="inline-flex justify-center items-center gap-1.5 bg-[#42245f] hover:bg-[#542f7f] shadow-sm px-4 py-2 rounded-md font-semibold text-white text-xs transition-colors"
           >
             <IconPlus className="size-4" />
             <span>New Draft {filterType ? labels[filterType] : ""}</span>
@@ -188,9 +188,9 @@ export function ContentIndexView({
       </header>
 
       {/* Draft Mode Notice */}
-      <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#42245f]/5 border border-[#42245f]/20 text-[#42245f] text-xs">
+      <div className="flex justify-between items-center bg-[#42245f]/5 p-3.5 border border-[#42245f]/20 rounded-xl text-[#42245f] text-xs">
         <div className="flex items-center gap-2">
-          <span className="font-bold px-2 py-0.5 rounded bg-[#42245f] text-white text-[10px] uppercase tracking-wider">
+          <span className="bg-[#42245f] px-2 py-0.5 rounded font-bold text-[10px] text-white uppercase tracking-wider">
             Draft Mode
           </span>
           <span>
@@ -202,33 +202,33 @@ export function ContentIndexView({
         </div>
         <a
           href="/dashboard/editorial"
-          className="text-xs font-semibold text-[#42245f] hover:underline whitespace-nowrap ml-2"
+          className="ml-2 font-semibold text-[#42245f] text-xs hover:underline whitespace-nowrap"
         >
           Go to Editorial Desk →
         </a>
       </div>
 
       {feedback && (
-        <div className="p-3 rounded-lg bg-[#2f7d3b]/10 border border-[#2f7d3b]/20 text-[#2f7d3b] text-xs font-medium">
+        <div className="bg-[#2f7d3b]/10 p-3 border border-[#2f7d3b]/20 rounded-lg font-medium text-[#2f7d3b] text-xs">
           {feedback}
         </div>
       )}
 
       {/* Filter & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 rounded-xl border border-border bg-card shadow-sm">
+      <div className="flex sm:flex-row flex-col justify-between items-center gap-3 bg-card shadow-sm p-3 border border-border rounded-xl">
         <div className="relative w-full sm:w-80">
-          <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <IconSearch className="top-1/2 left-3 absolute size-4 text-muted-foreground -translate-y-1/2" />
           <input
             type="text"
             placeholder="Filter drafts by title or slug..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-[#9a78c2]"
+            className="bg-background py-1.5 pr-3 pl-9 border border-input rounded-md focus:outline-none focus:ring-[#9a78c2] focus:ring-1 w-full text-xs"
           />
         </div>
 
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <span className="text-xs text-muted-foreground font-medium">
+          <span className="font-medium text-muted-foreground text-xs">
             State:
           </span>
           {["all", "drafts", "submitted", "in_review", "published"].map(
@@ -252,25 +252,25 @@ export function ContentIndexView({
       {/* Content List (CRUD Focused) */}
       <div className="space-y-4">
         {filteredItems.length === 0 ? (
-          <div className="p-12 text-center rounded-xl border border-dashed border-border bg-card">
-            <IconFolder className="size-8 text-muted-foreground mx-auto mb-2 opacity-50" />
-            <p className="text-sm font-semibold text-foreground">
+          <div className="bg-card p-12 border border-border border-dashed rounded-xl text-center">
+            <IconFolder className="opacity-50 mx-auto mb-2 size-8 text-muted-foreground" />
+            <p className="font-semibold text-foreground text-sm">
               No draft content items found
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="mt-1 text-muted-foreground text-xs">
               Create a new draft item using the button above to get started.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="gap-4 grid grid-cols-1">
             {filteredItems.map((item) => (
               <article
                 key={item.id}
-                className="p-5 rounded-xl border border-border bg-card shadow-sm space-y-4 hover:border-[#69439a]/30 transition-all"
+                className="space-y-4 bg-card shadow-sm p-5 border border-border hover:border-[#69439a]/30 rounded-xl transition-all"
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-3">
+                <div className="flex sm:flex-row flex-col justify-between sm:items-center gap-2 pb-3 border-border border-b">
                   <div className="flex items-center gap-3">
-                    <span className="p-2 rounded-lg bg-[#42245f]/10 text-[#42245f]">
+                    <span className="bg-[#42245f]/10 p-2 rounded-lg text-[#42245f]">
                       {item.type === "page" && <IconFile className="size-5" />}
                       {item.type === "article" && (
                         <IconArticle className="size-5" />
@@ -286,17 +286,17 @@ export function ContentIndexView({
                       )}
                     </span>
                     <div>
-                      <h3 className="text-base font-bold font-serif text-foreground">
+                      <h3 className="font-serif font-bold text-foreground text-base">
                         {item.title}
                       </h3>
-                      <p className="text-xs text-muted-foreground font-mono">
+                      <p className="font-mono text-muted-foreground text-xs">
                         /{item.slug}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-secondary text-secondary-foreground border">
+                    <span className="bg-secondary px-2 py-0.5 border rounded font-semibold text-[11px] text-secondary-foreground uppercase tracking-wider">
                       {labels[item.type as ContentType]}
                     </span>
                     <span
@@ -317,21 +317,21 @@ export function ContentIndexView({
                 </div>
 
                 {item.summary && (
-                  <p className="text-xs text-muted-foreground line-clamp-2">
+                  <p className="text-muted-foreground text-xs line-clamp-2">
                     {item.summary}
                   </p>
                 )}
 
                 {/* Draft Editing & Gallery Composition */}
                 <details
-                  className="pt-2 border-t border-border group"
+                  className="group pt-2 border-border border-t"
                   open={["draft", "rejected"].includes(item.state)}
                 >
-                  <summary className="text-xs font-semibold text-[#42245f] cursor-pointer hover:underline py-1">
-                    Edit Draft & Media Details
+                  <summary className="py-1 font-semibold text-[#42245f] text-xs hover:underline cursor-pointer">
+                    Preview Draft & Media Details
                   </summary>
-                  <div className="mt-3 space-y-4 p-4 rounded-lg bg-secondary/30 border border-border">
-                    <DraftEditor
+                  <div className="space-y-4 bg-secondary/30 mt-3 p-4 border border-border rounded-lg">
+                    <DraftReview
                       content={item}
                       pending={pending}
                       onSave={(e) => handleUpdate(e, item.id)}
@@ -352,14 +352,14 @@ export function ContentIndexView({
                 </details>
 
                 {/* Revisions & Workflow History */}
-                <details className="text-xs text-muted-foreground pt-1">
-                  <summary className="cursor-pointer hover:underline font-medium">
+                <details className="pt-1 text-muted-foreground text-xs">
+                  <summary className="font-medium hover:underline cursor-pointer">
                     View Revisions ({item.revisions.length}) & Workflow History
                     ({item.workflow.length})
                   </summary>
-                  <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4 p-3 rounded bg-secondary/20 border border-border">
+                  <div className="gap-4 grid grid-cols-1 md:grid-cols-2 bg-secondary/20 mt-2 p-3 border border-border rounded">
                     <div>
-                      <strong className="block text-foreground font-semibold mb-1">
+                      <strong className="block mb-1 font-semibold text-foreground">
                         Revisions
                       </strong>
                       <ul className="space-y-1 text-[11px]">
@@ -372,7 +372,7 @@ export function ContentIndexView({
                       </ul>
                     </div>
                     <div>
-                      <strong className="block text-foreground font-semibold mb-1">
+                      <strong className="block mb-1 font-semibold text-foreground">
                         Workflow Events
                       </strong>
                       <ul className="space-y-1 text-[11px]">
@@ -395,22 +395,22 @@ export function ContentIndexView({
 
       {/* Create Draft Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <h2 className="text-lg font-serif font-bold text-foreground">
+        <div className="z-50 fixed inset-0 flex justify-center items-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="space-y-4 bg-card shadow-xl p-6 border border-border rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center pb-3 border-border border-b">
+              <h2 className="font-serif font-bold text-foreground text-lg">
                 Create {filterType ? labels[filterType] : "Content"} Draft
               </h2>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="text-muted-foreground hover:text-foreground text-sm font-bold"
+                className="font-bold text-muted-foreground hover:text-foreground text-sm"
               >
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleCreate} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="gap-3 grid grid-cols-1 sm:grid-cols-2">
                 <label className="block space-y-1">
                   <span className="font-semibold text-foreground">
                     Content Type
@@ -422,7 +422,7 @@ export function ContentIndexView({
                     onChange={(e) =>
                       setSelectedType(e.target.value as ContentType)
                     }
-                    className="w-full p-2 border rounded-md bg-background"
+                    className="bg-background p-2 border rounded-md w-full"
                   >
                     {types.map((type) => (
                       <option key={type} value={type}>
@@ -439,7 +439,7 @@ export function ContentIndexView({
                   <select
                     name="club"
                     defaultValue=""
-                    className="w-full p-2 border rounded-md bg-background"
+                    className="bg-background p-2 border rounded-md w-full"
                   >
                     <option value="">
                       {dashboard.clubs.length
@@ -455,14 +455,14 @@ export function ContentIndexView({
                 </label>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="gap-3 grid grid-cols-1 sm:grid-cols-2">
                 <label className="block space-y-1">
                   <span className="font-semibold text-foreground">Title</span>
                   <input
                     name="title"
                     required
                     maxLength={240}
-                    className="w-full p-2 border rounded-md bg-background"
+                    className="bg-background p-2 border rounded-md w-full"
                   />
                 </label>
 
@@ -475,7 +475,7 @@ export function ContentIndexView({
                     pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
                     required
                     placeholder="e.g. annual-sports-day"
-                    className="w-full p-2 border rounded-md bg-background"
+                    className="bg-background p-2 border rounded-md w-full"
                   />
                 </label>
               </div>
@@ -486,7 +486,7 @@ export function ContentIndexView({
                   name="summary"
                   maxLength={600}
                   rows={2}
-                  className="w-full p-2 border rounded-md bg-background"
+                  className="bg-background p-2 border rounded-md w-full"
                 />
               </label>
 
@@ -497,23 +497,23 @@ export function ContentIndexView({
                 <textarea
                   name="body"
                   rows={6}
-                  className="w-full p-2 border rounded-md bg-background"
+                  className="bg-background p-2 border rounded-md w-full"
                 />
               </label>
 
               {selectedType === "event" && (
-                <fieldset className="p-3 rounded border border-border space-y-3 bg-secondary/20">
-                  <legend className="font-semibold text-foreground px-1">
+                <fieldset className="space-y-3 bg-secondary/20 p-3 border border-border rounded">
+                  <legend className="px-1 font-semibold text-foreground">
                     Event Details
                   </legend>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="gap-3 grid grid-cols-1 sm:grid-cols-2">
                     <label className="block space-y-1">
                       <span>Starts</span>
                       <input
                         name="eventStartAt"
                         type="datetime-local"
                         required
-                        className="w-full p-2 border rounded bg-background"
+                        className="bg-background p-2 border rounded w-full"
                       />
                     </label>
                     <label className="block space-y-1">
@@ -521,41 +521,41 @@ export function ContentIndexView({
                       <input
                         name="eventEndAt"
                         type="datetime-local"
-                        className="w-full p-2 border rounded bg-background"
+                        className="bg-background p-2 border rounded w-full"
                       />
                     </label>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="gap-3 grid grid-cols-1 sm:grid-cols-2">
                     <label className="block space-y-1">
                       <span>Location</span>
                       <input
                         name="eventLocation"
-                        className="w-full p-2 border rounded bg-background"
+                        className="bg-background p-2 border rounded w-full"
                       />
                     </label>
                     <label className="block space-y-1">
                       <span>Organiser</span>
                       <input
                         name="eventOrganiser"
-                        className="w-full p-2 border rounded bg-background"
+                        className="bg-background p-2 border rounded w-full"
                       />
                     </label>
                   </div>
                 </fieldset>
               )}
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-border">
+              <div className="flex justify-end gap-2 pt-2 border-border border-t">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 rounded-md border border-border hover:bg-accent text-xs font-medium"
+                  className="hover:bg-accent px-4 py-2 border border-border rounded-md font-medium text-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={pending}
-                  className="px-4 py-2 rounded-md bg-[#42245f] hover:bg-[#542f7f] text-white text-xs font-semibold"
+                  className="bg-[#42245f] hover:bg-[#542f7f] px-4 py-2 rounded-md font-semibold text-white text-xs"
                 >
                   {pending ? "Creating..." : "Save Draft"}
                 </button>

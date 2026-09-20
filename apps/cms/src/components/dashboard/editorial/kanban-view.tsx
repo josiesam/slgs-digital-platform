@@ -24,6 +24,7 @@ export function EditorialKanbanView({
   readonly dashboard: CmsDashboardData;
   readonly activeColumn?: "drafts" | "review" | "approval" | "published";
 }) {
+  console.log("dashboard: ", dashboard);
   const router = useRouter();
   const createContentFn = useServerFn(createCmsContent);
 
@@ -108,21 +109,21 @@ export function EditorialKanbanView({
   );
 
   return (
-    <div className="p-4 md:p-6 space-y-6 max-w-[1800px] mx-auto">
+    <div className="space-y-6 mx-auto p-4 md:p-6 max-w-[1800px]">
       {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
+      <header className="flex sm:flex-row flex-col justify-between sm:items-center gap-4 pb-4 border-border border-b">
         <div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-wider mb-1">
+          <div className="flex items-center gap-2 mb-1 text-muted-foreground text-xs uppercase tracking-wider">
             <span>Editorial Desk</span>
             <span>/</span>
-            <span className="text-foreground font-semibold">
+            <span className="font-semibold text-foreground">
               Workflow Kanban Board
             </span>
           </div>
-          <h1 className="text-2xl font-serif font-bold text-foreground">
+          <h1 className="font-serif font-bold text-foreground text-2xl">
             Editorial Kanban Desk
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Manage peer reviews, editorial approvals, and public site
             publication boundaries with strict audit trails.
           </p>
@@ -131,37 +132,37 @@ export function EditorialKanbanView({
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center justify-center rounded-md bg-[#42245f] px-3.5 py-1.5 text-xs font-semibold text-white shadow hover:bg-[#341b4c] transition-colors"
+            className="inline-flex justify-center items-center bg-[#42245f] hover:bg-[#341b4c] shadow px-3.5 py-1.5 rounded-md font-semibold text-white text-xs transition-colors"
           >
             + Create New Content
           </button>
-          <span className="px-2.5 py-1 rounded bg-[#42245f]/10 text-[#42245f] border border-[#42245f]/20 text-xs font-semibold">
+          <span className="bg-[#42245f]/10 px-2.5 py-1 border border-[#42245f]/20 rounded font-semibold text-[#42245f] text-xs">
             Single Base Snapshot Model
           </span>
         </div>
       </header>
 
       {feedback && (
-        <div className="p-3 rounded-lg bg-[#2f7d3b]/10 border border-[#2f7d3b]/20 text-[#2f7d3b] text-xs font-medium">
+        <div className="bg-[#2f7d3b]/10 p-3 border border-[#2f7d3b]/20 rounded-lg font-medium text-[#2f7d3b] text-xs">
           {feedback}
         </div>
       )}
 
       {/* Create Content Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="z-50 fixed inset-0 flex justify-center items-center bg-black/50 p-4">
           <form
             onSubmit={handleCreateSubmit}
-            className="w-full max-w-lg rounded-xl border border-border bg-card p-6 shadow-xl space-y-4"
+            className="space-y-4 bg-card shadow-xl p-6 border border-border rounded-xl w-full max-w-lg"
           >
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <h2 className="text-lg font-bold text-foreground">
+            <div className="flex justify-between items-center pb-3 border-border border-b">
+              <h2 className="font-bold text-foreground text-lg">
                 Create New Content & Initial Snapshot
               </h2>
               <button
                 type="button"
                 onClick={() => setShowCreateModal(false)}
-                className="text-muted-foreground hover:text-foreground text-sm font-semibold"
+                className="font-semibold text-muted-foreground hover:text-foreground text-sm"
               >
                 ✕
               </button>
@@ -169,13 +170,13 @@ export function EditorialKanbanView({
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-medium text-foreground block mb-1">
+                <label className="block mb-1 font-medium text-foreground text-xs">
                   Content Type
                 </label>
                 <select
                   value={newType}
                   onChange={(e) => setNewType(e.target.value as any)}
-                  className="w-full rounded-md border border-input bg-background p-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#9a78c2]"
+                  className="bg-background p-2 border border-input rounded-md focus:outline-none focus:ring-[#9a78c2] focus:ring-1 w-full text-xs"
                 >
                   <option value="article">Article (News)</option>
                   <option value="event">Event</option>
@@ -186,7 +187,7 @@ export function EditorialKanbanView({
               </div>
 
               <div>
-                <label className="text-xs font-medium text-foreground block mb-1">
+                <label className="block mb-1 font-medium text-foreground text-xs">
                   Title
                 </label>
                 <input
@@ -205,12 +206,12 @@ export function EditorialKanbanView({
                   }}
                   required
                   placeholder="Enter content title..."
-                  className="w-full rounded-md border border-input bg-background p-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#9a78c2]"
+                  className="bg-background p-2 border border-input rounded-md focus:outline-none focus:ring-[#9a78c2] focus:ring-1 w-full text-xs"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-foreground block mb-1">
+                <label className="block mb-1 font-medium text-foreground text-xs">
                   URL Slug
                 </label>
                 <input
@@ -220,19 +221,19 @@ export function EditorialKanbanView({
                   required
                   pattern="^[a-z0-9]+(?:-[a-z0-9]+)*$"
                   placeholder="e.g. annual-sports-day"
-                  className="w-full rounded-md border border-input bg-background p-2 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-[#9a78c2]"
+                  className="bg-background p-2 border border-input rounded-md focus:outline-none focus:ring-[#9a78c2] focus:ring-1 w-full font-mono text-xs"
                 />
               </div>
 
               {dashboard.clubs.length > 0 && (
                 <div>
-                  <label className="text-xs font-medium text-foreground block mb-1">
+                  <label className="block mb-1 font-medium text-foreground text-xs">
                     Owning Club / Organisation
                   </label>
                   <select
                     value={newClubId}
                     onChange={(e) => setNewClubId(e.target.value)}
-                    className="w-full rounded-md border border-input bg-background p-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#9a78c2]"
+                    className="bg-background p-2 border border-input rounded-md focus:outline-none focus:ring-[#9a78c2] focus:ring-1 w-full text-xs"
                   >
                     {dashboard.clubs.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -244,7 +245,7 @@ export function EditorialKanbanView({
               )}
 
               <div>
-                <label className="text-xs font-medium text-foreground block mb-1">
+                <label className="block mb-1 font-medium text-foreground text-xs">
                   Summary (Optional)
                 </label>
                 <textarea
@@ -253,12 +254,12 @@ export function EditorialKanbanView({
                   maxLength={600}
                   rows={2}
                   placeholder="Short introductory summary..."
-                  className="w-full rounded-md border border-input bg-background p-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#9a78c2]"
+                  className="bg-background p-2 border border-input rounded-md focus:outline-none focus:ring-[#9a78c2] focus:ring-1 w-full text-xs"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-foreground block mb-1">
+                <label className="block mb-1 font-medium text-foreground text-xs">
                   Body Content
                 </label>
                 <textarea
@@ -266,23 +267,23 @@ export function EditorialKanbanView({
                   onChange={(e) => setNewBody(e.target.value)}
                   rows={5}
                   placeholder="Write draft content body..."
-                  className="w-full rounded-md border border-input bg-background p-2 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-[#9a78c2]"
+                  className="bg-background p-2 border border-input rounded-md focus:outline-none focus:ring-[#9a78c2] focus:ring-1 w-full font-mono text-xs"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-border">
+            <div className="flex justify-end gap-2 pt-2 border-border border-t">
               <button
                 type="button"
                 onClick={() => setShowCreateModal(false)}
-                className="rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent"
+                className="bg-background hover:bg-accent px-3 py-1.5 border border-input rounded-md font-medium text-xs"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={pending}
-                className="rounded-md bg-[#42245f] px-3.5 py-1.5 text-xs font-semibold text-white shadow hover:bg-[#341b4c] disabled:opacity-50"
+                className="bg-[#42245f] hover:bg-[#341b4c] disabled:opacity-50 shadow px-3.5 py-1.5 rounded-md font-semibold text-white text-xs"
               >
                 {pending ? "Creating..." : "Create Content & Snapshot 1.0"}
               </button>
@@ -292,20 +293,20 @@ export function EditorialKanbanView({
       )}
 
       {/* Kanban Filters */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 rounded-xl border border-border bg-card shadow-sm">
+      <div className="flex sm:flex-row flex-col justify-between items-center gap-3 bg-card shadow-sm p-3 border border-border rounded-xl">
         <div className="relative w-full sm:w-80">
-          <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <IconSearch className="top-1/2 left-3 absolute size-4 text-muted-foreground -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search items in workflow..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-[#9a78c2]"
+            className="bg-background py-1.5 pr-3 pl-9 border border-input rounded-md focus:outline-none focus:ring-[#9a78c2] focus:ring-1 w-full text-xs"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <span className="text-xs text-muted-foreground font-medium">
+          <span className="font-medium text-muted-foreground text-xs">
             Content Type:
           </span>
           {["all", "page", "article", "event", "announcement", "gallery"].map(
@@ -327,7 +328,7 @@ export function EditorialKanbanView({
       </div>
 
       {/* Kanban Board Grid (4 Columns) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-start">
+      <div className="items-start gap-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
         {/* Column 1: Drafts & Revisions */}
         <div
           className={`space-y-4 p-4 rounded-xl border bg-card/60 transition-all ${
@@ -336,21 +337,21 @@ export function EditorialKanbanView({
               : "border-border"
           }`}
         >
-          <div className="flex items-center justify-between pb-2 border-b border-border">
+          <div className="flex justify-between items-center pb-2 border-border border-b">
             <div className="flex items-center gap-2">
-              <span className="size-2.5 rounded-full bg-[#8564ae]" />
-              <h2 className="text-xs font-bold uppercase tracking-wider text-foreground">
+              <span className="bg-[#8564ae] rounded-full size-2.5" />
+              <h2 className="font-bold text-foreground text-xs uppercase tracking-wider">
                 Drafts & Revisions
               </h2>
             </div>
-            <span className="px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground text-xs font-mono font-semibold">
+            <span className="bg-secondary px-2 py-0.5 rounded-full font-mono font-semibold text-secondary-foreground text-xs">
               {colDrafts.length}
             </span>
           </div>
 
           <div className="space-y-3">
             {colDrafts.length === 0 ? (
-              <div className="p-6 text-center text-xs text-muted-foreground border border-dashed rounded-lg">
+              <div className="p-6 border border-dashed rounded-lg text-muted-foreground text-xs text-center">
                 No items in draft state
               </div>
             ) : (
@@ -367,21 +368,21 @@ export function EditorialKanbanView({
               : "border-border"
           }`}
         >
-          <div className="flex items-center justify-between pb-2 border-b border-border">
+          <div className="flex justify-between items-center pb-2 border-border border-b">
             <div className="flex items-center gap-2">
-              <span className="size-2.5 rounded-full bg-[#d39a22]" />
-              <h2 className="text-xs font-bold uppercase tracking-wider text-foreground">
+              <span className="bg-[#d39a22] rounded-full size-2.5" />
+              <h2 className="font-bold text-foreground text-xs uppercase tracking-wider">
                 Peer Review Queue
               </h2>
             </div>
-            <span className="px-2 py-0.5 rounded-full bg-[#d39a22]/10 text-[#d39a22] text-xs font-mono font-semibold">
+            <span className="bg-[#d39a22]/10 px-2 py-0.5 rounded-full font-mono font-semibold text-[#d39a22] text-xs">
               {colReview.length}
             </span>
           </div>
 
           <div className="space-y-3">
             {colReview.length === 0 ? (
-              <div className="p-6 text-center text-xs text-muted-foreground border border-dashed rounded-lg">
+              <div className="p-6 border border-dashed rounded-lg text-muted-foreground text-xs text-center">
                 No items awaiting review
               </div>
             ) : (
@@ -398,21 +399,21 @@ export function EditorialKanbanView({
               : "border-border"
           }`}
         >
-          <div className="flex items-center justify-between pb-2 border-b border-border">
+          <div className="flex justify-between items-center pb-2 border-border border-b">
             <div className="flex items-center gap-2">
-              <span className="size-2.5 rounded-full bg-[#79b6d6]" />
-              <h2 className="text-xs font-bold uppercase tracking-wider text-foreground">
+              <span className="bg-[#79b6d6] rounded-full size-2.5" />
+              <h2 className="font-bold text-foreground text-xs uppercase tracking-wider">
                 Final Approval Queue
               </h2>
             </div>
-            <span className="px-2 py-0.5 rounded-full bg-[#79b6d6]/10 text-[#2f6287] text-xs font-mono font-semibold">
+            <span className="bg-[#79b6d6]/10 px-2 py-0.5 rounded-full font-mono font-semibold text-[#2f6287] text-xs">
               {colApproval.length}
             </span>
           </div>
 
           <div className="space-y-3">
             {colApproval.length === 0 ? (
-              <div className="p-6 text-center text-xs text-muted-foreground border border-dashed rounded-lg">
+              <div className="p-6 border border-dashed rounded-lg text-muted-foreground text-xs text-center">
                 No items awaiting final approval
               </div>
             ) : (
@@ -431,21 +432,21 @@ export function EditorialKanbanView({
               : "border-border"
           }`}
         >
-          <div className="flex items-center justify-between pb-2 border-b border-border">
+          <div className="flex justify-between items-center pb-2 border-border border-b">
             <div className="flex items-center gap-2">
-              <span className="size-2.5 rounded-full bg-[#2f7d3b]" />
-              <h2 className="text-xs font-bold uppercase tracking-wider text-foreground">
+              <span className="bg-[#2f7d3b] rounded-full size-2.5" />
+              <h2 className="font-bold text-foreground text-xs uppercase tracking-wider">
                 Published / Live
               </h2>
             </div>
-            <span className="px-2 py-0.5 rounded-full bg-[#2f7d3b]/10 text-[#2f7d3b] text-xs font-mono font-semibold">
+            <span className="bg-[#2f7d3b]/10 px-2 py-0.5 rounded-full font-mono font-semibold text-[#2f7d3b] text-xs">
               {colPublished.length}
             </span>
           </div>
 
           <div className="space-y-3">
             {colPublished.length === 0 ? (
-              <div className="p-6 text-center text-xs text-muted-foreground border border-dashed rounded-lg">
+              <div className="p-6 border border-dashed rounded-lg text-muted-foreground text-xs text-center">
                 No items published
               </div>
             ) : (
@@ -473,10 +474,10 @@ function KanbanCard({
     item.currentBaseSnapshotId ?? latestRev?.baseSnapshotId;
 
   return (
-    <article className="p-4 rounded-lg border border-border bg-card shadow-sm space-y-3 hover:shadow-md hover:border-[#42245f]/30 transition-all text-xs">
-      <div className="flex items-start justify-between gap-2">
+    <article className="space-y-3 bg-card shadow-sm hover:shadow-md p-4 border border-border hover:border-[#42245f]/30 rounded-lg text-xs transition-all">
+      <div className="flex justify-between items-start gap-2">
         <div className="flex items-center gap-2">
-          <span className="p-1 rounded bg-[#42245f]/10 text-[#42245f]">
+          <span className="bg-[#42245f]/10 p-1 rounded text-[#42245f]">
             {item.type === "page" && <IconFile className="size-3.5" />}
             {item.type === "article" && <IconArticle className="size-3.5" />}
             {item.type === "event" && (
@@ -485,7 +486,7 @@ function KanbanCard({
             {item.type === "announcement" && <IconBell className="size-3.5" />}
             {item.type === "gallery" && <IconPhoto className="size-3.5" />}
           </span>
-          <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground border">
+          <span className="bg-secondary px-1.5 py-0.5 border rounded font-semibold text-[10px] text-secondary-foreground uppercase tracking-wider">
             {item.type}
           </span>
         </div>
@@ -507,31 +508,31 @@ function KanbanCard({
       </div>
 
       <div>
-        <h3 className="font-serif font-bold text-sm text-foreground line-clamp-1">
+        <h3 className="font-serif font-bold text-foreground text-sm line-clamp-1">
           {item.title}
         </h3>
-        <p className="text-[11px] font-mono text-muted-foreground mt-0.5">
+        <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
           {item.canonicalPath}
         </p>
       </div>
 
       {item.summary && (
-        <p className="text-muted-foreground text-[11px] line-clamp-2">
+        <p className="text-[11px] text-muted-foreground line-clamp-2">
           {item.summary}
         </p>
       )}
 
       {/* Revision & Snapshot Metadata */}
-      <div className="rounded-md bg-muted/40 p-2 text-[10px] space-y-1 font-mono border border-border/40">
-        <div className="flex items-center justify-between">
+      <div className="space-y-1 bg-muted/40 p-2 border border-border/40 rounded-md font-mono text-[10px]">
+        <div className="flex justify-between items-center">
           <span className="text-muted-foreground">Rev:</span>
           <span className="font-bold text-foreground">{revisionLabel}</span>
         </div>
         {snapshotId && (
-          <div className="flex items-center justify-between">
+          <div className="flex justify-between items-center">
             <span className="text-muted-foreground">Snapshot:</span>
             <span
-              className="truncate max-w-30 text-foreground"
+              className="max-w-30 text-foreground truncate"
               title={snapshotId}
             >
               {snapshotId}
@@ -539,10 +540,10 @@ function KanbanCard({
           </div>
         )}
         {baseSnapshotId && (
-          <div className="flex items-center justify-between">
+          <div className="flex justify-between items-center">
             <span className="text-muted-foreground">Base Snap:</span>
             <span
-              className="truncate max-w-[120px] text-foreground"
+              className="max-w-[120px] text-foreground truncate"
               title={baseSnapshotId}
             >
               {baseSnapshotId}
@@ -550,7 +551,7 @@ function KanbanCard({
           </div>
         )}
         {item.verifiedVersion && (
-          <div className="flex items-center justify-between text-emerald-600 font-semibold pt-0.5 border-t border-border/30">
+          <div className="flex justify-between items-center pt-0.5 border-border/30 border-t font-semibold text-emerald-600">
             <span>Verified:</span>
             <span>Version {item.verifiedVersion}</span>
           </div>
@@ -558,10 +559,10 @@ function KanbanCard({
       </div>
 
       {/* Navigation to Canonical Details Route */}
-      <div className="pt-2 border-t border-border">
+      <div className="pt-2 border-border border-t">
         <a
           href={`/dashboard/editorial/${item.state}/${item.id}`}
-          className="inline-flex w-full items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+          className="inline-flex justify-center items-center bg-background hover:bg-accent shadow-sm px-3 py-1.5 border border-input rounded-md w-full font-medium text-xs transition-colors hover:text-accent-foreground"
         >
           View Revision Details & Actions →
         </a>

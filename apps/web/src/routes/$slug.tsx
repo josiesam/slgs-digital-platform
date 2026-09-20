@@ -5,9 +5,26 @@ import { absolutePublicUrl } from "../public-origin";
 
 export const Route = createFileRoute("/$slug")({
   loader: async ({ params }) => {
-    const item = await findPublicContent({
+    let item = await findPublicContent({
       data: { kind: "page", slug: params.slug },
     });
+    if (!item) {
+      const fallbackKinds = [
+        "announcement",
+        "article",
+        "event",
+        "gallery",
+      ] as const;
+      for (const kind of fallbackKinds) {
+        const candidate = await findPublicContent({
+          data: { kind, slug: params.slug },
+        });
+        if (candidate) {
+          item = candidate;
+          break;
+        }
+      }
+    }
     if (!item) throw notFound();
     return item;
   },
