@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { FormEvent, useState } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import {
   IconDownload,
@@ -46,11 +46,17 @@ export function MediaLibraryPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>("all");
+  const [selectedStatusFilter, setSelectedStatusFilter] =
+    useState<string>("all");
 
-  const [previewMedia, setPreviewMedia] = useState<CmsMediaAssetItem | null>(null);
-  const [editingMedia, setEditingMedia] = useState<CmsMediaAssetItem | null>(null);
-  const [replacingMedia, setReplacingMedia] = useState<CmsMediaAssetItem | null>(null);
+  const [previewMedia, setPreviewMedia] = useState<CmsMediaAssetItem | null>(
+    null,
+  );
+  const [editingMedia, setEditingMedia] = useState<CmsMediaAssetItem | null>(
+    null,
+  );
+  const [replacingMedia, setReplacingMedia] =
+    useState<CmsMediaAssetItem | null>(null);
 
   const canCreateMedia =
     permissions.has("media:create:own") ||
@@ -95,7 +101,8 @@ export function MediaLibraryPage() {
       const initiated = await initiateMediaUpload({
         data: {
           filename: file.name,
-          declaredMimeType: file.type as "image/png" | "image/jpeg" | "image/webp",
+          declaredMimeType: file.type as
+            "image/png" | "image/jpeg" | "image/webp",
           byteSize: file.size,
           signatureBytes,
           altText: String(data.get("altText")),
@@ -132,7 +139,8 @@ export function MediaLibraryPage() {
         data: {
           id: replacingMedia.id,
           filename: file.name,
-          declaredMimeType: file.type as "image/png" | "image/jpeg" | "image/webp",
+          declaredMimeType: file.type as
+            "image/png" | "image/jpeg" | "image/webp",
           byteSize: file.size,
           signatureBytes,
         },
@@ -144,7 +152,8 @@ export function MediaLibraryPage() {
         body: file,
       });
 
-      if (!response.ok) throw new Error("Object storage replacement upload failed.");
+      if (!response.ok)
+        throw new Error("Object storage replacement upload failed.");
 
       await finalizeMediaReplacement({
         data: {
@@ -152,8 +161,10 @@ export function MediaLibraryPage() {
           newStorageKey: initiated.newStorageKey,
           originalFilename: initiated.originalFilename,
           normalizedFilename: initiated.normalizedFilename,
-          declaredMimeType: file.type as "image/png" | "image/jpeg" | "image/webp",
-          detectedMimeType: initiated.contentType as "image/png" | "image/jpeg" | "image/webp",
+          declaredMimeType: file.type as
+            "image/png" | "image/jpeg" | "image/webp",
+          detectedMimeType: initiated.contentType as
+            "image/png" | "image/jpeg" | "image/webp",
           byteSize: initiated.byteSize,
         },
       });
@@ -261,9 +272,13 @@ export function MediaLibraryPage() {
             <span>/</span>
             <span className="text-foreground font-semibold">Media Library</span>
           </div>
-          <h1 className="text-2xl font-serif font-bold text-foreground">Media Library</h1>
+          <h1 className="text-2xl font-serif font-bold text-foreground">
+            Media Library
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Server-mediated Cloudflare R2 storage assets with authenticated upload verification, file replacement, live previews, and workflow status management.
+            Server-mediated Cloudflare R2 storage assets with authenticated
+            upload verification, file replacement, live previews, and workflow
+            status management.
           </p>
         </div>
 
@@ -348,7 +363,9 @@ export function MediaLibraryPage() {
       {filteredMedia.length === 0 ? (
         <div className="p-12 text-center rounded-xl border border-dashed border-border bg-card">
           <IconPhoto className="size-8 text-muted-foreground mx-auto mb-2 opacity-50" />
-          <p className="text-sm font-semibold text-foreground">No media assets in scope</p>
+          <p className="text-sm font-semibold text-foreground">
+            No media assets in scope
+          </p>
           <p className="text-xs text-muted-foreground mt-1">
             No assets match the selected status filter ({selectedStatusFilter}).
           </p>
@@ -392,7 +409,8 @@ export function MediaLibraryPage() {
                       alt={asset.altText}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                       onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).style.display = "none";
+                        (e.currentTarget as HTMLImageElement).style.display =
+                          "none";
                       }}
                     />
                   ) : (
@@ -403,17 +421,24 @@ export function MediaLibraryPage() {
                   </div>
                 </div>
 
-                <h3 className="font-semibold text-sm text-foreground truncate" title={asset.filename}>
+                <h3
+                  className="font-semibold text-sm text-foreground truncate"
+                  title={asset.filename}
+                >
                   {asset.filename}
                 </h3>
-                <p className="text-xs text-muted-foreground line-clamp-2" title={asset.altText}>
+                <p
+                  className="text-xs text-muted-foreground line-clamp-2"
+                  title={asset.altText}
+                >
                   {asset.altText}
                 </p>
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                   <span>{Math.ceil(asset.byteSize / 1024)} KB</span>
                   {asset.owningClubId && (
                     <span className="truncate max-w-[120px] text-right">
-                      {dashboard.clubs.find((c) => c.id === asset.owningClubId)?.name ?? "Club"}
+                      {dashboard.clubs.find((c) => c.id === asset.owningClubId)
+                        ?.name ?? "Club"}
                     </span>
                   )}
                 </div>
@@ -468,8 +493,8 @@ export function MediaLibraryPage() {
                 </button>
 
                 {/* Archive / Restore Button */}
-                {canArchive && (
-                  asset.status === "archived" ? (
+                {canArchive &&
+                  (asset.status === "archived" ? (
                     <button
                       disabled={pending}
                       onClick={() => unarchiveMedia(asset.id)}
@@ -487,8 +512,7 @@ export function MediaLibraryPage() {
                     >
                       <IconArchive className="size-3.5" />
                     </button>
-                  )
-                )}
+                  ))}
 
                 {/* Hard Delete Button */}
                 {(canManage || asset.ownerUserId === dashboard.userId) && (
@@ -523,7 +547,8 @@ export function MediaLibraryPage() {
                   {previewMedia.filename}
                 </h2>
                 <span className="text-xs text-muted-foreground uppercase tracking-wider font-mono">
-                  {previewMedia.mimeType} • {Math.ceil(previewMedia.byteSize / 1024)} KB
+                  {previewMedia.mimeType} •{" "}
+                  {Math.ceil(previewMedia.byteSize / 1024)} KB
                 </span>
               </div>
               <button
@@ -551,8 +576,16 @@ export function MediaLibraryPage() {
 
             <div className="space-y-2 text-xs border-t border-border pt-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-muted-foreground">
-                <p><strong className="text-foreground">Alt Text:</strong> {previewMedia.altText}</p>
-                <p><strong className="text-foreground">Status:</strong> <span className="capitalize font-semibold">{previewMedia.status}</span></p>
+                <p>
+                  <strong className="text-foreground">Alt Text:</strong>{" "}
+                  {previewMedia.altText}
+                </p>
+                <p>
+                  <strong className="text-foreground">Status:</strong>{" "}
+                  <span className="capitalize font-semibold">
+                    {previewMedia.status}
+                  </span>
+                </p>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
@@ -582,7 +615,9 @@ export function MediaLibraryPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between border-b border-border pb-3">
-              <h2 className="text-lg font-serif font-bold text-foreground">Edit Media Details</h2>
+              <h2 className="text-lg font-serif font-bold text-foreground">
+                Edit Media Details
+              </h2>
               <button
                 onClick={() => setEditingMedia(null)}
                 className="text-muted-foreground hover:text-foreground text-sm font-bold"
@@ -593,7 +628,9 @@ export function MediaLibraryPage() {
 
             <form onSubmit={handleUpdateMetadata} className="space-y-4 text-xs">
               <label className="block space-y-1">
-                <span className="font-semibold text-foreground">File Name / Title</span>
+                <span className="font-semibold text-foreground">
+                  File Name / Title
+                </span>
                 <input
                   name="filename"
                   type="text"
@@ -606,7 +643,9 @@ export function MediaLibraryPage() {
               </label>
 
               <label className="block space-y-1">
-                <span className="font-semibold text-foreground">Alternative Text (Alt Text)</span>
+                <span className="font-semibold text-foreground">
+                  Alternative Text (Alt Text)
+                </span>
                 <input
                   name="altText"
                   maxLength={500}
@@ -619,7 +658,9 @@ export function MediaLibraryPage() {
 
               {dashboard.clubs.length > 0 && (
                 <label className="block space-y-1">
-                  <span className="font-semibold text-foreground">Club Scope (Optional)</span>
+                  <span className="font-semibold text-foreground">
+                    Club Scope (Optional)
+                  </span>
                   <select
                     name="club"
                     defaultValue={editingMedia.owningClubId ?? ""}
@@ -661,7 +702,9 @@ export function MediaLibraryPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between border-b border-border pb-3">
-              <h2 className="text-lg font-serif font-bold text-foreground">Replace Media File</h2>
+              <h2 className="text-lg font-serif font-bold text-foreground">
+                Replace Media File
+              </h2>
               <button
                 onClick={() => setReplacingMedia(null)}
                 className="text-muted-foreground hover:text-foreground text-sm font-bold"
@@ -671,13 +714,21 @@ export function MediaLibraryPage() {
             </div>
 
             <div className="text-xs text-muted-foreground space-y-1 bg-secondary/30 p-2.5 rounded-lg border border-border">
-              <p><strong className="text-foreground">Asset ID:</strong> {replacingMedia.id}</p>
-              <p><strong className="text-foreground">Current File:</strong> {replacingMedia.filename}</p>
+              <p>
+                <strong className="text-foreground">Asset ID:</strong>{" "}
+                {replacingMedia.id}
+              </p>
+              <p>
+                <strong className="text-foreground">Current File:</strong>{" "}
+                {replacingMedia.filename}
+              </p>
             </div>
 
             <form onSubmit={replaceMedia} className="space-y-4 text-xs">
               <label className="block space-y-1">
-                <span className="font-semibold text-foreground">Select Replacement Image File</span>
+                <span className="font-semibold text-foreground">
+                  Select Replacement Image File
+                </span>
                 <input
                   name="file"
                   type="file"
@@ -686,7 +737,8 @@ export function MediaLibraryPage() {
                   className="w-full p-2 border rounded-md bg-background text-foreground"
                 />
                 <span className="text-[10px] text-muted-foreground block">
-                  Allowed formats: PNG, JPEG, WebP. Max 10 MB. This will upload a new image to object storage and update the asset.
+                  Allowed formats: PNG, JPEG, WebP. Max 10 MB. This will upload
+                  a new image to object storage and update the asset.
                 </span>
               </label>
 
@@ -716,7 +768,9 @@ export function MediaLibraryPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between border-b border-border pb-3">
-              <h2 className="text-lg font-serif font-bold text-foreground">Upload Media Asset</h2>
+              <h2 className="text-lg font-serif font-bold text-foreground">
+                Upload Media Asset
+              </h2>
               <button
                 onClick={() => setShowUploadModal(false)}
                 className="text-muted-foreground hover:text-foreground text-sm font-bold"
@@ -727,7 +781,9 @@ export function MediaLibraryPage() {
 
             <form onSubmit={uploadMedia} className="space-y-4 text-xs">
               <label className="block space-y-1">
-                <span className="font-semibold text-foreground">Select Image File</span>
+                <span className="font-semibold text-foreground">
+                  Select Image File
+                </span>
                 <input
                   name="file"
                   type="file"
@@ -741,7 +797,9 @@ export function MediaLibraryPage() {
               </label>
 
               <label className="block space-y-1">
-                <span className="font-semibold text-foreground">Alternative Text (Alt Text)</span>
+                <span className="font-semibold text-foreground">
+                  Alternative Text (Alt Text)
+                </span>
                 <input
                   name="altText"
                   maxLength={500}
@@ -753,8 +811,13 @@ export function MediaLibraryPage() {
 
               {dashboard.clubs.length > 0 && (
                 <label className="block space-y-1">
-                  <span className="font-semibold text-foreground">Club Scope (Optional)</span>
-                  <select name="club" className="w-full p-2 border rounded-md bg-background text-foreground">
+                  <span className="font-semibold text-foreground">
+                    Club Scope (Optional)
+                  </span>
+                  <select
+                    name="club"
+                    className="w-full p-2 border rounded-md bg-background text-foreground"
+                  >
                     <option value="">No specific club / School wide</option>
                     {dashboard.clubs.map((c) => (
                       <option key={c.id} value={c.id}>

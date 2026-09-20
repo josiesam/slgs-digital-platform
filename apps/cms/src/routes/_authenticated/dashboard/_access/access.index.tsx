@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getCmsDashboard } from "../../../../cms-functions";
-import { AccessRolesView } from "./access.roles";
+import { AccessRolesView } from "../../../../components/dashboard/access/role-view";
 
 export const Route = createFileRoute(
   "/_authenticated/dashboard/_access/access/",
@@ -13,4 +13,3 @@ function AccessIndexPage() {
   const dashboard = Route.useLoaderData();
   return <AccessRolesView dashboard={dashboard} />;
 }
-

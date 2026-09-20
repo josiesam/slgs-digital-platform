@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getCmsDashboard } from "../../../../cms-functions";
-import { ContentIndexView } from "./content.index";
-
+import { ContentIndexView } from "../../../../components/dashboard/content/index-view";
 export const Route = createFileRoute(
   "/_authenticated/dashboard/_content/content/news",
 )({
@@ -13,4 +12,3 @@ function ContentNewsPage() {
   const dashboard = Route.useLoaderData();
   return <ContentIndexView dashboard={dashboard} filterType="article" />;
 }
-
