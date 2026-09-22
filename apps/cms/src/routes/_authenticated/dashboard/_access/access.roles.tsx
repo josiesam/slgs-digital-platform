@@ -19,7 +19,7 @@ export const Route = createFileRoute(
   component: AccessRolesPage,
 });
 
-export function AccessRolesPage() {
+function AccessRolesPage() {
   const dashboard = Route.useLoaderData();
   return <AccessRolesView dashboard={dashboard} />;
 }

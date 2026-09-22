@@ -17,5 +17,8 @@ export default defineConfig(({ mode }) => {
     envDir: workspaceRoot,
     plugins: [tanstackStart(), nitro(), tailwindcss(), react()],
     server: { port: 3002 },
+    ssr: {
+      noExternal: ["@platejs/math", "katex", "react-tweet"],
+    },
   };
 });

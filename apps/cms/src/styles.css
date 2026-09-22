@@ -3,6 +3,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/nunito-sans";
+@import "katex/dist/katex.min.css";
 
 @custom-variant dark (&:is(.dark *));
 @source "../../../packages/ui/src";

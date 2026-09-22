@@ -4,7 +4,9 @@
     "paths": {
       "@slgs/ui/*": ["./src/*"],
       "@/*": ["./src/*"]
-    }
+    },
+    "moduleResolution": "bundler",
+    "resolvePackageJsonImports": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"]
 }

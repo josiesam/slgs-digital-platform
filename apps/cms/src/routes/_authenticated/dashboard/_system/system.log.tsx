@@ -10,7 +10,7 @@ export const Route = createFileRoute(
   component: SystemAuditLogPage,
 });
 
-export function SystemAuditLogPage() {
+function SystemAuditLogPage() {
   const dashboard = Route.useLoaderData();
   return <SystemAuditLogView dashboard={dashboard} />;
 }

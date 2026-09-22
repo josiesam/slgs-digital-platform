@@ -10,6 +10,7 @@ import {
   IconBell,
   IconFolder,
 } from "@tabler/icons-react";
+import { PlateEditor } from "@slgs/ui";
 
 import {
   createCmsContent,
@@ -20,6 +21,7 @@ import {
 } from "../../../cms-functions";
 import { DraftEditor, DraftReview } from "../../../content-editor";
 import { GalleryMediaEditor } from "../../../gallery-media-editor";
+import { useNavigate } from "@tanstack/react-router";
 
 type ContentType = "page" | "article" | "event" | "announcement" | "gallery";
 const labels: Record<ContentType, string> = {
@@ -40,7 +42,10 @@ export function ContentIndexView({
   readonly filterState?: string;
 }) {
   const router = useRouter();
+  const navigate = useNavigate();
   const permissions = new Set<CmsPermission>(dashboard.permissions);
+
+  const [bodyValue, setBodyValue] = useState<string>("");
 
   const [feedback, setFeedback] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -494,10 +499,11 @@ export function ContentIndexView({
                 <span className="font-semibold text-foreground">
                   Body Content
                 </span>
-                <textarea
+                <PlateEditor
                   name="body"
-                  rows={6}
-                  className="bg-background p-2 border rounded-md w-full"
+                  value={bodyValue}
+                  onChange={setBodyValue}
+                  placeholder="Write the main body content of your page or article..."
                 />
               </label>
 

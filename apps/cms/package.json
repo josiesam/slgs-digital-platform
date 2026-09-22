@@ -49,5 +49,8 @@
     "tailwindcss": "^4.3.3",
     "vite": "catalog:",
     "vitest": "catalog:"
+  },
+  "overrides": {
+    "katex": "0.16.45"
   }
 }

@@ -10,7 +10,7 @@ export const Route = createFileRoute(
   component: PublicWebPage,
 });
 
-export function PublicWebPage() {
+function PublicWebPage() {
   const data = Route.useLoaderData();
   return <PublicWebView data={data} activeTab="overview" />;
 }

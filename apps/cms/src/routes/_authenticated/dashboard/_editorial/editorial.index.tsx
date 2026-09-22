@@ -11,7 +11,7 @@ export const Route = createFileRoute(
   component: EditorialIndexPage,
 });
 
-export function EditorialIndexPage() {
+function EditorialIndexPage() {
   const dashboard = Route.useLoaderData();
   return <EditorialKanbanView dashboard={dashboard} />;
 }

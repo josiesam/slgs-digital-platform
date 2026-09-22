@@ -10,7 +10,7 @@ export const Route = createFileRoute(
   component: ContentIndexPage,
 });
 
-export function ContentIndexPage() {
+function ContentIndexPage() {
   const dashboard = Route.useLoaderData();
   return <ContentIndexView dashboard={dashboard} />;
 }
