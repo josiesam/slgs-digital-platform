@@ -2,31 +2,122 @@
 
 import * as React from "react";
 
-import { normalizeStaticValue } from "platejs";
+import { normalizeStaticValue, type Value } from "platejs";
 import { Plate, usePlateEditor } from "platejs/react";
 
 import { EditorKit } from "./editor-kit";
 import { SettingsDialog } from "./settings-dialog";
 import { Editor, EditorContainer } from "../ui/editor";
+import { cn } from "../../utils/cn";
 
-export function PlateEditor() {
+export interface PlateEditorProps {
+  readonly value?: string | Value;
+  readonly onChange?: (value: string) => void;
+  readonly readOnly?: boolean;
+  readonly disabled?: boolean;
+  readonly placeholder?: string;
+  readonly className?: string;
+  readonly name?: string;
+  readonly showSettings?: boolean;
+}
+
+export function parseEditorValue(input?: string | Value): Value {
+  if (!input) {
+    return [{ children: [{ text: "" }], type: "p" }];
+  }
+  if (Array.isArray(input)) {
+    return input;
+  }
+  if (typeof input === "string") {
+    const trimmed = input.trim();
+    if (!trimmed) {
+      return [{ children: [{ text: "" }], type: "p" }];
+    }
+    if (
+      (trimmed.startsWith("[") && trimmed.endsWith("]")) ||
+      (trimmed.startsWith("{") && trimmed.endsWith("}"))
+    ) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed as Value;
+        }
+      } catch {
+        // Fall back to plain text paragraph
+      }
+    }
+    return [{ children: [{ text: input }], type: "p" }];
+  }
+  return [{ children: [{ text: "" }], type: "p" }];
+}
+
+export function PlateEditor({
+  value: initialValueProp,
+  onChange,
+  readOnly = false,
+  disabled = false,
+  placeholder = "Write content here...",
+  className,
+  name,
+  showSettings = false,
+}: PlateEditorProps) {
+  const initialValue = React.useMemo(() => {
+    if (initialValueProp === undefined) {
+      return defaultDemoValue;
+    }
+    return parseEditorValue(initialValueProp);
+  }, [initialValueProp]);
+
+  const [serializedValue, setSerializedValue] = React.useState<string>(() =>
+    typeof initialValueProp === "string"
+      ? initialValueProp
+      : JSON.stringify(initialValue),
+  );
+
   const editor = usePlateEditor({
     plugins: EditorKit,
-    value,
+    value: initialValue,
+    readOnly: readOnly || disabled,
   });
 
-  return (
-    <Plate editor={editor}>
-      <EditorContainer>
-        <Editor variant="demo" />
-      </EditorContainer>
+  const handleValueChange = React.useCallback(
+    ({ value: newValue }: { value: Value }) => {
+      const jsonString = JSON.stringify(newValue);
+      setSerializedValue(jsonString);
+      if (onChange) {
+        onChange(jsonString);
+      }
+    },
+    [onChange],
+  );
 
-      <SettingsDialog />
-    </Plate>
+  return (
+    <div
+      className={cn(
+        "relative w-full rounded-lg border border-border bg-background shadow-sm transition-colors",
+        readOnly && "border-none shadow-none bg-transparent",
+        className,
+      )}
+    >
+      <Plate editor={editor} onValueChange={handleValueChange}>
+        <EditorContainer variant={readOnly ? "default" : "demo"}>
+          <Editor
+            variant={readOnly ? "none" : "default"}
+            placeholder={placeholder}
+            disabled={disabled}
+            readOnly={readOnly}
+          />
+        </EditorContainer>
+
+        {showSettings && <SettingsDialog />}
+      </Plate>
+
+      {name && <input type="hidden" name={name} value={serializedValue} />}
+    </div>
   );
 }
 
-const value = normalizeStaticValue([
+const defaultDemoValue = normalizeStaticValue([
   {
     children: [{ text: "Welcome to the Plate Playground!" }],
     type: "h1",
