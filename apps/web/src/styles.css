@@ -435,11 +435,13 @@ body {
 .section-hero {
   max-width: 48rem;
   margin-bottom: 2.5rem;
+  padding-left: 1.25rem;
+  border-left: 4px solid var(--slgs-purple);
 }
 
 .section-hero h1,
 .section-hero h2 {
-  margin: 0 0 1rem;
+  margin: 0 0 0.75rem;
 
   color: var(--slgs-purple-dark);
 
@@ -462,8 +464,15 @@ body {
 .editorial-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
 
-  gap: 1.25rem;
+.editorial-grid--events {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.editorial-grid--announcements {
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .editorial-card {

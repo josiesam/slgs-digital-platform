@@ -99,6 +99,93 @@ function HomePage() {
           <p>No published announcements at this time.</p>
         )}
       </section>
+      <section className="home-section principal-welcome-section">
+        <div className="items-start gap-8 grid grid-cols-1 lg:grid-cols-12">
+          <div className="space-y-4 lg:col-span-8">
+            <SectionHeader
+              eyebrow="Leadership & Vision"
+              title="Welcome to Sierra Leone Grammar School"
+              introduction="A message from the Principal of the Sierra Leone Grammar School."
+              level={2}
+            />
+
+            <div className="space-y-4 text-[var(--slgs-ink)] text-base leading-relaxed prose">
+              <p>
+                A very warm welcome to you as you peruse through our website. We
+                hope that you will find it quite interesting and informative. We
+                have endeavoured to make this website very attractive as well.
+              </p>
+              <p>
+                I was a pupil of this school and later became a Teacher from
+                1987-1993. I gained a lot at the time and I presume that helped
+                me considerably. I became Principal of our great school in the
+                2018/2019 school year after a two year transition programme.
+              </p>
+              <p>
+                This school was founded by the Church Missionary Society (CMS)
+                on 25th March 1845. It is the oldest school in Africa, south of
+                the Sahara. It has a Christian ethos. We are situated on
+                50-acres of land west of the capital Freetown.
+              </p>
+              <p>
+                This is a single school with both Junior and Senior Schools. We
+                offer a good and sound education that prepares boys for the
+                future. We have prepared thousands of boys to become successful
+                men while others have not been so successful. We will soon have
+                a state of the art Science and Innovation Laboratory and also
+                make a significant improvement to our Science Laboratories.
+                Teachers in this school do their uttermost to bring out the best
+                from the pupils. The parents are quite supportive of the great
+                efforts of this school and this has a tremendous and positive
+                impact on their children.
+              </p>
+              <p>
+                There are four Alumni Associations in the USA, one in the UK and
+                one locally. Their impact on the school is significant for which
+                we are tremendously grateful. Our well-wishers are numerous and
+                we are appreciative of their moral support.
+              </p>
+              <p>
+                As you browse through our website, I do hope you will connect
+                with us in some ways. My best regards go to you. I thank you!
+              </p>
+
+              <div className="mt-6 pt-4 border-[var(--slgs-border)] border-t">
+                <p className="mb-2 font-serif font-bold text-[var(--slgs-purple-dark)] text-lg italic">
+                  Floreat Regentonia! God bless our Grammar School!
+                </p>
+                <p className="font-bold text-[var(--slgs-purple-dark)] text-sm uppercase tracking-wide">
+                  Rev. Canon Leonard Ken Davies
+                </p>
+                <p className="font-medium text-[var(--slgs-muted)] text-xs">
+                  (M.A. Th. &amp; Min, M.A. Ed., Dip. Th. CELTA) — Principal
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="lg:col-span-4 shrink-0">
+            <figure className="bg-white shadow-md p-3 border border-[var(--slgs-border)] rounded-2xl overflow-hidden">
+              <div className="bg-slate-100 rounded-xl aspect-[3/4] overflow-hidden">
+                <img
+                  src="/principal.png"
+                  alt="Rev. Canon Leonard Ken Davies, Principal of Sierra Leone Grammar School"
+                  className="w-full h-full object-cover object-top"
+                  loading="lazy"
+                />
+              </div>
+              <figcaption className="p-3 text-center">
+                <p className="font-serif font-bold text-[var(--slgs-purple-dark)] text-sm">
+                  Rev. Canon Leonard Ken Davies
+                </p>
+                <p className="text-[var(--slgs-muted)] text-xs">
+                  Principal, Sierra Leone Grammar School
+                </p>
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
       <section className="home-section">
         <SectionHeader
           eyebrow="Latest stories"
