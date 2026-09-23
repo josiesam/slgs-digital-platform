@@ -1,5 +1,3 @@
-"use client";
-
 import { AIChatPlugin } from "@platejs/ai/react";
 import { BlockSelectionPlugin } from "@platejs/selection/react";
 import { getPluginTypes, isHotkey, KEYS } from "platejs";

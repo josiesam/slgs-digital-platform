@@ -1,5 +1,3 @@
-"use client";
-
 import cloneDeep from "lodash/cloneDeep.js";
 import { BaseAIPlugin, withAIBatch } from "@platejs/ai";
 import {

@@ -1,5 +1,3 @@
-"use client";
-
 import { LinkRules } from "@platejs/link";
 import { LinkPlugin } from "@platejs/link/react";
 

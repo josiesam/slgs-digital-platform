@@ -1,4 +1,3 @@
-"use client";
 /* eslint-disable react-hooks/refs */
 
 import * as React from "react";

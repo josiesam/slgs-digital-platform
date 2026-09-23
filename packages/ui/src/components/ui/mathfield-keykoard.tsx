@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 
 // IMPORTANT: This side-effect import registers mhchem (\ce{} chemistry notation)
