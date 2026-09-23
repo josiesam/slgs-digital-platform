@@ -35,7 +35,12 @@ export default defineConfig(({ mode }) => {
         environment.CLOUDFLARE_R2_ACCESS_URL,
       ),
     },
-    plugins: [tanstackStart(), nitro(), tailwindcss(), react()],
+    plugins: [
+      tanstackStart(),
+      nitro({ preset: "vercel" }),
+      tailwindcss(),
+      react(),
+    ],
     server: { port: 3002 },
     ssr: {
       noExternal: ["@platejs/math", "katex", "react-tweet"],

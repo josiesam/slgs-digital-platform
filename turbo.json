@@ -7,7 +7,7 @@
       ],
       "outputs": [
         ".output/**",
-        ".vercel/output/**"
+        ".vercel/**"
       ],
       "env": [
         "PUBLIC_SITE_URL",

@@ -47,7 +47,12 @@ export default defineConfig(({ mode }) => {
       ),
     },
 
-    plugins: [tanstackStart(), nitro(), tailwindcss(), react()],
+    plugins: [
+      tanstackStart(),
+      nitro({ preset: "vercel" }),
+      tailwindcss(),
+      react(),
+    ],
 
     server: {
       port: 3001,
