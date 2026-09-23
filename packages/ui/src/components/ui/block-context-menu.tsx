@@ -1,6 +1,5 @@
 import * as React from "react";
 
-import { AIChatPlugin } from "@platejs/ai/react";
 import {
   BLOCK_CONTEXT_MENU_ID,
   BlockMenuPlugin,
@@ -97,10 +96,6 @@ export function BlockContextMenu({ children }: { children: React.ReactNode }) {
           onCloseAutoFocus={(e) => {
             e.preventDefault();
             editor.getApi(BlockSelectionPlugin).blockSelection.focus();
-
-            if (value === "askAI") {
-              editor.getApi(AIChatPlugin).aiChat.show();
-            }
 
             setValue(null);
           }}

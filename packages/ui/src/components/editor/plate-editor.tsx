@@ -4,7 +4,6 @@ import { normalizeStaticValue, type Value } from "platejs";
 import { Plate, usePlateEditor } from "platejs/react";
 
 import { EditorKit } from "./editor-kit";
-import { SettingsDialog } from "./settings-dialog";
 import { Editor, EditorContainer } from "../ui/editor";
 import { cn } from "../../utils/cn";
 
@@ -106,8 +105,6 @@ export function PlateEditor({
             readOnly={readOnly}
           />
         </EditorContainer>
-
-        {showSettings && <SettingsDialog />}
       </Plate>
 
       {name && <input type="hidden" name={name} value={serializedValue} />}

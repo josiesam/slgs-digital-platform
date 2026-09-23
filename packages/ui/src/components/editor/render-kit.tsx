@@ -14,7 +14,6 @@ import { FontKit } from "./plugins/font-kit";
 import { LineHeightKit } from "./plugins/line-height-kit";
 import { LinkKit } from "./plugins/link-kit";
 import { ListKit } from "./plugins/list-kit";
-import { MarkdownKit } from "./plugins/markdown-kit";
 import { MathKit } from "./plugins/math-kit";
 import { MediaKit, MediaKitStatic } from "./plugins/media-kit";
 import { SlashKit } from "./plugins/slash-kit";
@@ -47,7 +46,6 @@ const corePlugins = [
   ...LineHeightKit,
 
   // Parsers
-  ...MarkdownKit,
 ];
 
 const corePluginsStatic = [
@@ -72,9 +70,6 @@ const corePluginsStatic = [
   ...ListKit,
   ...AlignKit,
   ...LineHeightKit,
-
-  // Parsers
-  ...MarkdownKit,
 ];
 
 const editablePlugins = [

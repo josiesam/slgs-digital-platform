@@ -1,6 +1,5 @@
 import * as React from "react";
 
-import { SuggestionPlugin } from "@platejs/suggestion/react";
 import {
   type DropdownMenuProps,
   DropdownMenuItemIndicator,
@@ -29,7 +28,7 @@ export function ModeToolbarButton(props: DropdownMenuProps) {
   const readOnly = useEditorReadOnly();
   const [open, setOpen] = React.useState(false);
 
-  const isSuggesting = usePluginOption(SuggestionPlugin, "isSuggesting");
+  const isSuggesting = false; // TODO: Implement suggestion mode
 
   let value: Mode = "editing";
 
@@ -70,13 +69,6 @@ export function ModeToolbarButton(props: DropdownMenuProps) {
               return;
             }
             editor.store.setReadOnly(false);
-
-            if (newValue === "suggestion") {
-              editor.setOption(SuggestionPlugin, "isSuggesting", true);
-
-              return;
-            }
-            editor.setOption(SuggestionPlugin, "isSuggesting", false);
 
             if (newValue === "editing") {
               editor.tf.focus();

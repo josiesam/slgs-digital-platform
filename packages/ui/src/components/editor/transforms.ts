@@ -4,7 +4,6 @@ import { insertCallout } from "@platejs/callout";
 import { insertCodeBlock, toggleCodeBlock } from "@platejs/code-block";
 import { insertCodeDrawing } from "@platejs/code-drawing";
 import { insertDate } from "@platejs/date";
-import { insertExcalidraw } from "@platejs/excalidraw";
 import { insertFootnote } from "@platejs/footnote";
 import { insertColumnGroup, toggleColumnGroup } from "@platejs/layout";
 import { triggerFloatingLink } from "@platejs/link/react";
@@ -15,7 +14,6 @@ import {
   insertMedia,
   insertVideoPlaceholder,
 } from "@platejs/media";
-import { SuggestionPlugin } from "@platejs/suggestion/react";
 import { TablePlugin } from "@platejs/table/react";
 import { insertToc } from "@platejs/toc";
 import {
@@ -67,7 +65,6 @@ const insertBlockMap: Record<
   [KEYS.codeDrawing]: (editor) =>
     insertCodeDrawing(editor, {}, { select: true }),
   [KEYS.equation]: (editor) => insertEquation(editor, { select: true }),
-  [KEYS.excalidraw]: (editor) => insertExcalidraw(editor, {}, { select: true }),
   [KEYS.file]: (editor) => insertFilePlaceholder(editor, { select: true }),
   [KEYS.img]: (editor) =>
     insertMedia(editor, {
@@ -127,12 +124,6 @@ export const insertBlock = (
 
       editor.tf.insertNodes(createBlockquote(editor), { at: insertPath });
 
-      if (!isSameBlockType && isCurrentBlockEmpty) {
-        editor.getApi(SuggestionPlugin).suggestion.withoutSuggestions(() => {
-          editor.tf.removeNodes({ at: path });
-        });
-      }
-
       selectBlockquoteStart(
         editor,
         isCurrentBlockEmpty && !isSameBlockType ? path : insertPath,
@@ -146,12 +137,6 @@ export const insertBlock = (
       editor.tf.insertNodes(editor.api.create.block({ type }), {
         at: PathApi.next(path),
         select: true,
-      });
-    }
-
-    if (!isSameBlockType) {
-      editor.getApi(SuggestionPlugin).suggestion.withoutSuggestions(() => {
-        editor.tf.removeNodes({ previousEmptyBlock: true });
       });
     }
   });
