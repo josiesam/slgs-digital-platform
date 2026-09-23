@@ -1,15 +1,15 @@
-import * as React from 'react';
+import * as React from "react";
 
-import type { TColumnElement } from 'platejs';
-import type { SlateElementProps } from 'platejs/static';
+import type { TColumnElement } from "platejs";
+import type { SlateElementProps } from "platejs/static";
 
-import { SlateElement } from 'platejs/static';
+import { SlateElement } from "platejs/static";
 
 export function ColumnElementStatic(props: SlateElementProps<TColumnElement>) {
   const { width } = props.element;
 
   return (
-    <div className="group/column relative" style={{ width: width ?? '100%' }}>
+    <div className="group/column relative" style={{ width: width ?? "100%" }}>
       <SlateElement
         className="h-full px-2 pt-2 group-first/column:pl-0 group-last/column:pr-0"
         {...props}
@@ -41,10 +41,10 @@ export function ColumnElementDocx(props: SlateElementProps<TColumnElement>) {
       {...props}
       as="td"
       style={{
-        width: width ?? 'auto',
-        verticalAlign: 'top',
-        padding: '4px 8px',
-        border: 'none',
+        width: width ?? "auto",
+        verticalAlign: "top",
+        padding: "4px 8px",
+        border: "none",
       }}
     >
       {props.children}
@@ -60,10 +60,10 @@ export function ColumnGroupElementDocx(props: SlateElementProps) {
     <SlateElement {...props}>
       <table
         style={{
-          width: '100%',
-          borderCollapse: 'collapse',
-          border: 'none',
-          tableLayout: 'fixed',
+          width: "100%",
+          borderCollapse: "collapse",
+          border: "none",
+          tableLayout: "fixed",
         }}
       >
         <tbody>

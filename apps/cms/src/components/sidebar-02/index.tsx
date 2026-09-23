@@ -1,5 +1,10 @@
 import { Outlet } from "@tanstack/react-router";
-import { SidebarInset, SidebarProvider, SidebarTrigger, Separator } from "@slgs/ui";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+  Separator,
+} from "@slgs/ui";
 import { DashboardSidebar } from "./app-sidebar";
 
 export default function Sidebar02({

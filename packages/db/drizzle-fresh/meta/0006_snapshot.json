@@ -84,12 +84,8 @@
           "tableFrom": "club",
           "tableTo": "user",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -99,9 +95,7 @@
         "cms_club_key_unique": {
           "name": "cms_club_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "key"
-          ]
+          "columns": ["key"]
         }
       },
       "policies": {},
@@ -379,12 +373,8 @@
           "tableFrom": "content_item",
           "tableTo": "user",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "author_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["author_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -393,12 +383,8 @@
           "tableFrom": "content_item",
           "tableTo": "club",
           "schemaTo": "cms",
-          "columnsFrom": [
-            "owning_club_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["owning_club_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -407,12 +393,8 @@
           "tableFrom": "content_item",
           "tableTo": "user",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "reviewed_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["reviewed_by"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -421,12 +403,8 @@
           "tableFrom": "content_item",
           "tableTo": "user",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "approved_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["approved_by"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -435,12 +413,8 @@
           "tableFrom": "content_item",
           "tableTo": "user",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "published_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["published_by"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -450,9 +424,7 @@
         "cms_content_slug_unique": {
           "name": "cms_content_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -528,12 +500,8 @@
           "tableFrom": "content_media",
           "tableTo": "content_item",
           "schemaTo": "cms",
-          "columnsFrom": [
-            "content_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["content_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -542,12 +510,8 @@
           "tableFrom": "content_media",
           "tableTo": "media_asset",
           "schemaTo": "cms",
-          "columnsFrom": [
-            "media_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["media_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -557,11 +521,7 @@
         "cms_content_media_unique": {
           "name": "cms_content_media_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "content_id",
-            "media_id",
-            "purpose"
-          ]
+          "columns": ["content_id", "media_id", "purpose"]
         }
       },
       "policies": {},
@@ -693,12 +653,8 @@
           "tableFrom": "content_revision",
           "tableTo": "content_item",
           "schemaTo": "cms",
-          "columnsFrom": [
-            "content_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["content_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -707,12 +663,8 @@
           "tableFrom": "content_revision",
           "tableTo": "user",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -722,17 +674,12 @@
         "cms_content_revision_unique": {
           "name": "cms_content_revision_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "content_id",
-            "revision"
-          ]
+          "columns": ["content_id", "revision"]
         },
         "cms_content_snapshot_unique": {
           "name": "cms_content_snapshot_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "snapshot_id"
-          ]
+          "columns": ["snapshot_id"]
         }
       },
       "policies": {},
@@ -1043,12 +990,8 @@
           "tableFrom": "media_asset",
           "tableTo": "user",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "owner_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["owner_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1057,12 +1000,8 @@
           "tableFrom": "media_asset",
           "tableTo": "club",
           "schemaTo": "cms",
-          "columnsFrom": [
-            "owning_club_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["owning_club_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1072,9 +1011,7 @@
         "cms_media_storage_key_unique": {
           "name": "cms_media_storage_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "storage_key"
-          ]
+          "columns": ["storage_key"]
         }
       },
       "policies": {},
@@ -1138,12 +1075,8 @@
           "tableFrom": "retention_policy",
           "tableTo": "user",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "updated_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["updated_by"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1233,12 +1166,8 @@
           "tableFrom": "workflow_event",
           "tableTo": "content_item",
           "schemaTo": "cms",
-          "columnsFrom": [
-            "content_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["content_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1247,12 +1176,8 @@
           "tableFrom": "workflow_event",
           "tableTo": "user",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "actor_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["actor_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1377,12 +1302,8 @@
           "tableFrom": "account",
           "tableTo": "user",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1392,10 +1313,7 @@
         "identity_account_issuer_unique": {
           "name": "identity_account_issuer_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "issuer",
-            "account_id"
-          ]
+          "columns": ["issuer", "account_id"]
         }
       },
       "policies": {},
@@ -1489,12 +1407,8 @@
           "tableFrom": "application_membership",
           "tableTo": "user",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1504,10 +1418,7 @@
         "identity_membership_user_application_unique": {
           "name": "identity_membership_user_application_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id",
-            "application"
-          ]
+          "columns": ["user_id", "application"]
         }
       },
       "policies": {},
@@ -1663,12 +1574,8 @@
           "tableFrom": "privileged_bootstrap",
           "tableTo": "user",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "target_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["target_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1783,12 +1690,8 @@
           "tableFrom": "role_assignment",
           "tableTo": "application_membership",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "membership_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["membership_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1797,12 +1700,8 @@
           "tableFrom": "role_assignment",
           "tableTo": "role_definition",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "role_definition_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["role_definition_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1811,12 +1710,8 @@
           "tableFrom": "role_assignment",
           "tableTo": "user",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "revoked_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["revoked_by"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1898,12 +1793,8 @@
           "tableFrom": "role_assignment_scope",
           "tableTo": "role_assignment",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "role_assignment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["role_assignment_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1913,11 +1804,7 @@
         "identity_assignment_scope_unique": {
           "name": "identity_assignment_scope_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "role_assignment_id",
-            "dimension",
-            "value"
-          ]
+          "columns": ["role_assignment_id", "dimension", "value"]
         }
       },
       "policies": {},
@@ -2014,10 +1901,7 @@
         "identity_role_application_key_unique": {
           "name": "identity_role_application_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "application",
-            "key"
-          ]
+          "columns": ["application", "key"]
         }
       },
       "policies": {},
@@ -2252,12 +2136,8 @@
           "tableFrom": "session",
           "tableTo": "user",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2267,9 +2147,7 @@
         "identity_session_token_unique": {
           "name": "identity_session_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -2332,12 +2210,8 @@
           "tableFrom": "two_factor",
           "tableTo": "user",
           "schemaTo": "identity",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2347,9 +2221,7 @@
         "identity_two_factor_user_unique": {
           "name": "identity_two_factor_user_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id"
-          ]
+          "columns": ["user_id"]
         }
       },
       "policies": {},
@@ -2450,16 +2322,12 @@
         "identity_user_email_unique": {
           "name": "identity_user_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         },
         "identity_user_person_reference_unique": {
           "name": "identity_user_person_reference_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "person_reference"
-          ]
+          "columns": ["person_reference"]
         }
       },
       "policies": {},
@@ -2538,42 +2406,22 @@
     "public.cms_audit_outcome": {
       "name": "cms_audit_outcome",
       "schema": "public",
-      "values": [
-        "success",
-        "failure",
-        "denied"
-      ]
+      "values": ["success", "failure", "denied"]
     },
     "public.cms_club_status": {
       "name": "cms_club_status",
       "schema": "public",
-      "values": [
-        "active",
-        "inactive",
-        "archived"
-      ]
+      "values": ["active", "inactive", "archived"]
     },
     "public.cms_content_type": {
       "name": "cms_content_type",
       "schema": "public",
-      "values": [
-        "page",
-        "article",
-        "event",
-        "announcement",
-        "gallery"
-      ]
+      "values": ["page", "article", "event", "announcement", "gallery"]
     },
     "public.cms_media_status": {
       "name": "cms_media_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "available",
-        "rejected",
-        "failed",
-        "archived"
-      ]
+      "values": ["pending", "available", "rejected", "failed", "archived"]
     },
     "public.cms_workflow_state": {
       "name": "cms_workflow_state",
@@ -2591,56 +2439,32 @@
     "public.application_name": {
       "name": "application_name",
       "schema": "public",
-      "values": [
-        "cms"
-      ]
+      "values": ["cms"]
     },
     "public.audit_outcome": {
       "name": "audit_outcome",
       "schema": "public",
-      "values": [
-        "success",
-        "failure",
-        "denied"
-      ]
+      "values": ["success", "failure", "denied"]
     },
     "public.authorization_scope_dimension": {
       "name": "authorization_scope_dimension",
       "schema": "public",
-      "values": [
-        "club",
-        "organisation"
-      ]
+      "values": ["club", "organisation"]
     },
     "public.bootstrap_status": {
       "name": "bootstrap_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "approved",
-        "rejected",
-        "completed",
-        "failed"
-      ]
+      "values": ["pending", "approved", "rejected", "completed", "failed"]
     },
     "public.identity_status": {
       "name": "identity_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "active",
-        "suspended",
-        "deactivated"
-      ]
+      "values": ["pending", "active", "suspended", "deactivated"]
     },
     "public.membership_status": {
       "name": "membership_status",
       "schema": "public",
-      "values": [
-        "active",
-        "suspended",
-        "deactivated"
-      ]
+      "values": ["active", "suspended", "deactivated"]
     }
   },
   "schemas": {

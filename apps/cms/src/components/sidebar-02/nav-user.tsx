@@ -63,14 +63,18 @@ export function NavUser({
               size="lg"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                {user?.avatar && <AvatarImage alt={displayName} src={user.avatar} />}
+                {user?.avatar && (
+                  <AvatarImage alt={displayName} src={user.avatar} />
+                )}
                 <AvatarFallback className="rounded-lg bg-[#42245f] font-serif font-bold text-white text-xs">
                   {initials}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">{displayName}</span>
-                <span className="truncate text-muted-foreground text-xs">{role}</span>
+                <span className="truncate text-muted-foreground text-xs">
+                  {role}
+                </span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -84,21 +88,28 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  {user?.avatar && <AvatarImage alt={displayName} src={user.avatar} />}
+                  {user?.avatar && (
+                    <AvatarImage alt={displayName} src={user.avatar} />
+                  )}
                   <AvatarFallback className="rounded-lg bg-[#42245f] font-serif font-bold text-white text-xs">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{displayName}</span>
-                  <span className="truncate text-muted-foreground text-xs">{role}</span>
+                  <span className="truncate text-muted-foreground text-xs">
+                    {role}
+                  </span>
                 </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
-                <Link className="flex items-center gap-2 cursor-pointer" to="/dashboard/profile">
+                <Link
+                  className="flex items-center gap-2 cursor-pointer"
+                  to="/dashboard/profile"
+                >
                   <Settings className="size-4" />
                   Account Settings
                 </Link>

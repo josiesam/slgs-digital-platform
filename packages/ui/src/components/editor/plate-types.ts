@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import type {
   EmptyText,
@@ -20,21 +20,16 @@ import type {
   TTableElement,
   TText,
   TTextAlignProps,
-} from 'platejs';
+} from "platejs";
 
 export interface MyBlockElement extends TElement, TListProps {
   id?: string;
 }
 
 export interface MyTextBlockElement
-  extends TElement,
-    TLineHeightProps,
-    TTextAlignProps {
+  extends TElement, TLineHeightProps, TTextAlignProps {
   children: (
-    | MyLinkElement
-    | MyMentionElement
-    | MyMentionInputElement
-    | RichText
+    MyLinkElement | MyMentionElement | MyMentionInputElement | RichText
   )[];
 }
 
@@ -84,10 +79,7 @@ export interface MyHrElement extends MyBlockElement {
 }
 
 export interface MyImageElement
-  extends MyBlockElement,
-    TCaptionProps,
-    TImageElement,
-    TResizableProps {
+  extends MyBlockElement, TCaptionProps, TImageElement, TResizableProps {
   children: [EmptyText];
   type: typeof KEYS.img;
 }
@@ -98,10 +90,7 @@ export interface MyLinkElement extends TLinkElement {
 }
 
 export interface MyMediaEmbedElement
-  extends MyBlockElement,
-    TCaptionProps,
-    TMediaEmbedElement,
-    TResizableProps {
+  extends MyBlockElement, TCaptionProps, TMediaEmbedElement, TResizableProps {
   children: [EmptyText];
   type: typeof KEYS.mediaEmbed;
 }

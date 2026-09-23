@@ -58,18 +58,45 @@ function CmsDashboardView() {
     permissions.has("article:create:own");
 
   const canCreateMedia = isAdmin || permissions.has("media:create:own");
-  const canReadUsers = isAdmin || permissions.has("user:read:cms") || permissions.has("membership:read:cms");
-  const canReadClubs = isAdmin || permissions.has("club:read:cms") || permissions.has("club:manage:assigned");
+  const canReadUsers =
+    isAdmin ||
+    permissions.has("user:read:cms") ||
+    permissions.has("membership:read:cms");
+  const canReadClubs =
+    isAdmin ||
+    permissions.has("club:read:cms") ||
+    permissions.has("club:manage:assigned");
   const canReadAudit = isAdmin || permissions.has("audit:read:cms");
 
   const workflow = [
-    { label: "Drafts", count: data.workflow.drafts, href: "/dashboard/editorial/drafts", color: "bg-[#8564ae]" },
-    { label: "Awaiting review", count: data.workflow.review, href: "/dashboard/editorial/review", color: "bg-[#d39a22]" },
-    { label: "Awaiting approval", count: data.workflow.approval, href: "/dashboard/editorial/approval", color: "bg-[#79b6d6]" },
-    { label: "Ready for publication", count: data.workflow.ready, href: "/dashboard/editorial/published", color: "bg-[#2f7d3b]" },
+    {
+      label: "Drafts",
+      count: data.workflow.drafts,
+      href: "/dashboard/editorial/drafts",
+      color: "bg-[#8564ae]",
+    },
+    {
+      label: "Awaiting review",
+      count: data.workflow.review,
+      href: "/dashboard/editorial/review",
+      color: "bg-[#d39a22]",
+    },
+    {
+      label: "Awaiting approval",
+      count: data.workflow.approval,
+      href: "/dashboard/editorial/approval",
+      color: "bg-[#79b6d6]",
+    },
+    {
+      label: "Ready for publication",
+      count: data.workflow.ready,
+      href: "/dashboard/editorial/published",
+      color: "bg-[#2f7d3b]",
+    },
   ];
 
-  const totalWorkflowCount = workflow.reduce((acc, curr) => acc + curr.count, 0) || 1;
+  const totalWorkflowCount =
+    workflow.reduce((acc, curr) => acc + curr.count, 0) || 1;
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-[1600px] mx-auto">
@@ -114,7 +141,10 @@ function CmsDashboardView() {
       {/* KPI Cards Grid inspired by Constructor mockup & SLGS Palette */}
       <section aria-labelledby="kpi-heading" className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 id="kpi-heading" className="text-base font-semibold text-foreground">
+          <h2
+            id="kpi-heading"
+            className="text-base font-semibold text-foreground"
+          >
             Workspace Overview
           </h2>
           <span className="text-xs text-muted-foreground">
@@ -127,7 +157,9 @@ function CmsDashboardView() {
           <div className="flex flex-col justify-between p-4 rounded-xl border border-[#dedbe1] bg-gradient-to-br from-[#42245f] to-[#69439a] text-white shadow-sm hover:shadow-md transition-all">
             <div>
               <div className="flex items-center justify-between opacity-90 mb-2">
-                <span className="text-xs font-medium uppercase tracking-wider">Pages</span>
+                <span className="text-xs font-medium uppercase tracking-wider">
+                  Pages
+                </span>
                 <IconFile className="size-4" />
               </div>
               <div className="text-3xl font-bold font-sans tracking-tight mb-1">
@@ -149,7 +181,10 @@ function CmsDashboardView() {
               ) : (
                 <span className="text-[10px] opacity-60">Read Only</span>
               )}
-              <a href="/dashboard/content/pages" className="text-[11px] hover:underline opacity-90">
+              <a
+                href="/dashboard/content/pages"
+                className="text-[11px] hover:underline opacity-90"
+              >
                 View All →
               </a>
             </div>
@@ -159,7 +194,9 @@ function CmsDashboardView() {
           <div className="flex flex-col justify-between p-4 rounded-xl border border-[#dcecdf] bg-gradient-to-br from-[#2f7d3b] to-[#3a9648] text-white shadow-sm hover:shadow-md transition-all">
             <div>
               <div className="flex items-center justify-between opacity-90 mb-2">
-                <span className="text-xs font-medium uppercase tracking-wider">Articles</span>
+                <span className="text-xs font-medium uppercase tracking-wider">
+                  Articles
+                </span>
                 <IconArticle className="size-4" />
               </div>
               <div className="text-3xl font-bold font-sans tracking-tight mb-1">
@@ -181,7 +218,10 @@ function CmsDashboardView() {
               ) : (
                 <span className="text-[10px] opacity-60">Read Only</span>
               )}
-              <a href="/dashboard/content/news" className="text-[11px] hover:underline opacity-90">
+              <a
+                href="/dashboard/content/news"
+                className="text-[11px] hover:underline opacity-90"
+              >
                 View All →
               </a>
             </div>
@@ -191,15 +231,15 @@ function CmsDashboardView() {
           <div className="flex flex-col justify-between p-4 rounded-xl border border-[#dcecf5] bg-gradient-to-br from-[#2f6287] to-[#79b6d6] text-white shadow-sm hover:shadow-md transition-all">
             <div>
               <div className="flex items-center justify-between opacity-90 mb-2">
-                <span className="text-xs font-medium uppercase tracking-wider font-sans">Media Files</span>
+                <span className="text-xs font-medium uppercase tracking-wider font-sans">
+                  Media Files
+                </span>
                 <IconPhoto className="size-4" />
               </div>
               <div className="text-3xl font-bold font-sans tracking-tight mb-1">
                 {data.summary.mediaAssets}
               </div>
-              <p className="text-[11px] opacity-80 mb-3">
-                R2 Private Bucket
-              </p>
+              <p className="text-[11px] opacity-80 mb-3">R2 Private Bucket</p>
             </div>
             <div className="pt-2 border-t border-white/20 flex items-center justify-between">
               {canCreateMedia ? (
@@ -213,7 +253,10 @@ function CmsDashboardView() {
               ) : (
                 <span className="text-[10px] opacity-60">Read Only</span>
               )}
-              <a href="/dashboard/content/media" className="text-[11px] hover:underline opacity-90">
+              <a
+                href="/dashboard/content/media"
+                className="text-[11px] hover:underline opacity-90"
+              >
                 View All →
               </a>
             </div>
@@ -223,7 +266,9 @@ function CmsDashboardView() {
           <div className="flex flex-col justify-between p-4 rounded-xl border border-[#c2b28a]/40 bg-[#eee9dc] text-[#252329] shadow-sm hover:shadow-md transition-all">
             <div>
               <div className="flex items-center justify-between text-[#8d7d58] mb-2">
-                <span className="text-xs font-medium uppercase tracking-wider font-sans">Clubs</span>
+                <span className="text-xs font-medium uppercase tracking-wider font-sans">
+                  Clubs
+                </span>
                 <IconFolder className="size-4" />
               </div>
               <div className="text-3xl font-bold font-sans tracking-tight text-[#42245f] mb-1">
@@ -242,9 +287,14 @@ function CmsDashboardView() {
                   <span>Manage</span>
                 </a>
               ) : (
-                <span className="text-[10px] text-muted-foreground">Restricted</span>
+                <span className="text-[10px] text-muted-foreground">
+                  Restricted
+                </span>
               )}
-              <a href="/dashboard/access/clubs" className="text-[11px] font-medium text-[#42245f] hover:underline">
+              <a
+                href="/dashboard/access/clubs"
+                className="text-[11px] font-medium text-[#42245f] hover:underline"
+              >
                 View All →
               </a>
             </div>
@@ -254,7 +304,9 @@ function CmsDashboardView() {
           <div className="flex flex-col justify-between p-4 rounded-xl border border-border bg-[#252329] text-white shadow-sm hover:shadow-md transition-all">
             <div>
               <div className="flex items-center justify-between opacity-80 mb-2">
-                <span className="text-xs font-medium uppercase tracking-wider font-sans">CMS Users</span>
+                <span className="text-xs font-medium uppercase tracking-wider font-sans">
+                  CMS Users
+                </span>
                 <IconUsers className="size-4" />
               </div>
               <div className="text-3xl font-bold font-sans tracking-tight mb-1">
@@ -275,7 +327,10 @@ function CmsDashboardView() {
               ) : (
                 <span className="text-[10px] opacity-60">Restricted</span>
               )}
-              <a href="/dashboard/access/users" className="text-[11px] hover:underline opacity-80">
+              <a
+                href="/dashboard/access/users"
+                className="text-[11px] hover:underline opacity-80"
+              >
                 View All →
               </a>
             </div>
@@ -285,7 +340,9 @@ function CmsDashboardView() {
           <div className="flex flex-col justify-between p-4 rounded-xl border border-[#f5d9d7] bg-white text-[#252329] shadow-sm hover:shadow-md transition-all">
             <div>
               <div className="flex items-center justify-between text-[#c83a32] mb-2">
-                <span className="text-xs font-medium uppercase tracking-wider font-sans">Audit Trail</span>
+                <span className="text-xs font-medium uppercase tracking-wider font-sans">
+                  Audit Trail
+                </span>
                 <IconShield className="size-4" />
               </div>
               <div className="text-3xl font-bold font-sans tracking-tight text-[#c83a32] mb-1">
@@ -304,9 +361,14 @@ function CmsDashboardView() {
                   <span>Logs</span>
                 </a>
               ) : (
-                <span className="text-[10px] text-muted-foreground">Restricted</span>
+                <span className="text-[10px] text-muted-foreground">
+                  Restricted
+                </span>
               )}
-              <a href="/dashboard/system/log" className="text-[11px] font-medium text-[#c83a32] hover:underline">
+              <a
+                href="/dashboard/system/log"
+                className="text-[11px] font-medium text-[#c83a32] hover:underline"
+              >
                 View Log →
               </a>
             </div>
@@ -345,7 +407,9 @@ function CmsDashboardView() {
               </div>
               <div className="h-3 w-full rounded-full bg-secondary overflow-hidden flex">
                 {workflow.map((item) => {
-                  const pct = Math.round((item.count / totalWorkflowCount) * 100);
+                  const pct = Math.round(
+                    (item.count / totalWorkflowCount) * 100,
+                  );
                   if (pct === 0) return null;
                   return (
                     <div
@@ -412,7 +476,10 @@ function CmsDashboardView() {
                           </span>
                         </div>
                       </div>
-                      <time dateTime={item.updatedAt} className="text-[11px] text-muted-foreground">
+                      <time
+                        dateTime={item.updatedAt}
+                        className="text-[11px] text-muted-foreground"
+                      >
                         {new Date(item.updatedAt).toLocaleDateString()}
                       </time>
                     </div>
@@ -431,8 +498,12 @@ function CmsDashboardView() {
             {/* Active Clubs Widget */}
             <div className="p-4 rounded-xl border border-border bg-card shadow-sm space-y-3">
               <div className="flex items-center justify-between border-b border-border pb-2">
-                <h3 className="text-sm font-semibold text-foreground">Registered Societies</h3>
-                <span className="text-xs text-muted-foreground">{data.clubs.length} total</span>
+                <h3 className="text-sm font-semibold text-foreground">
+                  Registered Societies
+                </h3>
+                <span className="text-xs text-muted-foreground">
+                  {data.clubs.length} total
+                </span>
               </div>
               {data.clubs.length ? (
                 <ul className="space-y-2 text-xs">
@@ -441,7 +512,9 @@ function CmsDashboardView() {
                       key={clubItem.id}
                       className="flex items-center justify-between p-2 rounded bg-secondary/50"
                     >
-                      <span className="font-medium text-foreground">{clubItem.name}</span>
+                      <span className="font-medium text-foreground">
+                        {clubItem.name}
+                      </span>
                       <span className="text-[11px] px-2 py-0.5 rounded bg-background border text-muted-foreground">
                         {clubItem.membershipCount} members
                       </span>
@@ -449,27 +522,35 @@ function CmsDashboardView() {
                   ))}
                 </ul>
               ) : (
-                <p className="text-xs text-muted-foreground italic">No active clubs listed.</p>
+                <p className="text-xs text-muted-foreground italic">
+                  No active clubs listed.
+                </p>
               )}
             </div>
 
             {/* Public Web Readiness Widget */}
             <div className="p-4 rounded-xl border border-[#e1e2e3] bg-gradient-to-br from-white to-[#faf9f6] shadow-sm space-y-3">
               <div className="flex items-center justify-between border-b border-border pb-2">
-                <h3 className="text-sm font-semibold text-foreground">Public Site Readiness</h3>
+                <h3 className="text-sm font-semibold text-foreground">
+                  Public Site Readiness
+                </h3>
                 <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[#2f7d3b]/10 text-[#2f7d3b] border border-[#2f7d3b]/20">
                   Online
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="p-2 rounded bg-background border">
-                  <span className="text-[10px] text-muted-foreground block">Published Pages</span>
+                  <span className="text-[10px] text-muted-foreground block">
+                    Published Pages
+                  </span>
                   <strong className="text-base font-bold text-foreground">
                     {data.publicWeb.publishedPages}
                   </strong>
                 </div>
                 <div className="p-2 rounded bg-background border">
-                  <span className="text-[10px] text-muted-foreground block font-sans">Navigation</span>
+                  <span className="text-[10px] text-muted-foreground block font-sans">
+                    Navigation
+                  </span>
                   <strong className="text-xs font-semibold text-[#42245f] block truncate">
                     {data.publicWeb.navigationStatus}
                   </strong>
@@ -513,7 +594,10 @@ function CmsDashboardView() {
             {data.recentActivity.length ? (
               <div className="relative pl-4 space-y-4 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
                 {data.recentActivity.map((event, index) => (
-                  <div key={`${event.occurredAt}-${index}`} className="relative group">
+                  <div
+                    key={`${event.occurredAt}-${index}`}
+                    className="relative group"
+                  >
                     <span className="absolute -left-[1.35rem] top-1 flex h-3 w-3 items-center justify-center rounded-full bg-background border-2 border-[#42245f]" />
                     <div className="p-3 rounded-lg border border-border bg-background hover:bg-accent/30 transition-colors space-y-1">
                       <div className="flex items-center justify-between gap-2">
@@ -534,7 +618,10 @@ function CmsDashboardView() {
                         </span>
                       </div>
                       <p className="text-[11px] text-muted-foreground">
-                        Resource: <span className="font-medium text-foreground">{event.resourceType}</span>
+                        Resource:{" "}
+                        <span className="font-medium text-foreground">
+                          {event.resourceType}
+                        </span>
                       </p>
                       <time
                         dateTime={event.occurredAt}

@@ -50,7 +50,10 @@ export interface PublicContentGateway {
   ): Promise<PublicContentItem | null>;
 }
 
-export function defaultCanonicalPath(kind: PublicContentKind, slug: string): string {
+export function defaultCanonicalPath(
+  kind: PublicContentKind,
+  slug: string,
+): string {
   switch (kind) {
     case "article":
       return `/news/${slug}`;

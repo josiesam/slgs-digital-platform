@@ -48,7 +48,7 @@ export const detailHead = (
   fallback: string,
 ) => {
   const canonicalPath = item
-    ? item.canonicalPath ?? defaultCanonicalPath(item.kind, item.slug)
+    ? (item.canonicalPath ?? defaultCanonicalPath(item.kind, item.slug))
     : undefined;
   return {
     meta: [

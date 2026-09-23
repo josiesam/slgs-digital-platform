@@ -44,10 +44,16 @@ describe("public content boundary", () => {
   });
 
   it("exports defaultCanonicalPath helper for fallback path construction", () => {
-    expect(defaultCanonicalPath("article", "anniversary")).toBe("/news/anniversary");
-    expect(defaultCanonicalPath("event", "sports-day")).toBe("/events/sports-day");
+    expect(defaultCanonicalPath("article", "anniversary")).toBe(
+      "/news/anniversary",
+    );
+    expect(defaultCanonicalPath("event", "sports-day")).toBe(
+      "/events/sports-day",
+    );
     expect(defaultCanonicalPath("gallery", "campus")).toBe("/gallery/campus");
-    expect(defaultCanonicalPath("announcement", "closure")).toBe("/announcements/closure");
+    expect(defaultCanonicalPath("announcement", "closure")).toBe(
+      "/announcements/closure",
+    );
     expect(defaultCanonicalPath("page", "academics")).toBe("/academics");
   });
 });

@@ -76,4 +76,3 @@ export function hasAnyPermission(
   if (!grant || grant.application !== "cms") return false;
   return permissions.some((permission) => grant.permissions.has(permission));
 }
-

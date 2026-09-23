@@ -5,11 +5,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { z } from "zod";
 
 import { requireIdentity } from "@slgs/auth";
-import {
-  account,
-  securityAuditEvent,
-  user,
-} from "@slgs/db";
+import { account, securityAuditEvent, user } from "@slgs/db";
 import { database, sessions } from "./auth.server";
 
 async function getAuthenticatedIdentity() {

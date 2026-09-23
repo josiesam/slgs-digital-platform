@@ -36,16 +36,24 @@ export function GalleryMediaEditor({
   };
 
   return (
-    <form className="cms-gallery-editor space-y-4 p-4 rounded-xl border border-border bg-card/70" onSubmit={submit}>
+    <form
+      className="cms-gallery-editor space-y-4 p-4 rounded-xl border border-border bg-card/70"
+      onSubmit={submit}
+    >
       <div className="border-b border-border pb-3">
         <h4 className="text-sm font-serif font-bold text-foreground flex items-center justify-between">
-          <span>{contentType === "gallery" ? "Gallery Composition & Photo Order" : "Content Media Assets"}</span>
+          <span>
+            {contentType === "gallery"
+              ? "Gallery Composition & Photo Order"
+              : "Content Media Assets"}
+          </span>
           <span className="text-xs font-mono font-normal text-muted-foreground">
             {mediaIds.length} {mediaIds.length === 1 ? "asset" : "assets"}
           </span>
         </h4>
         <p className="text-xs text-muted-foreground mt-1">
-          The first media asset in the list serves as the featured cover image. Remaining assets retain ordered gallery sequence.
+          The first media asset in the list serves as the featured cover image.
+          Remaining assets retain ordered gallery sequence.
         </p>
       </div>
 
@@ -62,7 +70,10 @@ export function GalleryMediaEditor({
                 <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-muted text-muted-foreground border">
                   #{index + 1}
                 </span>
-                <span className="font-medium text-foreground truncate" title={asset.filename}>
+                <span
+                  className="font-medium text-foreground truncate"
+                  title={asset.filename}
+                >
                   {asset.filename}
                 </span>
                 {index === 0 && (
@@ -111,7 +122,10 @@ export function GalleryMediaEditor({
       </ol>
 
       <div className="pt-3 border-t border-border space-y-2">
-        <label htmlFor={`gallery-media-${contentId}`} className="block text-xs font-semibold text-foreground">
+        <label
+          htmlFor={`gallery-media-${contentId}`}
+          className="block text-xs font-semibold text-foreground"
+        >
           Attach Additional Media Asset
         </label>
         <div className="flex items-center gap-2">

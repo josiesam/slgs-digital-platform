@@ -1,5 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { IconCheck, IconDatabase, IconLock, IconServer, IconWorld } from "@tabler/icons-react";
+import {
+  IconCheck,
+  IconDatabase,
+  IconLock,
+  IconServer,
+  IconWorld,
+} from "@tabler/icons-react";
 
 export const Route = createFileRoute(
   "/_authenticated/dashboard/_system/system/status",
@@ -14,11 +20,16 @@ function CmsSystemStatus() {
         <div className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-wider mb-1">
           <span>System</span>
           <span>/</span>
-          <span className="text-foreground font-semibold">Operational Status</span>
+          <span className="text-foreground font-semibold">
+            Operational Status
+          </span>
         </div>
-        <h1 className="text-2xl font-serif font-bold text-foreground">System Status & Verification</h1>
+        <h1 className="text-2xl font-serif font-bold text-foreground">
+          System Status & Verification
+        </h1>
         <p className="text-sm text-muted-foreground">
-          Operational boundaries, database RLS policies, R2 private storage, and public web read projection status.
+          Operational boundaries, database RLS policies, R2 private storage, and
+          public web read projection status.
         </p>
       </header>
 
@@ -36,7 +47,8 @@ function CmsSystemStatus() {
             </span>
           </div>
           <p className="text-xs text-muted-foreground">
-            Better Auth session authentication and server-side authorization enforcement are operational.
+            Better Auth session authentication and server-side authorization
+            enforcement are operational.
           </p>
         </section>
 
@@ -53,7 +65,8 @@ function CmsSystemStatus() {
             </span>
           </div>
           <p className="text-xs text-muted-foreground">
-            Drizzle ORM schema migrations and append-only audit event triggers are verified.
+            Drizzle ORM schema migrations and append-only audit event triggers
+            are verified.
           </p>
         </section>
 
@@ -70,7 +83,8 @@ function CmsSystemStatus() {
             </span>
           </div>
           <p className="text-xs text-muted-foreground">
-            Private bucket upload signing, byte signature verification, and short-lived presigned GET URLs are enabled.
+            Private bucket upload signing, byte signature verification, and
+            short-lived presigned GET URLs are enabled.
           </p>
         </section>
 
@@ -87,7 +101,8 @@ function CmsSystemStatus() {
             </span>
           </div>
           <p className="text-xs text-muted-foreground">
-            The public web receives published projections only. Drafts, notes, and private keys remain segregated.
+            The public web receives published projections only. Drafts, notes,
+            and private keys remain segregated.
           </p>
         </section>
       </div>

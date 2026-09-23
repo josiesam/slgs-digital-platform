@@ -157,9 +157,7 @@ export function createApplicationSessionReader(
       assignments.map((assignment) => ({
         assignmentId: assignment.id,
         permissions: assignment.permissions,
-        scopes: scopes.filter(
-          (scope) => scope.assignmentId === assignment.id,
-        ),
+        scopes: scopes.filter((scope) => scope.assignmentId === assignment.id),
       })),
     );
 

@@ -21,3 +21,4 @@ coverage/
 bootstrap-command.txt
 
 mv
+.vercel

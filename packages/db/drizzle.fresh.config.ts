@@ -9,7 +9,7 @@ if (!migrationUrl) {
   throw new Error(
     "A database connection URL is required for drizzle-kit migrate.\n" +
       "Please set DATABASE_BOOTSTRAP_ADMIN_URL, DATABASE_MIGRATION_URL, or DATABASE_URL.\n" +
-      "Example: DATABASE_BOOTSTRAP_ADMIN_URL=\"postgresql://postgres:postgres@localhost:5432/slgs\" pnpm --filter @slgs/db db:fresh:migrate",
+      'Example: DATABASE_BOOTSTRAP_ADMIN_URL="postgresql://postgres:postgres@localhost:5432/slgs" pnpm --filter @slgs/db db:fresh:migrate',
   );
 }
 

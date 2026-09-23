@@ -12,7 +12,6 @@ import {
 } from "@tanstack/react-router";
 import { FormEvent, useState } from "react";
 
-
 export const Route = createFileRoute(
   "/_authenticated/dashboard/_content/content/create",
 )({
@@ -61,7 +60,6 @@ function EditContentPage({
     filterType ?? types[0] ?? "page",
   );
   const [bodyValue, setBodyValue] = useState<string>("");
-
 
   const [feedback, setFeedback] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -289,7 +287,6 @@ function EditContentPage({
                   placeholder="Write the main body content of your page or article..."
                 />
               </div>
-
             </div>
           </section>
 

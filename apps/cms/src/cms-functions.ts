@@ -483,12 +483,18 @@ export const getEditorialContentDetails = createServerFn({ method: "GET" })
         : null,
       revisions: revisions.map((r) => ({
         ...r,
-        snapshot: r.snapshot as Record<string, string | number | boolean | null>,
+        snapshot: r.snapshot as Record<
+          string,
+          string | number | boolean | null
+        >,
         createdAt: r.createdAt.toISOString(),
       })),
       dependentRevisions: dependentRevisions.map((r) => ({
         ...r,
-        snapshot: r.snapshot as Record<string, string | number | boolean | null>,
+        snapshot: r.snapshot as Record<
+          string,
+          string | number | boolean | null
+        >,
         createdAt: r.createdAt.toISOString(),
       })),
       workflow: workflowEvents.map((w) => ({
@@ -822,12 +828,16 @@ export const initiateMediaReplacement = createServerFn({ method: "POST" })
   .validator((input) => mediaReplacementSchema.parse(input))
   .handler(async ({ data }) => {
     const { actor } = await requestIdentity();
-    const result = await getMediaService().initiateMediaReplacement(actor, data.id, {
-      filename: data.filename,
-      declaredMimeType: data.declaredMimeType,
-      byteSize: data.byteSize,
-      bytes: Uint8Array.from(data.signatureBytes),
-    });
+    const result = await getMediaService().initiateMediaReplacement(
+      actor,
+      data.id,
+      {
+        filename: data.filename,
+        declaredMimeType: data.declaredMimeType,
+        byteSize: data.byteSize,
+        bytes: Uint8Array.from(data.signatureBytes),
+      },
+    );
     return {
       assetId: result.assetId,
       newStorageKey: result.newStorageKey,
@@ -856,14 +866,18 @@ export const finalizeMediaReplacement = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { actor } = await requestIdentity();
-    const asset = await getMediaService().finalizeMediaReplacement(actor, data.id, {
-      newStorageKey: data.newStorageKey,
-      originalFilename: data.originalFilename,
-      normalizedFilename: data.normalizedFilename,
-      declaredMimeType: data.declaredMimeType,
-      detectedMimeType: data.detectedMimeType,
-      byteSize: data.byteSize,
-    });
+    const asset = await getMediaService().finalizeMediaReplacement(
+      actor,
+      data.id,
+      {
+        newStorageKey: data.newStorageKey,
+        originalFilename: data.originalFilename,
+        normalizedFilename: data.normalizedFilename,
+        declaredMimeType: data.declaredMimeType,
+        detectedMimeType: data.detectedMimeType,
+        byteSize: data.byteSize,
+      },
+    );
     return { id: asset.id, status: asset.status };
   });
 

@@ -11,7 +11,10 @@ export interface ReadOptions {
 }
 
 export interface SessionReader {
-  read(request: Request, options?: ReadOptions): Promise<SessionIdentity | null>;
+  read(
+    request: Request,
+    options?: ReadOptions,
+  ): Promise<SessionIdentity | null>;
   invalidateSession(sessionId: string): void;
   invalidateUser(userId: string): void;
   clearCache(): void;

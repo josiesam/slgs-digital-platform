@@ -157,9 +157,11 @@ export class DrizzleCmsRepository implements CmsRepository {
     },
   ) {
     const id = crypto.randomUUID();
-    const revisionLabel = options?.revisionLabel ?? `1.${item.currentRevision - 1}`;
+    const revisionLabel =
+      options?.revisionLabel ?? `1.${item.currentRevision - 1}`;
     const snapshotId = options?.snapshotId ?? `snap_${crypto.randomUUID()}`;
-    const baseSnapshotId = options?.baseSnapshotId ?? item.currentBaseSnapshotId ?? null;
+    const baseSnapshotId =
+      options?.baseSnapshotId ?? item.currentBaseSnapshotId ?? null;
     const status = options?.status ?? item.state;
     const rebasedFromSnapshotId = options?.rebasedFromSnapshotId ?? null;
     const verifiedVersionNumber = options?.verifiedVersionNumber ?? null;
@@ -286,7 +288,9 @@ export class DrizzleCmsRepository implements CmsRepository {
       .update(contentRevision)
       .set({
         status,
-        ...(verifiedVersionNumber !== undefined ? { verifiedVersionNumber } : {}),
+        ...(verifiedVersionNumber !== undefined
+          ? { verifiedVersionNumber }
+          : {}),
       })
       .where(eq(contentRevision.id, revisionId));
   }
@@ -400,7 +404,9 @@ export class DrizzleCmsRepository implements CmsRepository {
   }
 
   async deleteMedia(id: string): Promise<void> {
-    await this.database.delete(contentMedia).where(eq(contentMedia.mediaId, id));
+    await this.database
+      .delete(contentMedia)
+      .where(eq(contentMedia.mediaId, id));
     await this.database.delete(mediaAsset).where(eq(mediaAsset.id, id));
   }
 }

@@ -258,7 +258,9 @@ function ProfilePage() {
 
           <form className="space-y-3 text-xs" onSubmit={handleChangePassword}>
             <Field>
-              <FieldLabel htmlFor="currentPassword">Current Password</FieldLabel>
+              <FieldLabel htmlFor="currentPassword">
+                Current Password
+              </FieldLabel>
               <InputGroup>
                 <InputGroupInput
                   id="currentPassword"

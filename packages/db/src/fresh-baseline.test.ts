@@ -36,6 +36,8 @@ describe("fresh CMS/Public Web database baseline", () => {
     const fresh0004 = readBaseline("0004_current-schema-baseline.sql");
 
     expect(fresh0004).toContain('CREATE VIEW "public_content"."media"');
-    expect(fresh0004).toContain('ALTER VIEW "public_content"."media" SET (security_barrier = true)');
+    expect(fresh0004).toContain(
+      'ALTER VIEW "public_content"."media" SET (security_barrier = true)',
+    );
   });
 });
