@@ -1,3 +1,4 @@
+import { RichContentRenderer } from "@slgs/ui";
 import type { FormEvent } from "react";
 
 export type EditableCmsContent = {
@@ -65,7 +66,7 @@ export function DraftEditor({
       <textarea
         id={`body-${content.id}`}
         name="body"
-        defaultValue={content.body}
+        // defaultValue={content.body}
         rows={10}
       />
       <fieldset>
@@ -179,7 +180,7 @@ export function DraftReview({
           Body Content
         </span>
         <div className="bg-muted/30 p-4 border border-border/50 rounded-md min-h-30 text-foreground text-sm whitespace-pre-wrap">
-          {content.body || "(Empty body)"}
+          <RichContentRenderer nodes={content.body} />
         </div>
       </div>
     </div>

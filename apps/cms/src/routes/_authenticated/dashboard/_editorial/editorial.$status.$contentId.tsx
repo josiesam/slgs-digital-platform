@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { PlateEditor, RichContentRenderer } from "@slgs/ui";
 
 import {
   getEditorialContentDetails,
@@ -328,11 +329,10 @@ function EditorialContentDetailsPage() {
               <label className="block mb-1 font-medium text-foreground text-xs">
                 Body Content
               </label>
-              <textarea
+              <PlateEditor
                 value={editBody}
-                onChange={(e) => setEditBody(e.target.value)}
-                rows={8}
-                className="bg-background p-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary w-full font-mono text-sm"
+                onChange={setEditBody}
+                placeholder="Write body content..."
               />
             </div>
 
@@ -432,8 +432,8 @@ function EditorialContentDetailsPage() {
               <span className="block mb-1 font-medium text-muted-foreground text-xs">
                 Body Content
               </span>
-              <div className="bg-muted/30 p-4 border border-border/50 rounded-md min-h-30 text-foreground text-sm whitespace-pre-wrap">
-                {content.body || "(Empty body)"}
+              <div className="bg-muted/30 p-4 border border-border/50 rounded-md min-h-30 text-foreground text-sm">
+                <RichContentRenderer nodes={content.body} />
               </div>
             </div>
           </div>

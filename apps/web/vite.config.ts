@@ -27,12 +27,33 @@ export default defineConfig(({ mode }) => {
       "import.meta.env.CLOUDFLARE_R2_READ_SECRET_ACCESS_KEY": JSON.stringify(
         environment.CLOUDFLARE_R2_READ_SECRET_ACCESS_KEY,
       ),
+      "import.meta.env.CLOUDFLARE_R2_ACCESS_KEY_ID": JSON.stringify(
+        environment.CLOUDFLARE_R2_ACCESS_KEY_ID,
+      ),
+      "import.meta.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY": JSON.stringify(
+        environment.CLOUDFLARE_R2_SECRET_ACCESS_KEY,
+      ),
+      "import.meta.env.CLOUDFLARE_R2_REGION": JSON.stringify(
+        environment.CLOUDFLARE_R2_REGION,
+      ),
+      "import.meta.env.CLOUDFLARE_R2_BUCKET": JSON.stringify(
+        environment.CLOUDFLARE_R2_BUCKET,
+      ),
+      "import.meta.env.CLOUDFLARE_R2_ENDPOINT": JSON.stringify(
+        environment.CLOUDFLARE_R2_ENDPOINT,
+      ),
+      "import.meta.env.CLOUDFLARE_R2_ACCESS_URL": JSON.stringify(
+        environment.CLOUDFLARE_R2_ACCESS_URL,
+      ),
     },
 
     plugins: [tanstackStart(), nitro(), tailwindcss(), react()],
 
     server: {
       port: 3001,
+    },
+    ssr: {
+      noExternal: ["@platejs/math", "katex", "react-tweet"],
     },
   };
 });

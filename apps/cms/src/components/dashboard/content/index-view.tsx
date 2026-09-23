@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useRouter } from "@tanstack/react-router";
+import { useRouter, useNavigate } from "@tanstack/react-router";
 import {
   IconArticle,
   IconCalendarEvent,
@@ -10,7 +10,6 @@ import {
   IconBell,
   IconFolder,
 } from "@tabler/icons-react";
-import { PlateEditor } from "@slgs/ui";
 
 import {
   createCmsContent,
@@ -21,7 +20,6 @@ import {
 } from "../../../cms-functions";
 import { DraftEditor, DraftReview } from "../../../content-editor";
 import { GalleryMediaEditor } from "../../../gallery-media-editor";
-import { useNavigate } from "@tanstack/react-router";
 
 type ContentType = "page" | "article" | "event" | "announcement" | "gallery";
 const labels: Record<ContentType, string> = {
@@ -42,10 +40,8 @@ export function ContentIndexView({
   readonly filterState?: string;
 }) {
   const router = useRouter();
-  const navigate = useNavigate();
   const permissions = new Set<CmsPermission>(dashboard.permissions);
-
-  const [bodyValue, setBodyValue] = useState<string>("");
+  const navigate = useNavigate();
 
   const [feedback, setFeedback] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -53,16 +49,12 @@ export function ContentIndexView({
   const [selectedStateFilter, setSelectedStateFilter] = useState<string>(
     filterState ?? "all",
   );
-  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const types = (Object.keys(labels) as ContentType[]).filter((type) =>
     filterType
       ? type === filterType
       : permissions.has(`${type}:create:own` as CmsPermission) ||
         permissions.has("content:create:own" as CmsPermission),
-  );
-  const [selectedType, setSelectedType] = useState<ContentType>(
-    filterType ?? types[0] ?? "page",
   );
 
   async function refresh(task: () => Promise<unknown>, success: string) {
@@ -80,33 +72,6 @@ export function ContentIndexView({
       setPending(false);
     }
   }
-
-  const handleCreate = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const data = new FormData(form);
-    return refresh(async () => {
-      await createCmsContent({
-        data: {
-          type: String(data.get("type")),
-          title: String(data.get("title")),
-          slug: String(data.get("slug")),
-          summary: String(data.get("summary") || "") || undefined,
-          body: String(data.get("body") || ""),
-          seoTitle: String(data.get("seoTitle") || "") || undefined,
-          seoDescription: String(data.get("seoDescription") || "") || undefined,
-          canonicalPath: String(data.get("canonicalPath") || "") || undefined,
-          owningClubId: String(data.get("club") || "") || undefined,
-          eventStartAt: String(data.get("eventStartAt") || "") || undefined,
-          eventEndAt: String(data.get("eventEndAt") || "") || undefined,
-          eventLocation: String(data.get("eventLocation") || "") || undefined,
-          eventOrganiser: String(data.get("eventOrganiser") || "") || undefined,
-        },
-      });
-      form.reset();
-      setShowCreateModal(false);
-    }, "Content draft created.");
-  };
 
   const handleUpdate = (event: FormEvent<HTMLFormElement>, id: string) => {
     event.preventDefault();
@@ -183,7 +148,7 @@ export function ContentIndexView({
 
         {types.length > 0 && (
           <button
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => navigate({ to: "/dashboard/content/create" })}
             className="inline-flex justify-center items-center gap-1.5 bg-[#42245f] hover:bg-[#542f7f] shadow-sm px-4 py-2 rounded-md font-semibold text-white text-xs transition-colors"
           >
             <IconPlus className="size-4" />
@@ -397,179 +362,6 @@ export function ContentIndexView({
           </div>
         )}
       </div>
-
-      {/* Create Draft Modal */}
-      {showCreateModal && (
-        <div className="z-50 fixed inset-0 flex justify-center items-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="space-y-4 bg-card shadow-xl p-6 border border-border rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-3 border-border border-b">
-              <h2 className="font-serif font-bold text-foreground text-lg">
-                Create {filterType ? labels[filterType] : "Content"} Draft
-              </h2>
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="font-bold text-muted-foreground hover:text-foreground text-sm"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleCreate} className="space-y-4 text-xs">
-              <div className="gap-3 grid grid-cols-1 sm:grid-cols-2">
-                <label className="block space-y-1">
-                  <span className="font-semibold text-foreground">
-                    Content Type
-                  </span>
-                  <select
-                    name="type"
-                    required
-                    value={selectedType}
-                    onChange={(e) =>
-                      setSelectedType(e.target.value as ContentType)
-                    }
-                    className="bg-background p-2 border rounded-md w-full"
-                  >
-                    {types.map((type) => (
-                      <option key={type} value={type}>
-                        {labels[type]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className="block space-y-1">
-                  <span className="font-semibold text-foreground">
-                    Owning Club / Society
-                  </span>
-                  <select
-                    name="club"
-                    defaultValue=""
-                    className="bg-background p-2 border rounded-md w-full"
-                  >
-                    <option value="">
-                      {dashboard.clubs.length
-                        ? "Select an authorized club"
-                        : "School / Global"}
-                    </option>
-                    {dashboard.clubs.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-
-              <div className="gap-3 grid grid-cols-1 sm:grid-cols-2">
-                <label className="block space-y-1">
-                  <span className="font-semibold text-foreground">Title</span>
-                  <input
-                    name="title"
-                    required
-                    maxLength={240}
-                    className="bg-background p-2 border rounded-md w-full"
-                  />
-                </label>
-
-                <label className="block space-y-1">
-                  <span className="font-semibold text-foreground">
-                    URL Slug
-                  </span>
-                  <input
-                    name="slug"
-                    pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-                    required
-                    placeholder="e.g. annual-sports-day"
-                    className="bg-background p-2 border rounded-md w-full"
-                  />
-                </label>
-              </div>
-
-              <label className="block space-y-1">
-                <span className="font-semibold text-foreground">Summary</span>
-                <textarea
-                  name="summary"
-                  maxLength={600}
-                  rows={2}
-                  className="bg-background p-2 border rounded-md w-full"
-                />
-              </label>
-
-              <label className="block space-y-1">
-                <span className="font-semibold text-foreground">
-                  Body Content
-                </span>
-                <PlateEditor
-                  name="body"
-                  value={bodyValue}
-                  onChange={setBodyValue}
-                  placeholder="Write the main body content of your page or article..."
-                />
-              </label>
-
-              {selectedType === "event" && (
-                <fieldset className="space-y-3 bg-secondary/20 p-3 border border-border rounded">
-                  <legend className="px-1 font-semibold text-foreground">
-                    Event Details
-                  </legend>
-                  <div className="gap-3 grid grid-cols-1 sm:grid-cols-2">
-                    <label className="block space-y-1">
-                      <span>Starts</span>
-                      <input
-                        name="eventStartAt"
-                        type="datetime-local"
-                        required
-                        className="bg-background p-2 border rounded w-full"
-                      />
-                    </label>
-                    <label className="block space-y-1">
-                      <span>Ends</span>
-                      <input
-                        name="eventEndAt"
-                        type="datetime-local"
-                        className="bg-background p-2 border rounded w-full"
-                      />
-                    </label>
-                  </div>
-                  <div className="gap-3 grid grid-cols-1 sm:grid-cols-2">
-                    <label className="block space-y-1">
-                      <span>Location</span>
-                      <input
-                        name="eventLocation"
-                        className="bg-background p-2 border rounded w-full"
-                      />
-                    </label>
-                    <label className="block space-y-1">
-                      <span>Organiser</span>
-                      <input
-                        name="eventOrganiser"
-                        className="bg-background p-2 border rounded w-full"
-                      />
-                    </label>
-                  </div>
-                </fieldset>
-              )}
-
-              <div className="flex justify-end gap-2 pt-2 border-border border-t">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="hover:bg-accent px-4 py-2 border border-border rounded-md font-medium text-xs"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={pending}
-                  className="bg-[#42245f] hover:bg-[#542f7f] px-4 py-2 rounded-md font-semibold text-white text-xs"
-                >
-                  {pending ? "Creating..." : "Save Draft"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

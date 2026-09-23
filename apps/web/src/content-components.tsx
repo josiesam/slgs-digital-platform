@@ -4,6 +4,7 @@ import type {
   PublicContentItem,
   PublicContentKind,
 } from "@slgs/public-content";
+import { RichContentRenderer } from "@slgs/ui";
 
 export const formatDate = (value: string) =>
   new Intl.DateTimeFormat("en-SL", {
@@ -47,13 +48,21 @@ export function ContentList({
         {label}
       </Link>
     );
+  const link = (item: PublicContentItem) =>
+    kind === "article"
+      ? `/news/${item.slug}`
+      : kind === "event"
+        ? `/events/${item.slug}`
+        : kind === "gallery"
+          ? `/gallery/${item.slug}`
+          : `/announcements/${item.slug}`;
 
   return (
     <div className="editorial-grid">
       {items.map((item) => {
         const coverMedia = item.media[0];
         return (
-          <article className="editorial-card group" key={item.id}>
+          <Link to={link(item)} className="editorial-card group" key={item.id}>
             {coverMedia ? (
               <div className="card-media relative mb-3 overflow-hidden rounded-lg aspect-video bg-muted border border-border">
                 <img
@@ -64,7 +73,8 @@ export function ContentList({
                 />
                 {kind === "gallery" && item.media.length > 0 && (
                   <span className="absolute bottom-2 right-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-black/75 text-white backdrop-blur-sm shadow">
-                    📷 {item.media.length} {item.media.length === 1 ? "photo" : "photos"}
+                    📷 {item.media.length}{" "}
+                    {item.media.length === 1 ? "photo" : "photos"}
                   </span>
                 )}
               </div>
@@ -77,9 +87,12 @@ export function ContentList({
             <h2>{detailLink(item, item.title)}</h2>
             <p>{item.summary ?? "Summary not supplied."}</p>
             <span className="text-link">
-              {detailLink(item, `Read ${kind === "article" ? "article" : kind}`)}
+              {detailLink(
+                item,
+                `Read ${kind === "article" ? "article" : kind}`,
+              )}
             </span>
-          </article>
+          </Link>
         );
       })}
     </div>
@@ -90,7 +103,7 @@ export function ContentDetail({ item }: { readonly item: PublicContentItem }) {
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
 
   const activePhoto =
-    activePhotoIndex !== null ? item.media[activePhotoIndex] ?? null : null;
+    activePhotoIndex !== null ? (item.media[activePhotoIndex] ?? null) : null;
 
   return (
     <article className="content-detail space-y-6">
@@ -114,12 +127,7 @@ export function ContentDetail({ item }: { readonly item: PublicContentItem }) {
           ) : null}
         </dl>
       ) : null}
-
-      <div className="prose">
-        {item.body.split(/\n{2,}/).map((paragraph, index) => (
-          <p key={index}>{paragraph}</p>
-        ))}
-      </div>
+      <RichContentRenderer nodes={item.body} />
 
       {item.media.length > 0 ? (
         <section className="media-gallery mt-8">
@@ -191,7 +199,9 @@ export function ContentDetail({ item }: { readonly item: PublicContentItem }) {
                     <button
                       onClick={() =>
                         setActivePhotoIndex((prev) =>
-                          prev !== null && prev > 0 ? prev - 1 : item.media.length - 1,
+                          prev !== null && prev > 0
+                            ? prev - 1
+                            : item.media.length - 1,
                         )
                       }
                       className="absolute left-2 z-10 p-3 rounded-full bg-black/60 hover:bg-black/80 text-white font-bold transition-colors"
@@ -211,7 +221,9 @@ export function ContentDetail({ item }: { readonly item: PublicContentItem }) {
                     <button
                       onClick={() =>
                         setActivePhotoIndex((prev) =>
-                          prev !== null && prev < item.media.length - 1 ? prev + 1 : 0,
+                          prev !== null && prev < item.media.length - 1
+                            ? prev + 1
+                            : 0,
                         )
                       }
                       className="absolute right-2 z-10 p-3 rounded-full bg-black/60 hover:bg-black/80 text-white font-bold transition-colors"
@@ -225,7 +237,9 @@ export function ContentDetail({ item }: { readonly item: PublicContentItem }) {
                 {/* Caption / Alt text */}
                 {(activePhoto.caption || activePhoto.altText) && (
                   <div className="mt-4 text-center max-w-2xl px-4 text-xs text-white/90">
-                    <p className="font-medium">{activePhoto.caption ?? activePhoto.altText}</p>
+                    <p className="font-medium">
+                      {activePhoto.caption ?? activePhoto.altText}
+                    </p>
                   </div>
                 )}
               </div>

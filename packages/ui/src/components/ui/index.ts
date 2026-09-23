@@ -7,3 +7,4 @@ export * from "./separator";
 export * from "./input";
 export * from "./input-group";
 export * from "./field";
+export * from "./rich-content-renderer";

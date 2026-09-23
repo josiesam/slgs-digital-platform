@@ -3,6 +3,7 @@
 @import "@slgs/ui/styles.css";
 
 @source "../../../packages/ui/src";
+@import "katex/dist/katex.min.css";
 
 :root {
   /* Primary SLGS Brand Colors (Purple, Silver, Khaki) */

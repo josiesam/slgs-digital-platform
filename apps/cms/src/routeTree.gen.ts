@@ -34,6 +34,7 @@ import { Route as AuthenticatedDashboardAccessAccessRolesRouteImport } from './r
 import { Route as AuthenticatedDashboardAccessAccessUsersRouteImport } from './routes/_authenticated/dashboard/_access/access.users'
 import { Route as AuthenticatedDashboardContentContentIndexRouteImport } from './routes/_authenticated/dashboard/_content/content.index'
 import { Route as AuthenticatedDashboardContentContentAnnouncementRouteImport } from './routes/_authenticated/dashboard/_content/content.announcement'
+import { Route as AuthenticatedDashboardContentContentCreateRouteImport } from './routes/_authenticated/dashboard/_content/content.create'
 import { Route as AuthenticatedDashboardContentContentEventsRouteImport } from './routes/_authenticated/dashboard/_content/content.events'
 import { Route as AuthenticatedDashboardContentContentGalleryRouteImport } from './routes/_authenticated/dashboard/_content/content.gallery'
 import { Route as AuthenticatedDashboardContentContentMediaRouteImport } from './routes/_authenticated/dashboard/_content/content.media'
@@ -186,6 +187,12 @@ const AuthenticatedDashboardContentContentAnnouncementRoute =
     path: '/content/announcement',
     getParentRoute: () => AuthenticatedDashboardContentRoute,
   } as any)
+const AuthenticatedDashboardContentContentCreateRoute =
+  AuthenticatedDashboardContentContentCreateRouteImport.update({
+    id: '/content/create',
+    path: '/content/create',
+    getParentRoute: () => AuthenticatedDashboardContentRoute,
+  } as any)
 const AuthenticatedDashboardContentContentEventsRoute =
   AuthenticatedDashboardContentContentEventsRouteImport.update({
     id: '/content/events',
@@ -319,6 +326,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/access/roles': typeof AuthenticatedDashboardAccessAccessRolesRoute
   '/dashboard/access/users': typeof AuthenticatedDashboardAccessAccessUsersRoute
   '/dashboard/content/announcement': typeof AuthenticatedDashboardContentContentAnnouncementRoute
+  '/dashboard/content/create': typeof AuthenticatedDashboardContentContentCreateRoute
   '/dashboard/content/events': typeof AuthenticatedDashboardContentContentEventsRoute
   '/dashboard/content/gallery': typeof AuthenticatedDashboardContentContentGalleryRoute
   '/dashboard/content/media': typeof AuthenticatedDashboardContentContentMediaRoute
@@ -358,6 +366,7 @@ export interface FileRoutesByTo {
   '/dashboard/access/roles': typeof AuthenticatedDashboardAccessAccessRolesRoute
   '/dashboard/access/users': typeof AuthenticatedDashboardAccessAccessUsersRoute
   '/dashboard/content/announcement': typeof AuthenticatedDashboardContentContentAnnouncementRoute
+  '/dashboard/content/create': typeof AuthenticatedDashboardContentContentCreateRoute
   '/dashboard/content/events': typeof AuthenticatedDashboardContentContentEventsRoute
   '/dashboard/content/gallery': typeof AuthenticatedDashboardContentContentGalleryRoute
   '/dashboard/content/media': typeof AuthenticatedDashboardContentContentMediaRoute
@@ -405,6 +414,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/_access/access/roles': typeof AuthenticatedDashboardAccessAccessRolesRoute
   '/_authenticated/dashboard/_access/access/users': typeof AuthenticatedDashboardAccessAccessUsersRoute
   '/_authenticated/dashboard/_content/content/announcement': typeof AuthenticatedDashboardContentContentAnnouncementRoute
+  '/_authenticated/dashboard/_content/content/create': typeof AuthenticatedDashboardContentContentCreateRoute
   '/_authenticated/dashboard/_content/content/events': typeof AuthenticatedDashboardContentContentEventsRoute
   '/_authenticated/dashboard/_content/content/gallery': typeof AuthenticatedDashboardContentContentGalleryRoute
   '/_authenticated/dashboard/_content/content/media': typeof AuthenticatedDashboardContentContentMediaRoute
@@ -447,6 +457,7 @@ export interface FileRouteTypes {
     | '/dashboard/access/roles'
     | '/dashboard/access/users'
     | '/dashboard/content/announcement'
+    | '/dashboard/content/create'
     | '/dashboard/content/events'
     | '/dashboard/content/gallery'
     | '/dashboard/content/media'
@@ -486,6 +497,7 @@ export interface FileRouteTypes {
     | '/dashboard/access/roles'
     | '/dashboard/access/users'
     | '/dashboard/content/announcement'
+    | '/dashboard/content/create'
     | '/dashboard/content/events'
     | '/dashboard/content/gallery'
     | '/dashboard/content/media'
@@ -532,6 +544,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/_access/access/roles'
     | '/_authenticated/dashboard/_access/access/users'
     | '/_authenticated/dashboard/_content/content/announcement'
+    | '/_authenticated/dashboard/_content/content/create'
     | '/_authenticated/dashboard/_content/content/events'
     | '/_authenticated/dashboard/_content/content/gallery'
     | '/_authenticated/dashboard/_content/content/media'
@@ -745,6 +758,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardContentContentAnnouncementRouteImport
       parentRoute: typeof AuthenticatedDashboardContentRoute
     }
+    '/_authenticated/dashboard/_content/content/create': {
+      id: '/_authenticated/dashboard/_content/content/create'
+      path: '/content/create'
+      fullPath: '/dashboard/content/create'
+      preLoaderRoute: typeof AuthenticatedDashboardContentContentCreateRouteImport
+      parentRoute: typeof AuthenticatedDashboardContentRoute
+    }
     '/_authenticated/dashboard/_content/content/events': {
       id: '/_authenticated/dashboard/_content/content/events'
       path: '/content/events'
@@ -907,6 +927,7 @@ const AuthenticatedDashboardAccessRouteWithChildren =
 
 interface AuthenticatedDashboardContentRouteChildren {
   AuthenticatedDashboardContentContentAnnouncementRoute: typeof AuthenticatedDashboardContentContentAnnouncementRoute
+  AuthenticatedDashboardContentContentCreateRoute: typeof AuthenticatedDashboardContentContentCreateRoute
   AuthenticatedDashboardContentContentEventsRoute: typeof AuthenticatedDashboardContentContentEventsRoute
   AuthenticatedDashboardContentContentGalleryRoute: typeof AuthenticatedDashboardContentContentGalleryRoute
   AuthenticatedDashboardContentContentMediaRoute: typeof AuthenticatedDashboardContentContentMediaRoute
@@ -919,6 +940,8 @@ const AuthenticatedDashboardContentRouteChildren: AuthenticatedDashboardContentR
   {
     AuthenticatedDashboardContentContentAnnouncementRoute:
       AuthenticatedDashboardContentContentAnnouncementRoute,
+    AuthenticatedDashboardContentContentCreateRoute:
+      AuthenticatedDashboardContentContentCreateRoute,
     AuthenticatedDashboardContentContentEventsRoute:
       AuthenticatedDashboardContentContentEventsRoute,
     AuthenticatedDashboardContentContentGalleryRoute:

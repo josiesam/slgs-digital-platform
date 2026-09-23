@@ -38,7 +38,7 @@ export const Route = createFileRoute(
   component: MediaLibraryPage,
 });
 
-export function MediaLibraryPage() {
+function MediaLibraryPage() {
   const dashboard = Route.useLoaderData();
   const router = useRouter();
   const permissions = new Set<CmsPermission>(dashboard.permissions);

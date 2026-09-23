@@ -1,21 +1,17 @@
+import { S3_BUCKET_CONFIG } from "../constants";
 import * as React from "react";
-
-import type { OurFileRouter } from "../lib/uploadthing";
-import type {
-  ClientUploadedFileData,
-  UploadFilesOptions,
-} from "uploadthing/types";
-
-import { generateReactHelpers } from "@uploadthing/react";
 import { toast } from "sonner";
 import { z } from "zod";
 
-export type UploadedFile<T = unknown> = ClientUploadedFileData<T>;
+export type UploadedFile = {
+  url: string;
+  key?: string;
+  name?: string;
+  size?: number;
+  type?: string;
+};
 
-interface UseUploadFileProps extends Pick<
-  UploadFilesOptions<OurFileRouter["editorUploader"]>,
-  "headers" | "onUploadBegin" | "onUploadProgress" | "skipPolling"
-> {
+interface UseUploadFileProps {
   onUploadComplete?: (file: UploadedFile) => void;
   onUploadError?: (error: unknown) => void;
 }
@@ -23,74 +19,93 @@ interface UseUploadFileProps extends Pick<
 export function useUploadFile({
   onUploadComplete,
   onUploadError,
-  ...props
 }: UseUploadFileProps = {}) {
   const [uploadedFile, setUploadedFile] = React.useState<UploadedFile>();
   const [uploadingFile, setUploadingFile] = React.useState<File>();
   const [progress, setProgress] = React.useState<number>(0);
   const [isUploading, setIsUploading] = React.useState(false);
 
-  async function uploadThing(file: File) {
+  async function uploadFile(file: File) {
     setIsUploading(true);
     setUploadingFile(file);
+    setProgress(0);
 
     try {
-      const res = await uploadFiles("editorUploader", {
-        ...props,
-        files: [file],
-        onUploadProgress: ({ progress }) => {
-          setProgress(Math.min(progress, 100));
+      const s3Config = {
+        s3Bucket: S3_BUCKET_CONFIG!,
+      };
+
+      if (
+        !s3Config.s3Bucket?.accessKeyId ||
+        !s3Config.s3Bucket?.secretAccessKey ||
+        !s3Config.s3Bucket?.bucketName
+      ) {
+        throw new Error("S3 configuration is missing.");
+      }
+
+      const buffer = await file.arrayBuffer();
+      const fileBuffer = new Uint8Array(buffer);
+
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substring(2, 8);
+      const ext = file.name.split(".").pop() || "";
+      const key = `uploads/${timestamp}-${randomSuffix}.${ext}`;
+
+      const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
+
+      const s3Client = new S3Client({
+        endpoint: s3Config.s3Bucket.endpoint,
+        region: s3Config.s3Bucket.region || "us-east-1",
+        credentials: {
+          accessKeyId: s3Config.s3Bucket.accessKeyId,
+          secretAccessKey: s3Config.s3Bucket.secretAccessKey,
         },
+        forcePathStyle: true,
       });
 
-      setUploadedFile(res[0]);
+      const command = new PutObjectCommand({
+        Bucket: s3Config.s3Bucket.bucketName,
+        Key: key,
+        Body: fileBuffer,
+        ContentType: file.type,
+      });
 
-      onUploadComplete?.(res[0]!);
+      // Fake progress (AWS SDK v3 limitation)
+      const interval = setInterval(() => {
+        setProgress((p) => Math.min(p + Math.random() * 15, 90));
+      }, 200);
 
-      return uploadedFile;
-    } catch (error) {
-      const errorMessage = getErrorMessage(error);
+      await s3Client.send(command);
 
-      const message =
-        errorMessage.length > 0
-          ? errorMessage
-          : "Something went wrong, please try again later.";
+      clearInterval(interval);
+      setProgress(100);
 
-      toast.error(message);
+      const baseUrl = s3Config.s3Bucket.accessUrl?.replace(/\/$/, "") || "";
+      const encodedKey = key.split("/").map(encodeURIComponent).join("/");
 
-      onUploadError?.(error);
-
-      // Mock upload for unauthenticated users
-      // toast.info('User not logged in. Mocking upload process.');
-      const mockUploadedFile = {
-        key: "mock-key-0",
-        appUrl: `https://mock-app-url.com/${file.name}`,
+      const result: UploadedFile = {
+        url: `${baseUrl}/${encodedKey}`,
+        key,
         name: file.name,
         size: file.size,
         type: file.type,
-        url: URL.createObjectURL(file),
-      } as UploadedFile;
-
-      // Simulate upload progress
-      let progress = 0;
-
-      const simulateProgress = async () => {
-        while (progress < 100) {
-          await new Promise((resolve) => setTimeout(resolve, 50));
-          progress += 2;
-          setProgress(Math.min(progress, 100));
-        }
       };
 
-      await simulateProgress();
+      setUploadedFile(result);
+      onUploadComplete?.(result);
 
-      setUploadedFile(mockUploadedFile);
+      return result;
+    } catch (error) {
+      const message = getErrorMessage(error);
+      toast.error(message);
+      onUploadError?.(error);
+      console.debug("s3 error", error);
 
-      return mockUploadedFile;
+      throw error;
     } finally {
-      setProgress(0);
       setIsUploading(false);
       setUploadingFile(undefined);
+      setProgress(0);
     }
   }
 
@@ -98,13 +113,10 @@ export function useUploadFile({
     isUploading,
     progress,
     uploadedFile,
-    uploadFile: uploadThing,
+    uploadFile,
     uploadingFile,
   };
 }
-
-export const { uploadFiles, useUploadThing } =
-  generateReactHelpers<OurFileRouter>();
 
 export function getErrorMessage(err: unknown) {
   const unknownError = "Something went wrong, please try again later.";
@@ -118,10 +130,4 @@ export function getErrorMessage(err: unknown) {
     return err.message;
   }
   return unknownError;
-}
-
-export function showErrorToast(err: unknown) {
-  const errorMessage = getErrorMessage(err);
-
-  return toast.error(errorMessage);
 }

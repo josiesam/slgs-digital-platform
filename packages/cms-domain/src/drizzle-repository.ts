@@ -63,7 +63,7 @@ const values = (item: CmsContent) => ({
   title: item.title,
   slug: item.slug,
   summary: item.summary,
-  body: item.body,
+  body: typeof item.body === "string" ? item.body : JSON.stringify(item.body),
   seoTitle: item.seoTitle,
   seoDescription: item.seoDescription,
   canonicalPath: item.canonicalPath,

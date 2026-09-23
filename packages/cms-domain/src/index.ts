@@ -9,6 +9,8 @@ import {
   type ScopeBinding,
 } from "@slgs/permissions";
 
+import { type Value } from "@slgs/ui";
+
 export const contentTypeSchema = z.enum([
   "page",
   "article",
